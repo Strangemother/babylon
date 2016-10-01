@@ -9,7 +9,7 @@ run = function(interfaceConfig){
 
 start = function(config){
     var game = config || {}
-    console.log('starting')
+    console.log('(main) start()')
     var gi = new GameInterface(CONFIG);
     gi.run(game)
     return gi

@@ -2,23 +2,25 @@
 
 var I = INSTANCE;
 
-class GameInterface extends I.ProxyClass {
+I._ = class GameInterface extends I.ProxyClass {
 
-    constructor(){
-        console.log('GameInterface super')
-        super()
+    __declare__() {
+        return { global: true }
+    }
+
+    __assets__() {
+        return ['foo.js']
     }
 
     init(config){
-        console.log('GameInterface init')
-        this.log(config)
+        this.log('config', config)
         this.config = config;
     }
 
     run(gameConfig){
-        this.log('Run', gameConfig)
+        this.log('Run', gameConfig);
+        this.gameConfig = gameConfig;
     }
 }
 
-window.GameInterface = GameInterface
 })()

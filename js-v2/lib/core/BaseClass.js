@@ -10,7 +10,7 @@ var main = function(){
     BaseClass.instance = _instance;
 
     _instance.add(BaseClass)
-    _instance.add('ProxyClass', ProxyClass)
+    _instance.add('ProxyClass', _ProxyClass)
 
     global.INSTANCE = _instance.proxy();
     global.IAPP = _instance.InstanceCreator;
@@ -18,7 +18,7 @@ var main = function(){
 
 var mixHandler = function(...mixins){
 
-    console.log('Mixing', mixins)
+    // console.log('Mixing', mixins)
     for (var i = 0; i < mixins.length; i++) {
         if(mixins[i] == undefined) {
 
@@ -38,6 +38,8 @@ mix.addHandler(mixHandler)
 
 // ---------------------------------------------
 //
+
+var doneProxySymbol = Symbol('proxyComplete');
 
 
 class BaseClass {
@@ -82,6 +84,31 @@ class Instance extends mix(BaseClass, LogMixin) {
         return _instance
     }
 
+
+
+    get _(){
+        return this._last;
+    }
+
+    set _(oTarget) {
+        this._last = oTarget;
+
+        if(!oTarget[doneProxySymbol]){
+            oTarget[doneProxySymbol] = doneProxySymbol;
+            console.info('Apply Instance definition:', oTarget.name)
+
+            var d = oTarget.prototype.__declare__.call(oTarget, oTarget);
+            if(d && d.global === true) {
+                console.info('globalising:', oTarget.name)
+                window[oTarget.name] = oTarget;
+            };
+
+            _instance.add(oTarget.name, oTarget)
+        };
+
+        return true;
+    };
+
     add(key, data){
         /* add a key of data to the instance*/
         if(data === undefined) {
@@ -90,7 +117,7 @@ class Instance extends mix(BaseClass, LogMixin) {
         }
 
         // debugger
-        this.log('add', key)
+        //this.log('add', key)
         this.instance[key] = data;
         return this.instance[key] == data;
     }
@@ -113,34 +140,24 @@ class Instance extends mix(BaseClass, LogMixin) {
 }
 
 
-class MetaClass extends Instance {
+class ProxyClass extends mix(BaseClass, LogMixin){
 
     constructor(){
-        //super()
         super()
-        console.log('ProxyClass Super', this.constructor.name)
         return this.init.apply(this, arguments)
     }
 
-    static __declare__(klass) {
-        log('__declare__', klass.name)
+    __declare__(klass) {
+        log('__declare__', this.name, klass.name)
     }
-
-    init() {}
 }
 
-var doneProxySymbol = Symbol('proxyComplete');
 
-var ProxyClass = new Proxy(MetaClass, {
+var _ProxyClass = new Proxy(ProxyClass, {
   get: function (oTarget, sKey) {
-    if(!oTarget[doneProxySymbol]){
-        oTarget[doneProxySymbol] = doneProxySymbol;
-        console.log('!get', sKey, oTarget.name);
-        oTarget.__declare__(oTarget)
-        _instance.add(oTarget.name, oTarget)
-    };
 
-    return oTarget[sKey] || oTarget.getItem(sKey) || undefined;
+
+    return oTarget[sKey] || undefined;
   }/*,
   set: function (oTarget, sKey, vValue) {
     console.log('set')
