@@ -1,0 +1,69 @@
+<component name='camera' rv-class-unbound=module.unbound>
+    <button templated='config' action='config'>
+        <i class="material-icons">settings</i>
+    </button>
+
+    <section name='component_size'>
+
+        <label>
+            <span class="text">W</span>
+            <value view.width />
+        </label>
+
+        <label>
+            <span class="text">H</span>
+            <value view.height />
+        </label>
+
+    </section>
+
+    <h1><value module.name /></h1>
+
+    <section class='inline'>
+        <section>
+            <h1>Position</h1>
+
+            <label>
+                <span class="text">X</span>
+                <input templated=number rv-value=module.position.x>
+            </label>
+
+            <label>
+                <span class="text">Y</span>
+                <input templated=number rv-value=module.position.y>
+            </label>
+
+            <label>
+                <span class="text">Z</span>
+                <input templated=number rv-value=module.position.z>
+            </label>
+
+        </section>
+
+        <section>
+
+            <h1>Rotation</h1>
+
+            <label>
+                <span class="text">X</span>
+                <input templated=number rv-value=module.rotation.x>
+            </label>
+
+            <label>
+                <span class="text">Y</span>
+                <input templated=number rv-value=module.rotation.y>
+            </label>
+
+            <label>
+                <span class="text">Z</span>
+                <input templated=number rv-value=module.rotation.z>
+            </label>
+
+        </section>
+
+    </section>
+
+    <section class='buttons'>
+        <button templated action=saveValues>Set</button>
+    </section>
+</component>

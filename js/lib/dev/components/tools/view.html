@@ -1,0 +1,26 @@
+<component name='tools'>
+
+    <!-- Component has a resizer popup -->
+    <section name='component_size'>
+
+        <label>
+            <span class="text">W</span>
+            <value view.width />
+        </label>
+
+        <label>
+            <span class="text">H</span>
+            <value view.height />
+        </label>
+
+    </section>
+
+    <h1><value module.name /></h1>
+
+    <!-- <css>./config.css</css> -->
+
+    <section class='buttons center-center'>
+        <button templated action=addCell>Add</button>
+        <button templated action=removeCell>Remove</button>
+    </section>
+</component>

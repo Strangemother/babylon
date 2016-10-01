@@ -1,0 +1,45 @@
+<component name='config'>
+    <h1>Configuration utility</h1>
+
+    <section>
+        <h1>configure: <value module.item.name /></h1>
+    </section>
+
+    <section name='size'>
+
+        <div class="row">
+
+            <label>
+                <span class="text">width</span>
+                <input templated=number rv-value=module.item.width>
+            </label>
+
+            <label>
+                <span class="text">height</span>
+                <input templated=number rv-value=module.item.height>
+            </label>
+
+        </div>
+
+        <div class="row">
+
+            <label>
+                <span class="text">column</span>
+                <input templated=number rv-value=module.item.col>
+            </label>
+
+            <label>
+                <span class="text">row</span>
+                <input templated=number rv-value=module.item.row>
+            </label>
+
+        </div>
+
+
+    </section>
+
+    <section class="buttons">
+        <button templated action=saveValues>Set</button>
+    </section>
+
+</component>
