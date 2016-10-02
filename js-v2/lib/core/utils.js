@@ -12,7 +12,6 @@
         console.log.apply(console, v)
     }
 
-
     var mix = global.mix = function(Parent /*, ...mixins*/) {
         // Use slice as node 4 does not support param spread.
         for (var i = 0; i < mix._handlers.length; i++) {
@@ -122,5 +121,6 @@
 
         return ClassForwardingProxy;
     }
+
 
 })(window);
