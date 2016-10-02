@@ -1,5 +1,4 @@
 
-
 run = function(interfaceConfig){
     g = start(interfaceConfig);
     //gs = g.level.scene;
@@ -13,7 +12,7 @@ start = function(config){
     var gi = new GameInterface(CONFIG);
     gi.run(game)
     return gi
-}
+};
 
-window.apos = run({ level: 'scaleTest' })
+window.apos = run({ level: 'scaleTest' });
 
