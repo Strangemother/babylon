@@ -72,7 +72,7 @@ class Instance extends mix(BaseClass, LogMixin) {
 
         super()
         this.classes = {};
-
+        this.targets = {}
         if(data !== undefined) {
             for(var key in data) {
                 this[key] = data[key]
@@ -92,9 +92,11 @@ class Instance extends mix(BaseClass, LogMixin) {
 
     set _(oTarget) {
         this._last = oTarget;
+        var name = oTarget.name;
+        var target = this.targets[name]
 
-        if(!oTarget[doneProxySymbol]){
-            oTarget[doneProxySymbol] = doneProxySymbol;
+        if(!target){
+            this.targets[name] = doneProxySymbol;
             console.info('Apply Instance definition:', oTarget.name)
 
             var d = oTarget.prototype.__declare__.call(oTarget, oTarget);
@@ -117,9 +119,24 @@ class Instance extends mix(BaseClass, LogMixin) {
         }
 
         // debugger
-        //this.log('add', key)
+        this.log('add', key)
+        var f = data.prototype && data.prototype.__assets__;
+        if(f !== undefined) {
+            var assets = data.prototype.__assets__.call(data);
+            if(assets != undefined) {
+                this.loadAssets(assets, data, key)
+            }
+        };
+
         this.instance[key] = data;
         return this.instance[key] == data;
+    }
+
+    loadAssets(assets, originator, name) {
+        if(assetLoader != undefined) {
+            console.log('Loading assets for:', name, assets)
+            assetLoader.append(assets)
+        }
     }
 
     proxy(){
@@ -150,13 +167,17 @@ class ProxyClass extends mix(BaseClass, LogMixin){
     __declare__(klass) {
         log('__declare__', this.name, klass.name)
     }
+
+    __assets__() {
+        /* return assets to load through the global assetLoader.
+        return any valid type acceptable for assetLoader.require() */
+        return undefined // []
+    }
 }
 
 
 var _ProxyClass = new Proxy(ProxyClass, {
   get: function (oTarget, sKey) {
-
-
     return oTarget[sKey] || undefined;
   }/*,
   set: function (oTarget, sKey, vValue) {
