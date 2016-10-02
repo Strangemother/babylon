@@ -9,6 +9,7 @@ var assets = [
    , 'js-v2/lib/core/utils.js'
 
    , 'js-v2/lib/core/BaseClass.js'
+   , 'js-v2/lib/BabylonInterface.js'
    , 'js-v2/lib/GameInterface.js'
 
 
@@ -19,9 +20,10 @@ var assets = [
 
 assetLoader
    // Clear the cache
+   .clear()
    .disable()
    // Some init config.
-   .config({ bump: true })
+   .config({ bump: true, loadPath: './js-v2' })
    // Apply
    .assets(assets)
    // start: load(assets)
