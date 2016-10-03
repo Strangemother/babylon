@@ -59,6 +59,10 @@ I._ = class BabylonBase extends I.ProxyClass {
     }
 
     runLoop(config, engine) {
+        return this._loop(config, engine)
+    }
+
+    _loop(config, engine) {
         engine = engine || this._engine;
         var self = this;
 
@@ -90,15 +94,21 @@ I._ = class BabylonInterface extends I.BabylonBase {
         return true
     }
 
-    runLoop(gameConfig){
+    runLoop(gameConfig, engine){
         /*Start the run loop initializing the basic scene and camera.*/
         this._scene = this.scene(gameConfig.name);
         this._camera = this.camera(this._scene, this._canvas);
-        this._engine = this.engine(this._canvas);
+        engine = engine || this._engine ||  this.engine(this._canvas);
 
-        return super.runLoop(this._scene, this._engine);
+        window.dispatchNativeEvent && dispatchNativeEvent('gamescenerun', this)
+
+        return super.runLoop(this._scene, engine);
     }
 
+    renderLoop(scene) {
+        scene.render()
+        return super.renderLoop(scene)
+    }
 
     camera(scene, canvas){
         scene = scene || this._scene;
