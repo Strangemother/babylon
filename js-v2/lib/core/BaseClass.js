@@ -13,7 +13,6 @@ var main = function(){
     _instance.add('ProxyClass', _ProxyClass)
 
     global.INSTANCE = _instance.proxy();
-    global.IAPP = _instance.InstanceCreator;
 }
 
 var mixHandler = function(...mixins){
@@ -37,7 +36,6 @@ mix.addHandler(mixHandler)
 
 
 // ---------------------------------------------
-//
 
 var doneProxySymbol = Symbol('proxyComplete');
 
@@ -61,7 +59,7 @@ class LogMixin {
             v.push(arguments[i])
         }
 
-        console.log.apply(console, v)
+        // console.log.apply(console, v)
     }
 }
 
@@ -72,7 +70,8 @@ class Instance extends mix(BaseClass, LogMixin) {
 
         super()
         this.classes = {};
-        this.targets = {}
+        this.targets = {};
+        this.symbol = Symbol('Instance')
         if(data !== undefined) {
             for(var key in data) {
                 this[key] = data[key]
@@ -83,8 +82,6 @@ class Instance extends mix(BaseClass, LogMixin) {
     get instance() {
         return _instance
     }
-
-
 
     get _(){
         return this._last;
@@ -97,13 +94,15 @@ class Instance extends mix(BaseClass, LogMixin) {
 
         if(!target){
             this.targets[name] = doneProxySymbol;
-            console.info('Apply Instance definition:', oTarget.name)
+            // console.info('Apply Instance definition:', oTarget.name)
 
-            var d = oTarget.prototype.__declare__.call(oTarget, oTarget);
-            if(d && d.global === true) {
-                console.info('globalising:', oTarget.name)
-                window[oTarget.name] = oTarget;
-            };
+            if(oTarget.prototype.__declare__) {
+                var d = oTarget.prototype.__declare__.call(oTarget, oTarget);
+                if(d && d.global === true) {
+                    console.info('globalising:', oTarget.name)
+                    window[oTarget.name] = oTarget;
+                };
+            }
 
             _instance.add(oTarget.name, oTarget)
         };
@@ -111,25 +110,38 @@ class Instance extends mix(BaseClass, LogMixin) {
         return true;
     };
 
-    add(key, data){
-        /* add a key of data to the instance*/
-        if(data === undefined) {
-            data = key;
-            key = data.name;
+    add(key, Klass){
+        /* add a key of Klass to the instance*/
+
+        if(Klass === undefined) {
+            Klass = key;
+            key = Klass.name;
         }
 
         // debugger
-        this.log('add', key)
-        var f = data.prototype && data.prototype.__assets__;
+        this.log('add', key);
+
+        var proto = Klass.prototype;
+        var f = proto && proto.__assets__;
         if(f !== undefined) {
-            var assets = data.prototype.__assets__.call(data);
+            var assets = proto.__assets__.call(Klass);
             if(assets != undefined) {
-                this.loadAssets(assets, data, key)
+                this.loadAssets(assets, Klass, key)
             }
         };
 
-        this.instance[key] = data;
-        return this.instance[key] == data;
+        if(proto.__instance__ !== undefined) {
+            /* get any instance alterations */
+            Object.assign(this, proto.__instance__() )
+        };
+
+        this.instance[key] = Klass;
+
+        if(_instance.classes[key] == undefined) {
+            _instance.classes[key] = Klass
+        }
+
+        return this.instance[key] == Klass;
     }
 
     loadAssets(assets, originator, name) {
@@ -161,7 +173,9 @@ class ProxyClass extends mix(BaseClass, LogMixin){
 
     constructor(){
         super()
-        return this.init.apply(this, arguments)
+        if(arguments.length !== undefined) {
+            return this.init.apply(this, arguments)
+        }
     }
 
     __declare__(klass) {
@@ -173,6 +187,8 @@ class ProxyClass extends mix(BaseClass, LogMixin){
         return any valid type acceptable for assetLoader.require() */
         return undefined // []
     }
+
+    init(){}
 }
 
 

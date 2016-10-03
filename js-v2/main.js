@@ -1,3 +1,5 @@
+var gi;
+var I = INSTANCE;
 
 run = function(interfaceConfig){
     g = start(interfaceConfig);
@@ -9,10 +11,15 @@ run = function(interfaceConfig){
 start = function(config){
     var game = config || {}
     console.log('(main) start()')
-    var gi = new GameInterface(CONFIG);
-    gi.run(game)
+    gi = new AppInterface(CONFIG);
+    gi.run(game);
     return gi
 };
+
+createBox = function(){
+    var box = new I.Box;
+    box.addChild()
+}
 
 window.apos = run({ level: 'scaleTest' });
 

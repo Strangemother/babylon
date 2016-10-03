@@ -10,8 +10,9 @@ var assets = [
 
    , 'js-v2/lib/core/BaseClass.js'
    , 'js-v2/lib/BabylonInterface.js'
-   , 'js-v2/lib/GameInterface.js'
+   , 'js-v2/lib/AppInterface.js'
 
+   , 'js-v2/lib/objects/BabylonMesh.js'
 
    // App
    , 'js-v2/config.js'

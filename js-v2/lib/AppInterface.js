@@ -2,7 +2,7 @@
 
 var I = INSTANCE;
 
-I._ = class GameInterface extends I.BabylonInterface {
+I._ = class AppInterface extends I.BabylonInterface {
 
     __declare__() {
         return { global: true }
