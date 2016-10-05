@@ -41,6 +41,9 @@ var doneProxySymbol = Symbol('proxyComplete');
 
 
 class BaseClass {
+    __init__(){
+        console.log('BaseClass:', this.constructor.name)
+    }
 
     get instance(){
         return _instance;
@@ -66,12 +69,18 @@ class LogMixin {
 
 class Instance extends mix(BaseClass, LogMixin) {
 
-    constructor(data){
+    __init__(data){
 
-        super()
+        super.__init__()
+
+        console.log('Instance constructor')
         this.classes = {};
+        this._classes = {};
         this.targets = {};
+        this._mutators = {};
+
         this.symbol = Symbol('Instance')
+
         if(data !== undefined) {
             for(var key in data) {
                 this[key] = data[key]
@@ -84,10 +93,14 @@ class Instance extends mix(BaseClass, LogMixin) {
     }
 
     get _(){
-        return this._last;
+        return this.proxyFunc('classes', this)
     }
 
     set _(oTarget) {
+        this.applyClass(oTarget)
+    };
+
+    applyClass(oTarget, parent, key, decentChain) {
         this._last = oTarget;
         var name = oTarget.name;
         var target = this.targets[name]
@@ -104,15 +117,134 @@ class Instance extends mix(BaseClass, LogMixin) {
                 };
             }
 
-            _instance.add(oTarget.name, oTarget)
+            _instance.add(oTarget.name, oTarget, parent, key, decentChain)
         };
 
         return true;
-    };
+    }
 
-    add(key, Klass){
+    callPlugins(instance, name, scene, _id, config) {
+        var klass = instance.constructor;
+        var klassName = klass.name;
+        var keys = Object.keys(config);
+        var pluginsConfig = config || {}, v;
+
+        console.log('Calling plugins for', klassName, name);
+
+        for (var i = keys.length - 1; i >= 0; i--) {
+            var key = keys[i];
+            if(key in I.classes.mutators) {
+                var mutator = this._mutators[key];
+
+                if(mutator === undefined) {
+                    console.log('making mutator:', key, klassName)
+                    mutator = this._mutators[key] = new Proxy({
+                        classes: I.classes.mutators
+                        , key: key
+                        , _classes: {}
+                    }, {
+                        get: function(target, key, prox){
+                            debugger
+                            if(!target._classes) {
+                                for(var k in target.classes) {
+                                    target._classes[k] = new target.classes[k]
+                                }
+                            }
+
+                            for(var k in target._classes) {
+                                v = target._classes[k][name](pluginsConfig, _id, scene, instance);
+                            }
+                            // new (this.classes.mutators[key]);
+                        }
+                    })
+                };
+
+                var f = mutator[name] || (mutator.classes) ? mutator.classes[key]: undefined
+                if(f == undefined) {
+                  console.log('undefined mutator', name, klassName)
+                } else {
+                  v = f[name](pluginsConfig, _id, scene, instance);  
+                }
+                
+
+                if(v !== undefined) {
+                    pluginsConfig = v
+                }
+            }
+        }
+
+        return pluginsConfig
+    }
+
+    resolveChain(proxyChain, key, setValue) {
+
+        let parent = proxyChain;
+        let keys =  []
+
+        while(parent != this) {
+            keys.push(parent.key);
+            parent = parent.parent;
+        };
+
+        parent = this;
+
+        for (var i = keys.length - 1; i >= 0; i--) {
+            var dkey = keys[i];
+            if(parent[dkey] == undefined) {
+                parent[dkey] = {}
+                debugger
+                console.warn('cannot find key in instance:', dkey)
+            }
+
+            parent = parent[dkey]
+        };
+
+        var _keys = ([key].concat(keys)).reverse()
+        if(setValue !== undefined && key != undefined) {
+            if( isClass(setValue) ) {
+                this.applyClass(setValue, parent, key, _keys)
+            } else {
+                parent[key] = setValue;
+            }
+
+        }
+
+        return {}
+    }
+
+    proxyFunc(key, p){
+
+
+        var self = this;
+        var d = { parent: p, accessors: {}, key: key };
+
+        return new Proxy(d, {
+            set: function(t, k, v){
+                if( IT.g(k).is('string') ){
+                    self.resolveChain(t, k, v)
+                }
+                return true;
+            }
+
+            , get: function(t, k) {
+
+                if( IT.g(k).is('string') ){
+                    if(self[k] == undefined) {
+                        // self[k] = {}
+                        t.accessors = self[k]
+                        return self.proxyFunc(k, t);
+                    }
+                } else  {
+                    return self[k]
+                }
+
+            }
+        });
+    }
+
+    add(key, Klass, parent, parentKey, decentChain){
         /* add a key of Klass to the instance*/
-
+        parent = parent || this.instance;
         if(Klass === undefined) {
             Klass = key;
             key = Klass.name;
@@ -135,13 +267,24 @@ class Instance extends mix(BaseClass, LogMixin) {
             Object.assign(this, proto.__instance__() )
         };
 
-        this.instance[key] = Klass;
+        if(parentKey) {
+            if(parentKey in parent == false) {
+                parent[parentKey] = {};
+            };
+
+            parent = parent[parentKey]
+        };
+
+        parent[key] = Klass;
 
         if(_instance.classes[key] == undefined) {
             _instance.classes[key] = Klass
+        } else {
+            console.warn(`${key} exists as a class`)
         }
 
-        return this.instance[key] == Klass;
+        Klass.__decentChain__ = decentChain;
+        return parent[key] == Klass;
     }
 
     loadAssets(assets, originator, name) {
@@ -171,8 +314,9 @@ class Instance extends mix(BaseClass, LogMixin) {
 
 class ProxyClass extends mix(BaseClass, LogMixin){
 
-    constructor(){
-        super()
+    __init__(){
+        super.__init__()
+        console.log('Executing proxy class:', this.constructor.name)
         if(arguments.length !== undefined) {
             return this.init.apply(this, arguments)
         }
