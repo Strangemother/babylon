@@ -6,7 +6,6 @@ var SIZE = {
     FULL: 'full'
 }
 
-
 I._ = class BabylonBase extends I.ProxyClass {
 
     __assets__() {
@@ -135,6 +134,7 @@ I._ = class BabylonInterface extends I.BabylonBase {
             this._scene.clearColor = this.sceneColor();
         }
 
+        I.scene = this.scene.bind(this);
         return this._scene;
     }
 
