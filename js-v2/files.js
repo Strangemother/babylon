@@ -14,6 +14,12 @@ var assets = [
 
    , 'js-v2/lib/objects/BabylonMesh.js'
 
+   , 'js-v2/vendor/mocha/mocha.js'
+   , 'js-v2/vendor/unitjs/browser/dist/unit.js'
+   , 'js-v2/lib/tests.js'
+
+   , 'js-v2/tests/InstanceTests.js'
+
    // App
    , 'js-v2/config.js'
    , 'js-v2/main.js'
