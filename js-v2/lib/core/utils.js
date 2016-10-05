@@ -23,6 +23,10 @@
 
     mix._handlers = []
 
+    mix.ambigiousInherit = true;
+    mix.rightInherit = true;
+    mix.ambigiousInheritWarn = true;
+
     mix.addHandler = function(f){
         mix._handlers.push(f)
     }
@@ -91,6 +95,13 @@
                 const firstValue = foundValues[0];
                 const areFoundValuesSame = foundValues.every(value => value === firstValue);
                 if (!areFoundValuesSame) {
+                    if(mix.ambigiousInherit) {
+                        if(mix.ambigiousInheritWarn) {
+                            console.warn(`Inheriting ambigious property: ${propertyKey}`)
+                        };
+                        let v = mix.rightInherit? foundValues.length-1: 0;
+                        return foundValues[v]
+                    }
                     throw new Error(`Ambiguous property: ${propertyKey}.`);
                 }
 
@@ -111,11 +122,14 @@
      */
     var xmultipleClasses = function xmultipleClasses(parents) {
         // A dummy constructor because a class can only extend something constructible
-        function ConstructibleProxyTarget() {}
+        function ConstructibleProxyTarget() {
+            console.log('xmultipleClasses ConstructibleProxyTarget:', this.constructor.name)
+            return this.__init__.apply(this, arguments);
+        }
 
         // Replace prototype with a forwarding proxy to parents' prototypes
         ConstructibleProxyTarget.prototype = xmultipleObjects(parents.map(parent => parent.prototype));
-
+        ConstructibleProxyTarget.parents = parents
         // Forward static calls to parents
         const ClassForwardingProxy = xmultipleObjects(parents, ConstructibleProxyTarget);
 
@@ -124,3 +138,224 @@
 
 
 })(window);
+
+
+var funcChain = function(def){
+    /* Returns a function, providing a caller and function stacker.
+    When data is passed to the funcChain all functions are called in order
+    The result is the mutated result.
+
+    chain = funcChain([])
+
+    chain.add(func1)
+    id = chain.add(func2)
+
+    bool = chain.has(func1)
+    bool = chain.has(id)
+
+    chain.remove(id)
+    chain.remove(func1)
+
+    res = chain(data, 1, false)
+
+    chain.clear()
+    */
+    var _f = function chainCaller(...args) {
+        return _caller(...args)
+    }
+
+    var gId = function(){
+        return ( (Math.random() + +(new Date) )).toString(14);
+    }
+
+    var has = function(f){
+        return _f.functions.indexOf(f) > -1
+    }
+
+    var add = function(f){
+        return _f.functions.push(f);
+    }
+
+    var remove = function(f) {
+        if(_f.has(f)){
+            return _f.functions.splice(_f.functions.indexOf(f), 1)
+        }
+        return false;
+    }
+
+    var clear = function(){
+        _f.functions = [];
+    }
+
+    _f._id = gId()
+    _f.default = def
+    _f.functions = []
+    _f.add = add
+    _f.has = has
+    _f.remove = remove
+    _f.clear = clear;
+
+    var _caller = function(...args){
+        var res = _f.def;
+        for (var i = 0; i < _f.functions.length; i++) {
+            d = p.functions[i](res);
+            if(d !== undefined) {
+                res = d;
+            }
+        }
+
+        return res;
+    }
+
+
+    return _f;
+}
+
+
+/* Util */
+var isClass = function (e){
+    /* Cheap check to determin if an entity is a class, over an
+    object or instance of a class.*/
+    var isf = this.isFunction(e)
+        , hop = e.hasOwnProperty('prototype')
+    if(isf && hop) {
+        // is function and has protoype.
+        // should be a class requiring new
+        return true
+    }
+
+    return false;
+}
+
+var isFunction = function (e) {
+    return it(e).is(Function)
+}
+
+var isObject = function (e){
+    return it(e).is(Object);
+}
+
+var isBlank = function(stringly) {
+    return !(
+            stringly != ''
+            && stringly != null
+            && stringly != undefined
+        )
+}
+
+
+function classChain(klass, namesOnly){
+    /* return a list of classes for a given class chain.
+    Provide second argument True to return names
+
+        classChain(Stage, true)
+        ["Stage", "DisplayObject", "Drawable", "DrawerEvents", "DrawBase", "Delegate"]
+    */
+    var v = klass
+        , res = []
+        ;
+
+    while(!isBlank(v.name)) {
+        res.push( (namesOnly === true? v.name: v) )
+        v = Object.getPrototypeOf(v);
+    }
+
+    return res;
+}
+
+
+var chunkArray = function(data, size){
+    var arrays = [];
+
+    while (data.length > 0) {
+        arrays.push(data.splice(0, size));
+    };
+
+    return arrays
+}
+
+var asDict = function(list, headers){
+    /*
+    convert the list into a diction using the header list
+    (of the same length) to map each list item.*/
+    var res = {};
+
+    if(list.length == headers.length) {
+        for (var i = 0; i < headers.length; i++) {
+            res[headers[i]] = list[i];
+        }
+    } else {
+        console.error('asDict match length false')
+    }
+
+    return res;
+}
+
+
+var mergeOnKey = function(key, ...arrays) {
+    /* returns an array of arrays, resulting in
+    the merged results of all arrays based on key */
+
+    // Create dictionary of keys whilst
+    // mergin objects.
+    res = []
+    var caches = {}
+    for (var i = 0; i < arrays.length; i++) {
+        var arr = arrays[i];
+
+        if(caches[arr] === undefined){
+            caches[arr] = {}
+        }
+
+        var c = caches[arr];
+
+        for (var j = 0; j < arr.length; j++) {
+            // iterate an array, caching keys
+            var obj = arr[j];
+            var v = obj[key];
+            if(c[v] == undefined) {
+                c[v] = [obj]
+            } else{
+                c[v].push(obj);
+            }
+        }
+    }
+
+    var cacheMerge = {}
+    // convert the caches to flat objects;
+    for(var ckey in caches) {
+        // flatten
+        for(var _key in caches[ckey]) {
+            // _key is the requested
+            // value of each objects
+            // key lookup.
+
+            if(cacheMerge[_key] == undefined) {
+                cacheMerge[_key] = []
+            }
+            // Sub array of one cache object
+            // key match list.
+
+            // objects of key 'key'
+            cacheMerge[_key] = cacheMerge[_key].concat(caches[ckey][_key])
+
+        }
+
+        res = res.concat(caches[ckey]);
+    }
+
+    var cacheRes = []
+    /* cache merge is a result of all objects sorted by the given key*/
+    for(var _key in cacheMerge) {
+        var r = [{}];
+        for (var i = 0; i < cacheMerge[_key].length; i++) {
+            r.push(cacheMerge[_key][i])
+        }
+
+        var o = Object.assign.apply(Object, r);
+        cacheRes.push(o)
+    }
+
+    return cacheRes;
+    return res;
+}
