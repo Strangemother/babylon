@@ -18,8 +18,23 @@ start = function(config){
 
 createBox = function(){
     var box = new I.Box;
-    box.addChild()
+    box.addChild({
+        material: materials.white
+        , width: 3
+    })
+
+
+    var light = new I.Light({
+        intensity: .9
+    });
+
+    light.addChild()
+
+    return [box, light];
 }
 
 window.apos = run({ level: 'scaleTest' });
 
+[box, light] = createBox()
+
+Test.run()
