@@ -12,6 +12,8 @@ var assets = [
    , 'js-v2/lib/BabylonInterface.js'
    , 'js-v2/lib/AppInterface.js'
 
+   , 'js/lib/materials.js'
+
    , 'js-v2/lib/objects/BabylonMesh.js'
 
    , 'js-v2/vendor/mocha/mocha.js'
