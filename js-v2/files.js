@@ -9,6 +9,7 @@ var assets = [
    , 'js-v2/lib/core/utils.js'
 
    , 'js-v2/lib/core/BaseClass.js'
+   , 'js-v2/lib/objects.mutators.js'
    , 'js-v2/lib/BabylonInterface.js'
    , 'js-v2/lib/AppInterface.js'
 
