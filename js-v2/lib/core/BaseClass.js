@@ -123,6 +123,22 @@ class Instance extends mix(BaseClass, LogMixin) {
         return true;
     }
 
+    makeMutator(MutatorClass, key, instance, name, scene, _id, config) {
+        console.log( 'makeMutator', key, name, _id, config)
+        var m = new MutatorClass()
+        return m;
+    }
+
+    callMutator(pluginConfig, mutator, key, instance, name, scene, _id, config) {
+        console.log( 'callMutator', key, name, _id, config)
+
+        debugger;
+        var r = mutator;
+
+        if(r == undefined) r = config;
+        return r;
+    }
+
     callPlugins(instance, name, scene, _id, config) {
         var klass = instance.constructor;
         var klassName = klass.name;
@@ -130,6 +146,26 @@ class Instance extends mix(BaseClass, LogMixin) {
         var pluginsConfig = config || {}, v;
 
         console.log('Calling plugins for', klassName, name);
+
+        debugger;
+
+        for (var i = keys.length - 1; i >= 0; i--) {
+            var key = keys[i];
+            if(key in I.classes.mutators) {
+                var MutatorClass = I.classes.mutators[key];
+                var mutator = this._mutators[key];
+
+                console.log('found existing mutator - Instance:', mutator != undefined)
+                if(mutator === undefined) {
+                    console.log('making mutator:', key, klassName)
+                    mutator = this.makeMutator(MutatorClass, key, instance, name, scene, _id, config)
+                };
+
+                pluginsConfig = this.callMutator(pluginsConfig, mutator, key, instance, name, scene, _id, config)
+            }
+        }
+
+        debugger;
 
         for (var i = keys.length - 1; i >= 0; i--) {
             var key = keys[i];
@@ -163,9 +199,9 @@ class Instance extends mix(BaseClass, LogMixin) {
                 if(f == undefined) {
                   console.log('undefined mutator', name, klassName)
                 } else {
-                  v = f[name](pluginsConfig, _id, scene, instance);  
+                  v = f[name](pluginsConfig, _id, scene, instance);
                 }
-                
+
 
                 if(v !== undefined) {
                     pluginsConfig = v
