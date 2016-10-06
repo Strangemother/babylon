@@ -87,11 +87,14 @@ Test.Runner = class TestRunner {
     }
 
     convertTests(testTestList) {
+
         if(document.getElementById('mocha') == null) {
             var d = document.createElement('div')
             d.id = 'mocha'
             document.body.appendChild(d)
         };
+
+        var commentRegex = /\/\/(.*$)|\/\*([\W\S\n\r]*?)\*\//m;
 
         for (var i = 0; i < testTestList.length; i++) {
             var names = testTestList[i].getTestMethodNames();
@@ -99,10 +102,21 @@ Test.Runner = class TestRunner {
                 let n = this.name || this.constructor.name
                 let s = `${n}::`;
                 var testClass = testTestList[i].initiate()
+                var func = testTestList[i].getMethod(names[j]);
+                var match = commentRegex.exec(func.toString());
+                var title = func.name;
                 describe(s, function(){
-                    var func = testTestList[i].getMethod(names[j]);
+                    title = title === undefined? names[j]: title;
+
                     console.log('fun', names[j], func)
-                    it(names[j], func)
+
+                    if (match != null) {
+                        let m = match[1] || match[2]
+                        title = `${names[j]}::${m}`
+                    }
+
+                    it(title, func)
+
                 })
             }
         }
