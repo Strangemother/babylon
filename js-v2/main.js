@@ -18,17 +18,19 @@ start = function(config){
 
 createBox = function(){
     var box = new I.Box;
+
     box.addChild({
         material: materials.white
         , width: 3
     })
 
 
-    var light = new I.Light({
-        intensity: .9
-    });
+    // var light = new I.Light({
+    //     intensity: .9
+    // });
 
-    light.addChild()
+    // light.addChild()
+    var light = 1
 
     return [box, light];
 }
