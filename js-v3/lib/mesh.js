@@ -194,7 +194,7 @@ class MeshTools {
                     _instance[n] = {}
                 };
 
-                _instance[n][name] = item
+                _instance[n][item.name] = item
             }
         }
     }
