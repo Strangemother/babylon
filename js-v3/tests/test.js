@@ -6,7 +6,7 @@ class InstanceTests {
 
     test_exists() {
         /* Ensure INSTANCE exists another large content block.*/
-        test.value({}).isObject()
+        test.value(_instance).isObject()
     }
 
 }
@@ -14,3 +14,4 @@ class InstanceTests {
 Test.add(InstanceTests)
 
 })(window)
+

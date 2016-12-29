@@ -33,7 +33,7 @@ b.addTo(app /*, {width: 3} */)
 
 anything with a `children` manager can handle a new object.
 
-All basic BABYLON types are extended in this manner. checkout `shapes.js` for the following classes:
+All basic BABYLON types are extended in this manner. checkout `shapes.js` for the classes. You can find class instances in you main app `app.shapes`:
 
 ```
 Box
