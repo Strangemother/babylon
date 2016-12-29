@@ -24,3 +24,29 @@ MeshTools.create('box', { width: 3})
 ```
 
 This uses the `Box` scene instance and `Box().create()`.
+Similarly, you can perform the same with `Box().addTo`:
+
+```js
+b=new Box
+b.addTo(app /*, {width: 3} */)
+```
+
+anything with a `children` manager can handle a new object.
+
+All basic BABYLON types are extended in this manner. checkout `shapes.js` for the following classes:
+
+```
+Box
+Sphere
+Cylinder
+Plane
+Ground
+GroundFromHeightMap
+TiledGround
+Disc
+Torus
+TorusKnot
+Polyhedron
+IcoSphere
+Decals
+```
