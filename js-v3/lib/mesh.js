@@ -171,16 +171,32 @@ class Shape extends BabylonObject {
         let item = new cls(options);
         return item;
     }
+
+    static targetObjectAssignment(){
+        return 'shapes'
+    }
+
 }
 
 
 class MeshTools {
 
-    static register(item){
+
+    static register(...items){
         /* Register a component for later creation via MeshTool.make and .create*/
 
-        let name = item.name.toLowerCase();
-        MeshTools.named[name] = item;
+        for(let item of items) {
+            let name = item.name.toLowerCase();
+            MeshTools.named[name] = item;
+            if(item.targetObjectAssignment) {
+                let n = item.targetObjectAssignment()
+                if(_instance[n] == undefined) {
+                    _instance[n] = {}
+                };
+
+                _instance[n][name] = item
+            }
+        }
     }
 
     static make(type, options) {
