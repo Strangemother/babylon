@@ -107,9 +107,6 @@ Test.Runner = class TestRunner {
                 var title = func.name;
                 describe(s, function(){
                     title = title === undefined? names[j]: title;
-
-                    console.log('fun', names[j], func)
-
                     if (match != null) {
                         let m = match[1] || match[2]
                         title = `${names[j]}::${m}`

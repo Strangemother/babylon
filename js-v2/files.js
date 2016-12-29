@@ -8,24 +8,24 @@ var assets = [
    // Lib
    , 'js-v2/lib/core/utils.js'
 
-   , 'js-v2/lib/core/BaseClass.js'
-   , 'js-v2/lib/objects.mutators.js'
-   , 'js-v2/lib/BabylonInterface.js'
-   , 'js-v2/lib/AppInterface.js'
+   , 'js-v2/vendor/jquery-3.1.1.min.js'
 
-   , 'js/lib/materials.js'
-
-   , 'js-v2/lib/objects/BabylonMesh.js'
-
+   // , 'js-v2/tests/InstanceTests.js'
    , 'js-v2/vendor/mocha/mocha.js'
    , 'js-v2/vendor/unitjs/browser/dist/unit.js'
    , 'js-v2/lib/tests.js'
 
-   , 'js-v2/tests/InstanceTests.js'
+   , 'js-v2/lib/PrintLogger.js'
 
    // App
    , 'js-v2/config.js'
-   , 'js-v2/main.js'
+   // , 'js-v2/printLogger.js'
+   , 'js-v3/lib/base.js'
+   , 'js-v3/lib/mesh.js'
+   , 'js-v3/lib/shapes.js'
+
+   , 'js-v3/tests/test.js'
+   , 'js-v3/main.js'
 ];
 
 assetLoader

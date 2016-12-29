@@ -21,3 +21,244 @@ component section label {
     display: flex;
     font-family: monospace;
 }
+
+.log-container {
+    border: solid 1px #CCC;
+    width: 49%;
+    display: inline-block;
+    min-height: 200px;
+    vertical-align: top;
+}
+
+.title {
+    font-size: 1.5em;
+    color: #666;
+    margin: 1% 2% 0;
+    font-family: monospace;
+    color: #333;
+}
+
+.log-content-wrapper {
+    border: solid 1px #EEE;
+    margin: 2%;
+    font-family: monospace;
+    margin-top: 0.6em;
+}
+
+ul.log-collection {
+    margin: 0;
+    padding: 0;
+    max-height: 250px;
+    overflow: auto;
+}
+
+li.log-item .info:before {
+    content: "\0203A";
+    margin: 0 0.3em 0 0.2em;
+    color: #a4c3d6;
+    text-align: center;
+    display: block;
+}
+
+li.log-item {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.log-item .info {
+    min-width: 1.6em;
+}
+
+.log-item span.index {
+    font-size: 0.8em;
+    background: #dcdcdc;
+    min-width: 2.2em;
+    text-align: right;
+    color: #8a8a8a;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+}
+
+.log-item span.name {
+    background: #e0e0e0;
+    color: #808080;
+    font-size: 0.8em;
+    /* padding: 0.2em 0.6em; */
+    /* margin: 0 0.5em 0 0; */
+    padding-right: 0.6em;
+    display: none;
+}
+
+.log-item > span {
+    padding: 0.1rem 0;
+    /* vertical-align: inherit; */
+    display: inline-block;
+}
+
+.log-content-wrapper .history {
+    background: rgb(255, 252, 219);
+    font-size: 0.9em;
+    padding: 0.4em 0.3em 0.7em;
+    color: #545454;
+    /* text-shadow: 0 0px 0.1px #999; */
+}
+
+.log-content-wrapper .history span.value {
+    color: #000;
+    background: hsla(54,72%,83%,1);
+    padding: 0em 0.6em 0.1em;
+    border-radius: 20px;
+    font-size: 0.9em;
+    text-align: center;
+    display: inline-block;
+    margin-left: 0.3em;
+    /* min-width: 2em; */
+}
+
+.history a {
+    color: #2a96f5;
+    /* border-bottom: solid 1px; */
+    /* display: inline-block; */
+    /* margin-bottom: -4px; */
+    /* text-decoration: none; */
+}
+
+.log-item span.time {
+    color: #6c95af;
+    margin-right: 0.5em;
+}
+
+.log-item span.value {
+    color: #3c3c3c;
+}
+
+span.info[data-info=error]:before {
+    /* content: "!"; */
+    color: white;
+    background: #9c4848;
+    border-radius: 50%;
+    text-align: center;
+}
+
+span.info[data-info=warn]:before {
+    /* content: "!"; */
+    color: white;
+    background: #d0ca99;
+    border-radius: 50%;
+    text-align: center;
+}
+
+span.info[data-info=info]:before {
+    /* content: "!"; */
+    color: white;
+    background: #6296ce;
+    border-radius: 50%;
+    text-align: center;
+}
+
+
+.log-container[data-template] {
+    display: none;
+}
+
+.log-content-wrapper .history.hidden {
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.log-item .time em {
+    font-style: inherit;
+    color: #d2d2d2;
+}
+
+.log-item .time {
+}
+
+span.index[data-count] {
+    background: #ffffff;
+    /* border-radius: 34px; */
+    display: inline-block;
+    /* color: #fff; */
+}
+
+.log-item span.hidden {
+    display: none;
+}
+
+span.index[data-count].hidden {
+    display: initial;
+    background: #EEE;
+}
+
+
+.view {
+    display: flex;
+    height: 600px;
+}
+
+#mocha.themed .test h2 {
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+}
+
+#mocha.themed .test.pass::before,
+#mocha.themed .test.fail::before
+{
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+#mocha.themed .test pre {
+    margin: 1rem 0;
+    background: #FFF;
+    border: none;
+    box-shadow: none;
+    font-size: 0.9rem;
+}
+
+div#mocha.themed {
+    margin: 0;
+    width: 100%;
+}
+
+div#mocha.themed {
+    width: 100%;
+    background: #f7f7f7;
+}
+
+.themed ul#mocha-stats {
+    position: initial;
+    padding: 1em;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+}
+
+button {
+    padding: 0.5em 1em;
+    border: none;
+    background: #DDD;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.tools {
+    margin: 1em;
+    display: flex;
+}
+
+.tools button {
+    margin: 0 1em 0 0;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:hover {background: #CCC;}
+
+.tools button {
+    margin: 0 1em 0 0;
+}

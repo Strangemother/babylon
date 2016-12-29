@@ -9,9 +9,51 @@
    </head>
 
    <body>
-      <canvas id="renderCanvas" class="main-canvas"></canvas>
-      <button id='run'>Run</button>
+      <div class="view">
+         <canvas id="renderCanvas" class="main-canvas"></canvas>
+         <div id="mocha" class=themed></div>
+      </div>
 
+      <div class="tools">
+         <button id='run'>Run</button>
+         <button id='run_tests'>Run Tests</button>
+      </div>
+
+      <div class="log-parent">
+         <div class="log-container" data-template data-logger>
+            <div class="title">{{=it.name}} <span data-count></span></div>
+            <div class="log-content-wrapper">
+               <!-- Map to data-list object. -->
+               <div class="history hidden" data-history-bar>
+                  <span class="value" data-history-count>0</span> messages stored to <a href="javascript">history</a> <a href="javascript">clear</a>
+               </div>
+               <div class="filters">
+                  <label class='lineo'>
+                     <input type="checkbox" class="lineo {{=it.indexCheck}}" name="lineo" id="lineo">
+                     <span>Line Numbers</span>
+                  </label>
+                  <label class='timestamp'>
+                     <input type="checkbox" class="timestamp {{=it.timeCheck}}" name="timestamp" id="timestamp">
+                     <span>Time stamp</span>
+                  </label>
+                  <label class='filter'>
+                     <span>Filter</span>
+                     <input type="text" name="filter" id="filter">
+                  </label>
+               </div>
+               <ul class="log-collection" data-list='items'>
+
+                  <li class="log-item template" data-template='default'>
+                     <span class="index {{=it.indexCheck}}">{{=it.index1}}</span>
+                     <span class="name">{{=it.name}}</span>
+                     <span class="info" data-info="{{=it.info}}"></span>
+                     <span class="time {{=it.timeCheck}}">{{=it.time}}</span>
+                     <span class="value">{{=it.value}}</span>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
 
       <script type="text/javascript" src='js/vendor/doT/doT.js'></script>
       <script type="text/javascript" src='js-v2/lib/loader.js'></script>

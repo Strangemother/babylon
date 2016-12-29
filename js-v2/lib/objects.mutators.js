@@ -2,12 +2,23 @@
 
 let I = INSTANCE;
 
-I._.mutators = class Mutator {
+I._ = class Mutators {
 
-    name(){
-        return 'Mutator'
+    __overload__(classTarget) {
+        // called when a method is applied
+        // overloading the abstract name of the class
+        // on the main instance
+        return ['mutators', this.accepter]
     }
 
+    accepter(oTarget) {
+        /* accept an object to the overload  instance location */
+        debugger;
+    }
+}
+
+
+I._ = class Mutator {
     preConfig(config, name, scene, instance){
         /* Alter the configuration before the babylon instance is
         created.
@@ -27,6 +38,7 @@ I._.mutators = class Mutator {
         This function will call itemApply. */
         return this.itemApply(config, item, scene, instance)
     }
+
 
     activeProperty(item, key, setter, getter, config, instance){
         /* Create an attribute setting and getting a property from another
@@ -58,7 +70,7 @@ I._.mutators = class Mutator {
 
             // Call if basic function
             if( IT.g(conf[key]).is('function') ) {
-                v = conf[key](scene, conf);
+                v = conf[key](instance, conf);
             }
 
             item[key] = v;
@@ -88,9 +100,8 @@ I._.mutators = class Mutator {
             }
         }
 
-        debugger;
         // Apply the thoughput on `this` the mutator (its parent)
-        return Object.defineProperty(instance || this, key, v);
+        return Object.defineProperty(this, key, v);
     }
 
     mutate(config, scene) {
@@ -112,7 +123,7 @@ I._.mutators = class Mutator {
 }
 
 
-I._.mutators = class ActiveMutator extends I.Mutator {
+I._ = class ActiveMutator extends I.Mutator {
 
     itemApply(config, item, scene, instance){
         /* Apply any mutations to the babylon item created */
@@ -138,6 +149,28 @@ I._.mutators = class ActiveMutator extends I.Mutator {
         item[this.name()] = value;
     }
 }
+
+
+I._ = class ScaleMutator extends I.ActiveMutator {
+
+    name(){
+        return this.constructor.__decentChain__[0]
+    }
+
+    scaleKey(config, item, scene, instance){
+        return this._scaleKey || 'x'
+    }
+
+    itemApplyInit(config, item, scene, instance) {
+        item.scaling[this.scaleKey(config, item, scene, instance)] = config[this.name()];
+    }
+
+    setterGetter(value, item, parent, scope){
+        if(v == undefined){ return item.scaling[this.scaleKey(config, item, scene, instance)]};
+        item.scaling[this.scaleKey(config, item, scene, instance)]= value;
+    }
+}
+
 
 I._.mutators.material = class MaterialMutator extends I.Mutator {
     /* A MaterialMutator provides the provides the `material` key to
@@ -169,26 +202,6 @@ I._.mutators.material = class MaterialMutator extends I.Mutator {
     }
 }
 
-
-I._.mutators.scaling = class ScaleMutator extends I.ActiveMutator {
-
-    name(){
-        return this.constructor.__decentChain__[0]
-    }
-
-    scaleKey(config, item, scene, instance){
-        return this._scaleKey || 'x'
-    }
-
-    itemApplyInit(config, item, scene, instance) {
-        item.scaling[this.scaleKey(config, item, scene, instance)] = config[this.name()];
-    }
-
-    setterGetter(value, item, parent, scope){
-        if(v == undefined){ return item.scaling[this.scaleKey(config, item, scene, instance)]};
-        item.scaling[this.scaleKey(config, item, scene, instance)]= value;
-    }
-}
 
 
 I._.mutators.width = class WidthMutator extends I.ScaleMutator {

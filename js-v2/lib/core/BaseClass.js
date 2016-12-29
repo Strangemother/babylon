@@ -86,6 +86,10 @@ class Instance extends mix(BaseClass, LogMixin) {
                 this[key] = data[key]
             }
         }
+
+
+        // dict of methods for peoxy bypass of this.
+        this._overloadMap = {};
     }
 
     get instance() {
@@ -139,15 +143,22 @@ class Instance extends mix(BaseClass, LogMixin) {
         return r;
     }
 
-    callPlugins(instance, name, scene, _id, config) {
+    callPlugins(instance, name, config) {
+        // scene, _id
+
         var klass = instance.constructor;
         var klassName = klass.name;
         var keys = Object.keys(config);
         var pluginsConfig = config || {}, v;
 
-        console.log('Calling plugins for', klassName, name);
+        console.log('!! Calling plugins for', klassName, name);
 
-        debugger;
+        return pluginsConfig
+    }
+
+    xcallPlugins(instance, name, config) {
+
+        return
 
         for (var i = keys.length - 1; i >= 0; i--) {
             var key = keys[i];
@@ -228,7 +239,6 @@ class Instance extends mix(BaseClass, LogMixin) {
             var dkey = keys[i];
             if(parent[dkey] == undefined) {
                 parent[dkey] = {}
-                debugger
                 console.warn('cannot find key in instance:', dkey)
             }
 
@@ -287,7 +297,7 @@ class Instance extends mix(BaseClass, LogMixin) {
         }
 
         // debugger
-        this.log('add', key);
+        console.log('add', key);
 
         var proto = Klass.prototype;
         var f = proto && proto.__assets__;
@@ -313,6 +323,7 @@ class Instance extends mix(BaseClass, LogMixin) {
 
         parent[key] = Klass;
 
+        // Add to list of available classes.
         if(_instance.classes[key] == undefined) {
             _instance.classes[key] = Klass
         } else {
@@ -320,6 +331,18 @@ class Instance extends mix(BaseClass, LogMixin) {
         }
 
         Klass.__decentChain__ = decentChain;
+
+        if(!this._accepters) {
+            this._accepters = {};
+        };
+
+        if(proto.__overload__ !== undefined) {
+            /* get any instance captures */
+            var [name, accepterFunction] = proto.__overload__(Klass);
+            this._overloadMap[name] = accepterFunction
+
+        };
+
         return parent[key] == Klass;
     }
 
@@ -331,9 +354,27 @@ class Instance extends mix(BaseClass, LogMixin) {
     }
 
     proxy(){
+        if(this._sharedProxy) return this._sharedProxy
 
         var handler = {
-            get: function(target, name){
+            set: function(target, name, value) {
+
+                if(name == '_') {
+                    console.log('set', name, value.name)
+                } else {
+                    console.log('!!? SET', name)
+                }
+
+                target[name] = value
+                return true;
+            }
+
+            , get: function(target, name){
+
+                if(name in target._overloadMap) {
+                    return target._overloadMap[name]
+                }
+
                 if(!(name in target)) {
                     return target.classes[name]
                 }
@@ -342,8 +383,8 @@ class Instance extends mix(BaseClass, LogMixin) {
             }
         };
 
-        var p = new Proxy(this, handler);
-        return p;
+        this._sharedProxy = new Proxy(this, handler);
+        return this._sharedProxy
     }
 }
 
@@ -374,6 +415,7 @@ class ProxyClass extends mix(BaseClass, LogMixin){
 
 var _ProxyClass = new Proxy(ProxyClass, {
   get: function (oTarget, sKey) {
+    console.log('ProxyClass', sKey)
     return oTarget[sKey] || undefined;
   }/*,
   set: function (oTarget, sKey, vValue) {

@@ -29,7 +29,7 @@ I._ = class BabylonMesh extends I.ProxyClass {
             config = scene;
             scene = config.scene;
         };
-        console.log(this.constructor.name)
+        console.log('__init__ BablyonMesh:', this.constructor.name)
         this.children = {}
         this.scene = scene;
         this._config = config || {};
@@ -66,26 +66,43 @@ I._ = class BabylonMesh extends I.ProxyClass {
 
     create(config, name, scene) {
         name = name || config.name || this.generateName(config.type);
-        config = Object.assign(this.defaults(), this._config, config);
+        config = this.totalConfig(config);
         scene = scene || I.scene();
 
         var c = this.preConfig(config, name, scene)
         var func = this.itemFunction(c, scene);
         var obj = func(name, c, scene);
+        //
         c = this.postConfig(c, obj, name, scene)
 
 
         return obj;
     }
 
+    generateName(name) {
+        name = name || 'item';
+
+        if( (name in I._genNames) == false) {
+            I._genNames[name] = 320;
+        };
+
+        var num = (I._genNames[name]++).toString(32);
+        var res = `${name}_${num}`;
+        return res;
+    }
+
+    totalConfig(config) {
+        return Object.assign(this.defaults(), this._config, config || {});
+    }
+
     preConfig(config, name, scene) {
-        I.callPlugins(this, 'preConfig', scene, name, config);
+        I.callPlugins(this, 'preConfig', {scene, name, config});
         return config
     }
 
 
     postConfig(config, item, name, scene) {
-        I.callPlugins(this, 'postConfig', scene, item, config);
+        I.callPlugins(this, 'postConfig', {scene, item, config});
         return config
     }
 
@@ -100,18 +117,6 @@ I._ = class BabylonMesh extends I.ProxyClass {
     itemFunctionName(/*options, scene*/){
         /* return the name of the function from babylon*/
         return 'CreateMesh'
-    }
-
-    generateName(name) {
-        name = name || 'item';
-
-        if( (name in I._genNames) == false) {
-            I._genNames[name] = 320;
-        };
-
-        var num = (I._genNames[name]++).toString(32);
-        var res = `${name}_${num}`;
-        return res;
     }
 
     name(v){
@@ -137,6 +142,17 @@ I._ = class BabylonMesh extends I.ProxyClass {
 }
 
 
+I._ = class Box extends I.BabylonMesh {
+
+    itemFunctionName(){
+        /* return the name of the function from babylon*/
+        return 'CreateBox'
+    }
+}
+
+return
+
+
 I._ = class BabylonMutator extends mix(I.BabylonMesh, I.Mutator) {
 
     defaults(){
@@ -145,7 +161,8 @@ I._ = class BabylonMutator extends mix(I.BabylonMesh, I.Mutator) {
     }
 
     itemApply(config, item, scene, instance) {
-        var keys = Object.keys(this.defaults())
+        console.log('itemApply', this.name())
+        var keys = Object.keys(this.totalConfig(config))
 
         // this._props = {};
 
@@ -153,7 +170,7 @@ I._ = class BabylonMutator extends mix(I.BabylonMesh, I.Mutator) {
             var key = keys[i];
 
             if(key in config) {
-                //this.activeProperty(item, key, config, instance);
+                //this.activeProperty(item, key, setter, getter, config, instance)
                 this.activeProperty(item, key, undefined, undefined, config, instance)
             }
         }
@@ -161,11 +178,5 @@ I._ = class BabylonMutator extends mix(I.BabylonMesh, I.Mutator) {
 }
 
 
-I._ = class Box extends I.BabylonMutator {
 
-    itemFunctionName(){
-        /* return the name of the function from babylon*/
-        return 'CreateBox'
-    }
-}
 })()

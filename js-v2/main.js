@@ -25,18 +25,17 @@ createBox = function(){
     })
 
 
-    // var light = new I.Light({
-    //     intensity: .9
-    // });
-
-    // light.addChild()
+    var light = new I.Light({
+        intensity: .9
+    });
+    light.addChild()
     var light = 1
 
     return [box, light];
 }
 
-window.apos = run({ level: 'scaleTest' });
+// window.apos = run({ level: 'scaleTest' });
 
-[box, light] = createBox()
+// [box, light] = createBox()
 
 Test.run()
