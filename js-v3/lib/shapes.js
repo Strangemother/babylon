@@ -24,9 +24,6 @@ class Box extends Shape {
 }
 
 
-MeshTools.register(Box);
-
-
 class Sphere extends Shape {
 
     keys(){
@@ -331,6 +328,21 @@ class Decals extends Shape {
 
 
 
+MeshTools.register(
+    Box
+    , Sphere
+    , Cylinder
+    , Plane
+    , Ground
+    , GroundFromHeightMap
+    , TiledGround
+    , Disc
+    , Torus
+    , TorusKnot
+    , Polyhedron
+    , IcoSphere
+    , Decals
+)
 
 
 
