@@ -198,7 +198,7 @@ class BabylonInterface extends BabylonBase {
     }
 }
 
-var _instance;
+var _instance = {};
 
 class Base extends BabylonInterface {
 
@@ -208,7 +208,11 @@ class Base extends BabylonInterface {
         this.children = this.displayListManager.childList() // new ChildList(this)
         this._renderers.push(this.startCaller.bind(this))
         if(_instance != undefined) {
-            console.warn('_instance rewrite')
+            let keys = Object.keys(_instance);
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                this[key] = _instance[key]
+            }
         };
 
         _instance = this;
@@ -310,6 +314,7 @@ class ChildList {
         return index
     }
 }
+
 
 class ChildManager {
 
