@@ -1,4 +1,4 @@
-class Test {
+class TestBase {
 
     constructor(TestClass) {
         this.testClass = TestClass;
@@ -8,12 +8,14 @@ class Test {
         return unitjs;
     }
 
-    static add(TestClass) {
-        if(Test.tests[TestClass.name] == undefined) {
-            Test.tests[TestClass.name] = []
-        };
+    static add(...TestClasses) {
+        for(let TestClass of TestClasses) {
+            if(Test.tests[TestClass.name] == undefined) {
+                Test.tests[TestClass.name] = []
+            };
 
-        Test.tests[TestClass.name].push(TestClass);
+            Test.tests[TestClass.name].push(TestClass);
+        }
     }
 
     static run(name) {
@@ -44,6 +46,24 @@ class Test {
 
     initiate(){
         return this._instance = new this.testClass
+    }
+}
+
+class Test extends TestBase {
+
+    static createAssertion(func, name) {
+        if(name == undefined) {
+            name = func.name
+        }
+
+        unitjs[name] = func;
+
+    }
+
+    static classAssertion(cls, key) {
+
+        let c = new cls()
+        Test.createAssertion(c[key], key)
     }
 }
 
@@ -99,18 +119,24 @@ Test.Runner = class TestRunner {
         for (var i = 0; i < testTestList.length; i++) {
             var names = testTestList[i].getTestMethodNames();
             for (var j = 0; j < names.length; j++) {
-                let n = this.name || this.constructor.name
-                let s = `${n}::`;
+                let n = testTestList[i].testClass.name || this.name || this.constructor.name
+                let s = `${n}:: class`;
                 var testClass = testTestList[i].initiate()
                 var func = testTestList[i].getMethod(names[j]);
                 var match = commentRegex.exec(func.toString());
                 var title = func.name;
+
                 describe(s, function(){
                     title = title === undefined? names[j]: title;
                     if (match != null) {
                         let m = match[1] || match[2]
                         title = `${names[j]}::${m}`
                     }
+
+                    before(function(){
+                        this.title = title;
+                        this.instance = testClass
+                    })
 
                     it(title, func)
 
@@ -126,3 +152,86 @@ Test.Runner = class TestRunner {
     }
 }
 
+class ClassTestAssertions {
+
+    static add(...TestClasses) {
+        let Cls = ClassTestAssertions
+        for(let TestClass of TestClasses) {
+            if(Cls._asserts[TestClass.name] == undefined) {
+                Cls._asserts[TestClass.name] = []
+            };
+
+            Cls._asserts[TestClass.name].push(TestClass);
+
+            Cls.implement(TestClass)
+        }
+    }
+
+    static implement(TestClass) {
+        let methods = this._ownMethods(TestClass);
+        let key;
+
+        for (var i = 0; i < methods.length; i++) {
+            key = methods[i]
+            if(key == 'constructor') continue;
+
+            Test.classAssertion(TestClass, key)
+
+        }
+    }
+
+
+    static _chainMethods(Cls){
+        // ["length", "name", "prototype", "add", "implement", "_asserts"]
+        return Object.getOwnPropertyNames(Object.getPrototypeOf(Cls))
+    }
+
+    static _ownMethods(Cls){
+        // ["constructor", "classMethodCalled"]
+        return Object.getOwnPropertyNames(Cls.prototype)
+    }
+}
+
+ClassTestAssertions._asserts = {};
+
+class IsClassAssertion extends ClassTestAssertions {
+
+    classMethodCalled(Cls, methodName, action, caller) {
+        /* using the `mock` determine if a method was called when using
+        a class. Provide the class, method name, an optional action function
+        and an optional evoke caller function
+
+        If the action is not defined, the default action creates a new instance
+        of your class.
+
+        The default caller expects the class method of `methodName` to be
+        called once.
+
+            // Test the 'init' method was called on new BaseClass
+            classMethodCalled(BaseClass, 'init')
+
+            // Test 'foo' method is called when performing `.something()`
+            classMethodCalled(BaseClass, 'foo', function(mock, Klass){
+                var cls = new Klass
+                cls.something()
+            })
+
+        The mock function is setup, ran then destroyed once complete.
+        */
+        let _mock = Test.assertions.mock(Cls.prototype)
+        action = action || function(mock, Klass) {
+            new Klass
+        }
+
+        caller = caller || function(mock, Klass){
+            mock.expects(methodName).once()
+            action(mock, Klass)
+        }
+
+        caller(_mock, Cls);
+
+        _mock.verify()
+    }
+}
+
+ClassTestAssertions.add(IsClassAssertion)

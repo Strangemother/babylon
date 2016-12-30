@@ -10,7 +10,10 @@ class BaseClass {
         return this.init.apply(this, arguments)
     }
 
-    init() {}
+    init() {
+        console.log('init called')
+    }
+
 }
 
 class BabylonBase extends BaseClass {
@@ -28,8 +31,8 @@ class BabylonBase extends BaseClass {
     stop(v){
         v = v === undefined? true: v;
 
-        if(v){
-            this._stop == v;
+        if(v != undefined){
+            this._stop = v;
         }
 
         return this._stop;
