@@ -19,4 +19,5 @@
        * [Function](testing/function.md)
        * [Error](testing/error.md)
        * [Number](testing/number.md)
+* [Architecture](architecture/README.md)
 
