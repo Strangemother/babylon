@@ -25,7 +25,7 @@ class BabylonObject extends ChildManager {
     }
 
     keys(){
-        /* Key options for this type*/
+        /* Key options for this BABYLON type*/
         return []
     }
 
@@ -146,6 +146,7 @@ class BabylonObject extends ChildManager {
 
 class Shape extends BabylonObject {
     /* A Basic shape for an entity in the view. */
+
     init(options, ...args){
         /* API hook to start your component. Such as an add to view.*/
         this._options = options || {};
