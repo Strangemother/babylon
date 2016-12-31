@@ -1,4 +1,4 @@
-# Bablyon Interface.
+# Garden for Bablyon.
 
 Bablyon JS is a great 3D framework for the web. Here are some tools to utilize the base application will help with basic development.
 
@@ -15,7 +15,7 @@ var main = function(){
     window.app = v;
 }
 
-class Main extends Base {
+class Main extends Garden {
 
     init(config){
         super.init(config)
@@ -70,7 +70,7 @@ The init function runs after the base application is prepared. `BablyonInterface
 You can write you code functionally or classy. Class bassed extension is my favorite in ES6 becuase of its cleaner dialect:
 
 ```js
-class Main extends Base {
+class Main extends Garden {
 
     init(config){
         super.init(config)

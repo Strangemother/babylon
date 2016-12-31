@@ -35,7 +35,7 @@ let arcCam = new ArcRotateCamera({
 arcCam.activate(/* scene, control=true*/)
 ```
 
-The `scene` is optional, as the default scene is found in your app instance. `Garden.instance.scene()`.
+The `scene` is optional, as the default scene is found in your app instance. `Garden.instance().scene()`.
 
 > If you're working with more than one instance, you should pass the `scene`, as the first scene is used by default.
 
@@ -52,5 +52,5 @@ a.activate()
 
 The `control` changes the input device to the cameras utilities. If `control=false` the `camera.attachCanvas` is not called.
 
-
+Babylon does a perfect job of handling cameras and the view will smoothly transition to a camera.
 
