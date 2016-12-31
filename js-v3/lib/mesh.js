@@ -228,6 +228,7 @@ class MeshTools extends TargetObjectAssignmentRegister {
 
     static make(type, options) {
         /* Genetate a Shape instance*/
+
         if(arguments.length <= 1) {
             options = type;
             type = undefined;
@@ -236,7 +237,7 @@ class MeshTools extends TargetObjectAssignmentRegister {
         // Options or default options
         options = options || {};
         // Given type or the options.type or DEFAULT
-        type = type || options._type || MeshTools.MESH;
+        type = type || options._type
 
         if(options._type) {
             delete options._type;
@@ -247,7 +248,7 @@ class MeshTools extends TargetObjectAssignmentRegister {
     }
 
     static create(type, options, scene) {
-        let item = MeshTools.make(type, options);
+        let item = this.make(type, options);
         // The given scene or the options scene
         scene = scene || (options != undefined? options.scene: undefined)
 
@@ -264,5 +265,4 @@ class MeshTools extends TargetObjectAssignmentRegister {
     }
 }
 
-MeshTools.MESH = 'Mesh'
 MeshTools.named = {}

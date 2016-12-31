@@ -94,10 +94,21 @@ class ShapesTests {
     }
 }
 
+
+class MeshToolsTests {
+    test_create_calls_make() {
+        /* create function calls make function */
+        test.classStaticMethodCalled(MeshTools, 'make', function(mock, Klass){
+            mock.returns(new Box)
+            Klass.create('box');
+        })
+    }
+}
 Test.add(InstanceTests)
 Test.add(BaseTests)
 Test.add(BabylonBaseTests)
 Test.add(ShapesTests)
 Test.add(ChildManagerTests)
+Test.add(MeshToolsTests)
 
 })(window)
