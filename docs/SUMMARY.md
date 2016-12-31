@@ -3,6 +3,7 @@
 * [Introduction](README.md)
 * [File Loader](file_loader/README.md)
 * [Mesh](mesh/README.md)
+* [Cameras](cameras/README.md)
 * [Testing](testing/README.md)
    * [HTTPAgent](testing/httpagent.md)
    * [Mocks](testing/mocks.md)
