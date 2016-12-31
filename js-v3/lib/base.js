@@ -248,8 +248,20 @@ class Base extends BabylonInterface {
 
 
 class Garden extends Base {
+
     static instance(){
         return _instance;
+    }
+
+    static handleWarning(errorId, message) {
+        let n = `${errorId}::${message}`;
+        console.warn(n)
+    }
+
+    static handleError(errorId, message) {
+        let n = `${errorId}::${message}`;
+
+        throw new Error(n)
     }
 
     version(){
@@ -359,3 +371,4 @@ class ChildManager {
         this._babylon_node = babylonItem
     }
 }
+
