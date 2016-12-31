@@ -1,6 +1,6 @@
 // http://doc.babylonjs.com/tutorials/Cameras
 
-class Camera extends Shape {
+class Camera extends BabylonObject {
 
     static targetObjectAssignment(){
         /* Camera classes are packaged into Garden.cameras */
@@ -12,6 +12,7 @@ class Camera extends Shape {
         Returned is [name, options, scene] */
         let name = this.generateName()
             , options = this.generateOptions(overrides)
+            , v
             ;
 
         let a = [name];
@@ -19,19 +20,38 @@ class Camera extends Shape {
 
         for(let key of keys){
             if(options[key]) {
-                a.push(options[key])
-            };
+                a.push(options[key]);
+            } else {
+                v = this._babylonParamsMissingKey(key, keys, options, scene);
+                a.push(v);
+            }
+        };
+
+
+        if(a.length != keys.length + 1) {
+            Garden.handleWarning(
+                    'Camera.babylonParams.options'
+                    , 'Given parameter length does not match API parameter length'
+                )
         };
 
         a.push(scene);
 
-        if(a.length != keys.length + 1) {
-            console.warn('Given parameter length does not match API parameter length')
-        }
-
-        // window.c = new BABYLON.ArcRotateCamera("ArcRotateCamera", 1, 0.8, 10, new BABYLON.Vector3(0, 0, 0), scene)
-
         return a
+    }
+
+    _babylonParamsMissingKey(key, keys, options, scene) {
+        /* Whilst populating the BABYLON instance parameters the `key` does
+        not exist within `options`. */
+        let n = `${key}Key`;
+        if(this[n] != undefined) {
+            return this[n](options, scene)
+        };
+
+        Garden.handleError(
+                    'Camera.babylonParamsMissingKey'
+                    , `Missing key "${key}"`
+                )
     }
 
     babylonFuncName(...args) {
@@ -112,6 +132,10 @@ class FreeCamera extends Camera {
         ]
     }
 
+    positionKey(options, scene) {
+        return new BABYLON.Vector3(0, 0, -5)
+    }
+
     _example(scene) {
         var camera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(0, 1, -15), scene);
         return camera;
@@ -129,6 +153,18 @@ class ArcRotateCamera extends Camera {
             , 'radius'
             , 'target'
         ]
+    }
+
+    alphaKey(){
+        return -0.3;
+    }
+
+    betaKey(){
+        return 0.9;
+    }
+
+    radiusKey() {
+        return 7
     }
 
     _example(scene) {
