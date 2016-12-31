@@ -248,6 +248,10 @@ class Base extends BabylonInterface {
 
 
 class Garden extends Base {
+    static instance(){
+        return _instance;
+    }
+
     version(){
         return 0.2
     }
