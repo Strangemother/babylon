@@ -27,10 +27,13 @@ class Main extends Garden {
     runGame() {
         this.makeLights()
         this.makeBox()
-        let c = new ArcRotateCamera({alpha:1, beta:4, radius: 3, target: new BABYLON.Vector3(0, 0, 0)})
-        // this.children.add(c)
-        let r = c.create({})
-        r.attachControl(app._canvas, true)
+        this.makeCamera()
+    }
+
+    makeCamera(){
+        let options = {alpha:1, beta:1, radius: 10, target: new BABYLON.Vector3(0, 0, 0)};
+        let c = new ArcRotateCamera(options)
+        c.activate()
     }
 
     makeLights(){
