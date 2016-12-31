@@ -206,10 +206,12 @@ class TargetObjectAssignmentRegister {
 
     static register(...items){
         /* Register a component for later creation via MeshTool.make and .create*/
+        let location = Garden.instance()['named'] || {} ;
 
         for(let item of items) {
             let name = item.name.toLowerCase();
-            MeshTools.named[name] = item;
+
+            location[name] = item;
             if(item.targetObjectAssignment) {
                 let n = item.targetObjectAssignment(item)
                 if(_instance[n] == undefined) {
@@ -219,11 +221,14 @@ class TargetObjectAssignmentRegister {
                 _instance[n][item.name] = item
             }
         }
+        Garden.instance()['named'] = location
+
     }
 }
 
 
 class MeshTools extends TargetObjectAssignmentRegister {
+
 
 
     static make(type, options) {
@@ -243,8 +248,11 @@ class MeshTools extends TargetObjectAssignmentRegister {
             delete options._type;
         };
 
-        let item = MeshTools.named[type].make(MeshTools.named[type], options);
+        let location = Garden.instance()['named'] || {} ;
+        let item = location[type].make(location[type], options);
+        Garden.instance()['named'] = location
         return item;
+
     }
 
     static create(type, options, scene) {
@@ -264,5 +272,3 @@ class MeshTools extends TargetObjectAssignmentRegister {
         return item;
     }
 }
-
-MeshTools.named = {}
