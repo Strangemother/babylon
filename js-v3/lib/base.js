@@ -246,6 +246,13 @@ class Base extends BabylonInterface {
     }
 }
 
+
+class Garden extends Base {
+    version(){
+        return 0.2
+    }
+}
+
 class DisplayListManager {
 
     constructor(parent){
@@ -332,10 +339,12 @@ class ChildManager {
 
     get _displayList(){
         /* Return relative array displaylist */
+        if(this._displayListName == undefined) return undefined;
         return _instance.displayListManager.get(this._displayListName)[1]
     }
 
     get _babylon() {
+        if(this._displayListName == undefined) return undefined
         return this._displayList[this._displayListIndex][1]
     }
 }
