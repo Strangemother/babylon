@@ -23,6 +23,7 @@ var assets = [
    , 'js-v3/lib/base.js'
    , 'js-v3/lib/mesh.js'
    , 'js-v3/lib/shapes.js'
+   , 'js-v3/lib/cameras.js'
 
    , 'js-v3/tests/test.js'
    , 'js-v3/main.js'
