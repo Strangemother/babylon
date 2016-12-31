@@ -4,7 +4,7 @@ var main = function(){
     window.app = v;
 }
 
-class Main extends Base {
+class Main extends Garden {
 
     init(config){
         super.init(config)
@@ -27,6 +27,10 @@ class Main extends Base {
     runGame() {
         this.makeLights()
         this.makeBox()
+        let c = new ArcRotateCamera({alpha:1, beta:4, radius: 3, target: new BABYLON.Vector3(0, 0, 0)})
+        // this.children.add(c)
+        let r = c.create({})
+        r.attachControl(app._canvas, true)
     }
 
     makeLights(){
