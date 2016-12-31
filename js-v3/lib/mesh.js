@@ -16,12 +16,16 @@ class BabylonObject extends ChildManager {
     /* Interface the babylon method caller with the defined shape parameters.
     It's encouraged to use the native BABYLON Mesh. */
     constructor(...args){
+        /* Constructor  call init, expects super. */
         super()
         this.init.apply(this, arguments)
     }
 
+
     init(options, ...args){
-        this._options = options
+        /* API hook to start your component. Such as an add to view.*/
+        this._options = options || {};
+        this._args = args;
     }
 
     keys(){
@@ -122,6 +126,57 @@ class BabylonObject extends ChildManager {
         return `${n}_${r}`
     }
 
+
+    destroy(){
+        /* Remove the item from the view and destroy its data. This
+        should attempt a complete memory removal. */
+        return NotImplementedError.throw('BabylonObject.destroy() not implemented')
+    }
+
+    type(v){
+        if(v !== undefined) { this._type = v };
+        return this._type || this.constructor.name;
+    }
+
+    static make(cls, options) {
+        /* Make a new instance of this Class.
+        This class, is actually the first given argument `cls`.*/
+        let item = new cls(options);
+        return item;
+    }
+
+    babylonCall(...args) {
+        /* Produce a babylon object using the given args as
+        parameters for the CreateXXX call.
+        returned is a babylon instance. */
+        this._babylonParams = args;
+        let n = this.babylonFuncName(...args);
+        return BABYLON[n](...args);
+    }
+
+    babylonFuncName(...args) {
+        let n = this.babylonFuncNamePartial(...args);
+        return `Create${n}`;
+    }
+
+    babylonFuncNamePartial(...args) {
+        /* Return the partial name of the object to create a full
+        babylon name Create[name]. Default: 'Mesh' */
+        return this.type();
+    }
+
+}
+
+class Shape extends BabylonObject {
+    /* A Basic shape for an entity in the view. */
+
+
+    destroy(){
+        /* Remove the item from the view and destroy its data. This
+        should attempt a complete memory removal. */
+        return NotImplementedError.throw('Shape.destroy() not implemented')
+    }
+
     babylonCall(...args) {
         /* Produce a babylon object using the given args as
         parameters for the CreateXXX call.
@@ -131,56 +186,22 @@ class BabylonObject extends ChildManager {
         return BABYLON.MeshBuilder[n](...args);
     }
 
-    babylonFuncName(...args) {
-        let n = this.shapeName(...args);
-        return `Create${n}`;
-    }
-
-    shapeName(...args) {
+    babylonFuncNamePartial(...args) {
         /* Return the partial name of the object to create a full
-        babylon name Create[name]. Default: 'Mesh' */
-        return 'Mesh'
-    }
+        babylon name Create[name]. Default: 'this.type' */
 
-}
-
-class Shape extends BabylonObject {
-    /* A Basic shape for an entity in the view. */
-
-    init(options, ...args){
-        /* API hook to start your component. Such as an add to view.*/
-        this._options = options || {};
-        this._args = args;
-    }
-
-    destroy(){
-        /* Remove the item from the view and destroy its data. This
-        should attempt a complete memory removal. */
-        return NotImplementedError.throw('Shape.destroy() not implemented')
-    }
-
-    type(v){
-        if(v !== undefined) { this._type = v };
-        return this._type || this.constructor.name;
-    }
-
-    shapeName(){
         return this.type();
     }
 
-    static make(cls, options) {
-        let item = new cls(options);
-        return item;
-    }
-
-    static targetObjectAssignment(){
-        return 'shapes'
+    static targetObjectAssignment(cls){
+        /* Return a plural of the type*/
+        return `shapes`;
     }
 
 }
 
 
-class MeshTools {
+class TargetObjectAssignmentRegister {
 
 
     static register(...items){
@@ -190,7 +211,7 @@ class MeshTools {
             let name = item.name.toLowerCase();
             MeshTools.named[name] = item;
             if(item.targetObjectAssignment) {
-                let n = item.targetObjectAssignment()
+                let n = item.targetObjectAssignment(item)
                 if(_instance[n] == undefined) {
                     _instance[n] = {}
                 };
@@ -199,6 +220,11 @@ class MeshTools {
             }
         }
     }
+}
+
+
+class MeshTools extends TargetObjectAssignmentRegister {
+
 
     static make(type, options) {
         /* Genetate a Shape instance*/
