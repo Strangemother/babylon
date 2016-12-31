@@ -17,7 +17,13 @@ class ChildManagerTests {
         /* Get babylon instance if exists. */
         let c = new ChildManager()
         test.value(c._babylon).isUndefined()
+
+        let expected = 'foo';
+        c._babylon = expected
+        test.value(c._babylon).is(expected)
     }
+
+
 }
 
 class BaseTests {
@@ -84,13 +90,50 @@ class ShapesTests {
                 let shape = new ShapeClass
                 it(`Expects ${ShapeClass.name} instance`, function(){
                     test.value(shape).isInstanceOf(ShapeClass)
+
                 })
             }
         })
     }
 
-    _testShape(ShapeClass){
-        /* Test a new shape creation */
+    test_create(){
+        /* Ensure elements inherit data correctly */
+
+        let b = new Box();
+        let e, result, expected
+        e = b.create({ size: .1, updatable: false})
+        result = e._geometry._vertexBuffers.position._data
+        expected = [0.05, -0.05, 0.05, -0.05, -0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, -0.05, -0.05, 0.05, -0.05, -0.05, -0.05, -0.05, 0.05, -0.05, -0.05, 0.05, 0.05, -0.05, 0.05, -0.05, -0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, -0.05, 0.05, 0.05, -0.05, -0.05, 0.05, -0.05, -0.05, -0.05, -0.05, 0.05, -0.05, -0.05, 0.05, 0.05, -0.05, 0.05, -0.05, 0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, -0.05, 0.05, 0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, 0.05]
+
+        test.array(expected).match(result)
+
+        b = new Box()
+        e = b.create({ size: 1, updatable: false})
+        result = e._geometry._vertexBuffers.position._data
+        expected = [0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5]
+
+        test.array(expected).match(result)
+
+        b = new Box()
+        e = b.create({ size: 2, updatable: false})
+        result = e._geometry._vertexBuffers.position._data
+        expected = [1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, 1]
+
+        test.array(expected).match(result)
+
+        b = new Box()
+        e = b.create({ size: 3, updatable: false})
+        result = e._geometry._vertexBuffers.position._data
+        expected = [1.5, -1.5, 1.5, -1.5, -1.5, 1.5, -1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, -1.5, -1.5, 1.5, -1.5, -1.5, -1.5, -1.5, 1.5, -1.5, -1.5, 1.5, 1.5, -1.5, 1.5, -1.5, -1.5, 1.5, -1.5, 1.5, 1.5, 1.5, 1.5, -1.5, 1.5, 1.5, -1.5, -1.5, 1.5, -1.5, -1.5, -1.5, -1.5, 1.5, -1.5, -1.5, 1.5, 1.5, -1.5, 1.5, -1.5, 1.5, 1.5, -1.5, 1.5, 1.5, 1.5, 1.5, -1.5, 1.5, 1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, 1.5]
+
+        test.array(expected).match(result)
+
+        b = new Box()
+        e = b.create({ height: 3, depth: 1, updatable: false})
+        result = e._geometry._vertexBuffers.position._data
+        expected = [0.5, -1.5, 0.5, -0.5, -1.5, 0.5, -0.5, 1.5, 0.5, 0.5, 1.5, 0.5, 0.5, 1.5, -0.5, -0.5, 1.5, -0.5, -0.5, -1.5, -0.5, 0.5, -1.5, -0.5, 0.5, 1.5, -0.5, 0.5, -1.5, -0.5, 0.5, -1.5, 0.5, 0.5, 1.5, 0.5, -0.5, 1.5, 0.5, -0.5, -1.5, 0.5, -0.5, -1.5, -0.5, -0.5, 1.5, -0.5, -0.5, 1.5, 0.5, -0.5, 1.5, -0.5, 0.5, 1.5, -0.5, 0.5, 1.5, 0.5, 0.5, -1.5, 0.5, 0.5, -1.5, -0.5, -0.5, -1.5, -0.5, -0.5, -1.5, 0.5]
+
+        test.array(expected).match(result)
     }
 }
 
@@ -104,6 +147,8 @@ class MeshToolsTests {
         })
     }
 }
+
+
 Test.add(InstanceTests)
 Test.add(BaseTests)
 Test.add(BabylonBaseTests)
@@ -112,3 +157,5 @@ Test.add(ChildManagerTests)
 Test.add(MeshToolsTests)
 
 })(window)
+
+
