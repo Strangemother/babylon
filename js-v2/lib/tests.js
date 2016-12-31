@@ -201,7 +201,13 @@ ClassTestAssertions._asserts = {};
 
 class IsClassAssertion extends ClassTestAssertions {
 
-    classMethodCalled(Cls, methodName, action, caller) {
+    classStaticMethodCalled(Cls, methodName, action, caller) {
+        /* same as `classMethodCalled`, providing `useProto=false`
+        to access to static method */
+        return this.classMethodCalled(Cls, methodName, action, caller, false)
+    }
+
+    classMethodCalled(Cls, methodName, action, caller, useProto=true) {
         /* using the `mock` determine if a method was called when using
         a class. Provide the class, method name, an optional action function
         and an optional evoke caller function
@@ -223,14 +229,15 @@ class IsClassAssertion extends ClassTestAssertions {
 
         The mock function is setup, ran then destroyed once complete.
         */
-        let _mock = Test.assertions.mock(Cls.prototype)
+        let _p = useProto ? Cls.prototype: Cls
+        let _mock = Test.assertions.mock(_p)
         action = action || function(mock, Klass) {
             new Klass
         }
 
         caller = caller || function(mock, Klass){
-            mock.expects(methodName).once()
-            action(mock, Klass)
+            let _mock = mock.expects(methodName).once()
+            action(_mock, Klass)
         }
 
         caller(_mock, Cls);
