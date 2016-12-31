@@ -56,17 +56,48 @@ class Camera extends Shape {
         return this.type() || 'Free'
     }
 
-    activate(scene, control=true) {
+    activate(scene, control=true, cache=true) {
         /* Activate the camera, implementing as the scene.activeCamera.
         If `control` is true (default), the camera will take control
         of the canvas.*/
-        debugger;
+        let app = Garden.instance();
         let camera = this._babylon;
+
+        scene = scene || app.scene();
         if(camera == undefined) {
-            camera = this.create({})
+            camera = this.create({});
+            if(cache == true) {
+                this._babylon = camera;
+            }
         };
 
         scene.activeCamera = camera;
+        if(control == true) {
+            return this.attach(app, cache);
+        };
+
+        return camera;
+    }
+
+    attach(app, cache=true) {
+        /* Attch this instance to the scene. If
+        the bablyon instance does not exist, Garden.instance()
+        is used. If the camera instance does not exist,
+        this.create() is called.
+        Returns attached camera.*/
+        app = app || Garden.instance()
+        let camera = this._babylon;
+
+        if(camera == undefined) {
+            camera = this.create({})
+            if(cache == true) {
+                this._babylon = camera
+            }
+        };
+
+        camera.attachControl(app._canvas, true)
+
+        return camera;
     }
 
 }
