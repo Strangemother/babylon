@@ -133,10 +133,15 @@ Test.Runner = class TestRunner {
                         title = `${names[j]}::${m}`
                     }
 
-                    before(function(){
-                        this.title = title;
-                        this.instance = testClass
-                    })
+                    before((function(testClass, title){
+                        /* Anon function required here to ensure
+                        the inner class keeps the relative class
+                        rather than the newest to convertTests*/
+                        return function(){
+                            this.title = title;
+                            this.instance = testClass
+                        }
+                    })(testClass, title))
 
                     it(title, func)
 
