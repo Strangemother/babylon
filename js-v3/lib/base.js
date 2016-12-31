@@ -348,7 +348,14 @@ class ChildManager {
     }
 
     get _babylon() {
+        if(this._babylon_node) return this._babylon_node
         if(this._displayListName == undefined) return undefined
         return this._displayList[this._displayListIndex][1]
+    }
+
+    set _babylon(babylonItem) {
+        /* override the babylon instance with an internal value, omiting the
+        displayList*/
+        this._babylon_node = babylonItem
     }
 }
