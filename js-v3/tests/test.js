@@ -11,6 +11,15 @@ class InstanceTests {
 
 }
 
+class ChildManagerTests {
+
+    test__babylon() {
+        /* Get babylon instance if exists. */
+        let c = new ChildManager()
+        test.value(c._babylon).isUndefined()
+    }
+}
+
 class BaseTests {
 
     test_init(){
@@ -89,5 +98,6 @@ Test.add(InstanceTests)
 Test.add(BaseTests)
 Test.add(BabylonBaseTests)
 Test.add(ShapesTests)
+Test.add(ChildManagerTests)
 
 })(window)
