@@ -67,7 +67,8 @@ class BabylonObject extends ChildManager {
 
         // Cached by this.babylonCall
         let r = this._babylonParams;
-        let _opts = Object.assign({}, r || {}, this._options || {}, options);
+        let rd = r != undefined ? r[1]: {};
+        let _opts = Object.assign({}, rd, this._options || {}, options);
         if(r === undefined || cache == false) {
             return this.babylonParams(scene, _opts)
         };
