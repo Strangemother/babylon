@@ -56,4 +56,18 @@ The `control` changes the input device to the cameras utilities. If `control=fal
 
 Babylon does a perfect job of handling cameras and the view will smoothly transition to a camera.
 
+The cameras extend and control real BABLYON types:
+```
+Camera
+FreeCamera
+ArcRotateCamera
+AnaglyphArcRotateCamera
+VirtualJoysticksCamera
+AnaglyphFreeCamera
+WebVRFreeCamera
+TouchCamera
+GamepadCamera
+DeviceOrientationCamera
+FollowCamera
+```
 

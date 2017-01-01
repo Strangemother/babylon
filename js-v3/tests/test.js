@@ -148,6 +148,45 @@ class MeshToolsTests {
     }
 }
 
+class ColorsTests {
+
+    test_make_color(){
+        /* Ensure the color.make function returns a BABYLON type */
+        let c3 = colors.make(.5, .3, .1)
+        test.value(c3.r).is(.5)
+        test.value(c3.g).is(.3)
+        test.value(c3.b).is(.1)
+    }
+
+    test_add_colors(){
+        /* Can add an object of values to colors.addColors */
+        let cs = {
+            'foo': [.4,.3,.2]
+            , 'bar': [.9, .8, .7]
+        }
+
+        colors.addColors(cs)
+
+        test.value(colors.foo).isFunction()
+        let r = colors.foo()
+        test.value(r.r).is(.4)
+        test.value(r.g).is(.3)
+        test.value(r.b).is(.2)
+    }
+
+    test_hex(){
+        /* can convert hex to Color3 */
+        let r = colors.hex('#FF0000')
+        test.value(r.r).is(1)
+        test.value(r.g).is(0)
+        test.value(r.b).is(0)
+
+        r = colors.hex('#00FF00')
+        test.value(r.r).is(0)
+        test.value(r.g).is(1)
+        test.value(r.b).is(0)
+    }
+}
 
 Test.add(InstanceTests)
 Test.add(BaseTests)
@@ -155,6 +194,7 @@ Test.add(BabylonBaseTests)
 Test.add(ShapesTests)
 Test.add(ChildManagerTests)
 Test.add(MeshToolsTests)
+Test.add(ColorsTests)
 
 })(window)
 
