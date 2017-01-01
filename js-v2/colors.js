@@ -1,27 +1,40 @@
 var colors = {};
 let _colors = {
-    red: [1, 0, 0]
-    , green: [0, 1, 0]
-    , blue: [0, 0, 1] // will be skipped due to override
-    , blue: [0, 0, 1] // will be skipped due to override
+    red:       [1, 0, 0]
+    , green:   [0, 1, 0]
+    , blue:    [0, 0, 1] // will be skipped due to override
+    , blue:    [0, 0, 1] // will be skipped due to override
+    , black:   [0,0,0]
+    , white:   [1,1,1]
+    , red:     [1,0,0]
+    , lime:    [0,1,0]
+    , blue:    [0,0,1]
+    , yellow:  [1,1,0]
+    , cyan:    [0,1,1]
+    , magenta: [1,0,1]
+    , silver:  [.75,.75,.75]
+    , gray:    [.6,.6,.6]
+    , maroon:  [.6,0,0]
+    , olive:   [.6,.6,0]
+    , purple:  [.6,0,.6]
+    , teal:    [0,.6,.6]
+    , navy:    [0,0,.6]
+
 }
-// --
 
 colors.white = function() {
     return colors.make(1, 1, 1);
-}
-
-colors.blue = function() {
-    return colors.make(0, 0, 1);
 }
 
 colors.color3 = function(num) {
     return colors.make(num, num, num)
 }
 
+
 colors.color4 = function(num, a) {
     return colors.make(num, num, num, a || num)
 }
+
 
 colors.hexToRgb = function(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -38,10 +51,12 @@ colors.hexToRgb = function(hex) {
     ] : null;
 }
 
+
 colors.hex = function(hexVal){
     /* Create a color using a hex value*/
     return colors.make.apply(colors, colors.hexToRgb(hexVal).map(x => x/255))
 }
+
 
 colors.make = function(r, g, b, a) {
     if(r instanceof Array && g == undefined && b == undefined) {
@@ -67,10 +82,12 @@ colors.addColors = function(_colors, overwrite=true) {
 
         colors.addColors({ red: [1, 0, 0]})*/
     for(var name in _colors) {
-        if(_colors[name] !== undefined && overwrite == true) {
-            console.warn('overwrite ' + name)
-        } else {
-            return;
+        if(colors[name] !== undefined) {
+            if(overwrite == false) {
+                continue;
+            } else {
+                console.warn('overwrite ' + name)
+            }
         }
 
         _colors[`_${name}`] = _colors[name];
@@ -86,5 +103,6 @@ colors.addColors = function(_colors, overwrite=true) {
         }).apply({ name, _colors })
     }
 }
+
 
 colors.addColors(_colors, false)
