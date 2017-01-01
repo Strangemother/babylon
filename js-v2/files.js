@@ -1,8 +1,6 @@
 var assets = [
    // Vendor require
-   "js/babylon/dist/preview release/babylon.max.js"
-   , "js/babylon/dist/preview release/cannon.js"
-   , "js/babylon/dist/preview release/Oimo.js"
+   "js/babylon-2-5.custom.js"
    , 'js/vendor/IT.js'
 
    // Lib
