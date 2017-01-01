@@ -1,26 +1,19 @@
-var NotImplementedError = function(message) {
-    this.name = 'NotImplemented';
-    this.message = message || "The reference call is not implemented";
-    this.stack = (new Error(message)).stack;
-}
-
-NotImplementedError.prototype = Object.create(Error.prototype)
-NotImplementedError.prototype.constructor = NotImplementedError;
-NotImplementedError.throw = function(m){
-    let e = new NotImplementedError(m);
-    throw e;
-    return e;
-}
 
 class BabylonObject extends ChildManager {
     /* Interface the babylon method caller with the defined shape parameters.
     It's encouraged to use the native BABYLON Mesh. */
-    constructor(...args){
-        /* Constructor  call init, expects super. */
-        super()
-        this.init.apply(this, arguments)
+
+    static targetObjectAssignment(cls){
+        /* Return a plural of the type*/
+        return `objects`;
     }
 
+    static make(cls, options) {
+        /* Make a new instance of this Class.
+        This class, is actually the first given argument `cls`.*/
+        let item = new cls(options);
+        return item;
+    }
 
     init(options, ...args){
         /* API hook to start your component. Such as an add to view.*/
@@ -34,7 +27,6 @@ class BabylonObject extends ChildManager {
     }
 
     get _app() {
-        /* Hook to the base app instance. For scene sharing*/
         return _instance
     }
 
@@ -152,20 +144,17 @@ class BabylonObject extends ChildManager {
         return this._type || this.constructor.name;
     }
 
-    static make(cls, options) {
-        /* Make a new instance of this Class.
-        This class, is actually the first given argument `cls`.*/
-        let item = new cls(options);
-        return item;
-    }
-
     babylonCall(...args) {
         /* Produce a babylon object using the given args as
         parameters for the CreateXXX call.
         returned is a babylon instance. */
         this._babylonParams = args;
         let n = this.babylonFuncName(...args);
-        return BABYLON[n](...args);
+        return this.babylonFunc()[n](...args);
+    }
+
+    babylonFunc(){
+        return  BABYLON
     }
 
     babylonFuncName(...args) {
@@ -178,25 +167,18 @@ class BabylonObject extends ChildManager {
         babylon name Create[name]. Default: 'Mesh' */
         return this.type();
     }
-
 }
 
 class Shape extends BabylonObject {
     /* A Basic shape for an entity in the view. */
-
-    babylonCall(...args) {
-        /* Produce a babylon object using the given args as
-        parameters for the CreateXXX call.
-        returned is a babylon instance. */
-        this._babylonParams = args;
-        let n = this.babylonFuncName(...args);
-        return BABYLON.MeshBuilder[n](...args);
-    }
 
     static targetObjectAssignment(cls){
         /* Return a plural of the type*/
         return `shapes`;
     }
 
-}
+    babylonFunc(){
+        return  BABYLON.MeshBuilder
+    }
 
+}

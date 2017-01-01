@@ -43,11 +43,6 @@ class Camera extends BabylonObject {
     _babylonParamsMissingKey(key, keys, options, scene) {
         /* Whilst populating the BABYLON instance parameters the `key` does
         not exist within `options`. */
-        let n = `${key}Key`;
-        if(this[n] != undefined) {
-            return this[n](options, scene)
-        };
-
         Garden.handleError(
                     'Camera.babylonParamsMissingKey'
                     , `Missing key "${key}"`

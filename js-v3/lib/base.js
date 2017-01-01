@@ -3,6 +3,22 @@ var SIZE = {
     FULL: 'full'
 }
 
+var NotImplementedError = function(message) {
+    this.name = 'NotImplemented';
+    this.message = message || "The reference call is not implemented";
+    this.stack = (new Error(message)).stack;
+}
+
+NotImplementedError.prototype = Object.create(Error.prototype)
+NotImplementedError.prototype.constructor = NotImplementedError;
+NotImplementedError.throw = function(m){
+    let e = new NotImplementedError(m);
+    throw e;
+    return e;
+}
+
+
+var _instance = {};
 
 class BaseClass {
     /* Base app */
@@ -14,13 +30,17 @@ class BaseClass {
         console.log('init called')
     }
 
+    get _app() {
+        /* Hook to the base app instance. For scene sharing*/
+        return _instance
+    }
 }
 
 class TargetObjectAssignmentRegister extends BaseClass {
 
 
     static make(type, options) {
-        /* Genetate a Shape instance*/
+        /* Genetate an instance*/
 
         if(arguments.length <= 1) {
             options = type;
@@ -40,7 +60,6 @@ class TargetObjectAssignmentRegister extends BaseClass {
         let item = location[type].make(location[type], options);
         Garden.instance()['named'] = location
         return item;
-
     }
 
     static create(type, options, scene) {
@@ -266,9 +285,20 @@ class BabylonInterface extends BabylonBase {
 
         return engine;
     }
+
+    static handleWarning(errorId, message) {
+        let n = `${errorId}::${message}`;
+        console.warn(n)
+    }
+
+    static handleError(errorId, message) {
+        let n = `${errorId}::${message}`;
+
+        throw new Error(n)
+    }
+
 }
 
-var _instance = {};
 
 class Base extends BabylonInterface {
 
@@ -286,11 +316,6 @@ class Base extends BabylonInterface {
         };
 
         _instance = this;
-
-    }
-
-    get _app() {
-        return _instance
     }
 
     get babylonSet(){
@@ -320,21 +345,11 @@ class Garden extends Base {
         return _instance;
     }
 
-    static handleWarning(errorId, message) {
-        let n = `${errorId}::${message}`;
-        console.warn(n)
-    }
-
-    static handleError(errorId, message) {
-        let n = `${errorId}::${message}`;
-
-        throw new Error(n)
-    }
-
     version(){
         return 0.2
     }
 }
+
 
 class DisplayListManager {
 
@@ -409,9 +424,10 @@ class ChildList {
 }
 
 
-class ChildManager {
+class ChildManager extends BaseClass{
 
     constructor(){
+        super()
         this.id = Math.random().toString(32).slice(2);
     }
 
