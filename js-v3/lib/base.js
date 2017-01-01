@@ -16,12 +16,79 @@ class BaseClass {
 
 }
 
-class BabylonBase extends BaseClass {
+class TargetObjectAssignmentRegister extends BaseClass {
+
+
+    static make(type, options) {
+        /* Genetate a Shape instance*/
+
+        if(arguments.length <= 1) {
+            options = type;
+            type = undefined;
+        };
+
+        // Options or default options
+        options = options || {};
+        // Given type or the options.type or DEFAULT
+        type = (type || options.type).toLowerCase()
+
+        if(options._type) {
+            delete options.type;
+        };
+
+        let location = Garden.instance()['named'] || {} ;
+        let item = location[type].make(location[type], options);
+        Garden.instance()['named'] = location
+        return item;
+
+    }
+
+    static create(type, options, scene) {
+        let item = this.make(type, options);
+        // The given scene or the options scene
+        scene = scene || (options != undefined? options.scene: undefined)
+
+        if(scene == undefined) {
+            let engine, canvas;
+            [scene, engine, canvas] = item._app.babylonSet;
+        };
+
+        // Create new mesh
+        let mesh = item.create(scene);
+        // Add to display list.
+        item._app.children.append(item, mesh, options)
+        return item;
+    }
+
+    static register(...items){
+        /* Register a component for later creation via MeshTool.make and .create*/
+        let location = Garden.instance()['named'] || {};
+        let name, camelName;
+
+        for(let item of items) {
+
+            name = item.name.toLowerCase();
+            camelName = `${name.slice(0,1).toLowerCase()}${name.slice(1)}`
+            location[camelName] = item;
+            if(item.targetObjectAssignment) {
+                let n = item.targetObjectAssignment(item)
+                if(_instance[n] == undefined) {
+                    _instance[n] = {}
+                };
+
+                _instance[n][item.name] = item
+            }
+        }
+        Garden.instance()['named'] = location
+    }
+}
+
+
+class BabylonBase extends TargetObjectAssignmentRegister {
 
     init(config){
         log('BabylonBase init')
         this._renderers = []
-        console.log('config', config)
         this.initConfig = config;
         this.clearColor = [.3, .3, .3]
         this._ran = false;
