@@ -38,9 +38,11 @@ class BabylonObject extends ChildManager {
         return _instance
     }
 
-    create(options, scene){
+    create(options, scene, cache=false){
         /* Create the scene entity for babylon interface. Returned is the
         generated object for bablon*/
+        options = options || {};
+
         if(scene == undefined) {
             if(options.scene) {
                 scene = options.scene;
@@ -83,6 +85,12 @@ class BabylonObject extends ChildManager {
         }
     }
 
+    addToScene(options) {
+        /* Add the element to the child list of the default app scene.
+        This function uses the addTo(app) */
+        this.addTo(Garden.instance(), options)
+    }
+
     babylonParams(scene, overrides) {
         /* Return the configured options in order for this.babylonCall arguments
         Returned is [name, options, scene] */
@@ -117,7 +125,11 @@ class BabylonObject extends ChildManager {
     getOptionKey(key) {
         /* return the value for the given key, used when building the options
         for the babylon instance*/
-        return this[key]
+        let n = `${key}Key`;
+        if(this[n] != undefined) {
+            return this[n]()
+        };
+
     }
 
     generateName(){
@@ -131,7 +143,8 @@ class BabylonObject extends ChildManager {
     destroy(){
         /* Remove the item from the view and destroy its data. This
         should attempt a complete memory removal. */
-        return NotImplementedError.throw('BabylonObject.destroy() not implemented')
+        let n = self.constructor.name
+        return NotImplementedError.throw(`${n}.destroy() not implemented`)
     }
 
     type(v){
@@ -171,13 +184,6 @@ class BabylonObject extends ChildManager {
 class Shape extends BabylonObject {
     /* A Basic shape for an entity in the view. */
 
-
-    destroy(){
-        /* Remove the item from the view and destroy its data. This
-        should attempt a complete memory removal. */
-        return NotImplementedError.throw('Shape.destroy() not implemented')
-    }
-
     babylonCall(...args) {
         /* Produce a babylon object using the given args as
         parameters for the CreateXXX call.
@@ -187,13 +193,6 @@ class Shape extends BabylonObject {
         return BABYLON.MeshBuilder[n](...args);
     }
 
-    babylonFuncNamePartial(...args) {
-        /* Return the partial name of the object to create a full
-        babylon name Create[name]. Default: 'this.type' */
-
-        return this.type();
-    }
-
     static targetObjectAssignment(cls){
         /* Return a plural of the type*/
         return `shapes`;
@@ -201,75 +200,3 @@ class Shape extends BabylonObject {
 
 }
 
-
-class TargetObjectAssignmentRegister {
-
-
-    static register(...items){
-        /* Register a component for later creation via MeshTool.make and .create*/
-        let location = Garden.instance()['named'] || {} ;
-
-        for(let item of items) {
-            let name = item.name.toLowerCase();
-
-            location[name] = item;
-            if(item.targetObjectAssignment) {
-                let n = item.targetObjectAssignment(item)
-                if(_instance[n] == undefined) {
-                    _instance[n] = {}
-                };
-
-                _instance[n][item.name] = item
-            }
-        }
-        Garden.instance()['named'] = location
-
-    }
-}
-
-
-class MeshTools extends TargetObjectAssignmentRegister {
-
-
-
-    static make(type, options) {
-        /* Genetate a Shape instance*/
-
-        if(arguments.length <= 1) {
-            options = type;
-            type = undefined;
-        };
-
-        // Options or default options
-        options = options || {};
-        // Given type or the options.type or DEFAULT
-        type = type || options._type
-
-        if(options._type) {
-            delete options._type;
-        };
-
-        let location = Garden.instance()['named'] || {} ;
-        let item = location[type].make(location[type], options);
-        Garden.instance()['named'] = location
-        return item;
-
-    }
-
-    static create(type, options, scene) {
-        let item = this.make(type, options);
-        // The given scene or the options scene
-        scene = scene || (options != undefined? options.scene: undefined)
-
-        if(scene == undefined) {
-            let engine, canvas;
-            [scene, engine, canvas] = item._app.babylonSet;
-        };
-
-        // Create new mesh
-        let mesh = item.create(scene);
-        // Add to display list.
-        item._app.children.append(item, mesh, options)
-        return item;
-    }
-}
