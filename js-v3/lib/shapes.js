@@ -1,4 +1,34 @@
 // http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#linesystem
+class Shape extends BabylonObject {
+    /* A Basic shape for an entity in the view. */
+
+    static targetObjectAssignment(cls){
+        /* Return a plural of the type*/
+        return `shapes`;
+    }
+
+    babylonFunc(){
+        return  BABYLON.MeshBuilder
+    }
+
+    babylonParams(scene, overrides) {
+        /* Return the configured options in order for this.babylonCall arguments
+        Returned is [name, options, scene] */
+        let name = this.generateName()
+            , options = this.generateOptions(overrides)
+            ;
+        return [name, options, scene]
+    }
+
+    _babylonParamsMissingKey(){
+        return [false, undefined]
+    }
+
+
+    executeBabylon(babylonFunc, name, ...args) {
+        return babylonFunc[name](...args);
+    }
+}
 
 class Box extends Shape {
     /* A basic mesh object to help build BABYLON.Mesh components*/

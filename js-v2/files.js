@@ -19,6 +19,7 @@ var assets = [
    , 'js-v2/config.js'
    // , 'js-v2/printLogger.js'
    , 'js-v3/lib/base.js'
+   , 'js-v3/lib/adapter.js'
    , 'js-v3/lib/mesh.js'
    , 'js-v2/colors.js'
    , 'js-v2/colors_extended.js'

@@ -7,68 +7,23 @@ class Camera extends BabylonObject {
         return 'cameras'
     }
 
-    babylonParams(scene, overrides) {
-        /* Return the configured options in order for this.babylonCall arguments
-        Returned is [name, options, scene] */
-        let name = this.generateName()
-            , options = this.generateOptions(overrides)
-            , v
-            ;
-
-        let a = [name];
-        let keys = this.keys();
-
-        for(let key of keys){
-            if(options[key]) {
-                a.push(options[key]);
-            } else {
-                v = this._babylonParamsMissingKey(key, keys, options, scene);
-                a.push(v);
-            }
-        };
-
-
-        if(a.length != keys.length + 1) {
-            Garden.handleWarning(
-                    'Camera.babylonParams.options'
-                    , 'Given parameter length does not match API parameter length'
-                )
-        };
-
-        a.push(scene);
-
-        return a
-    }
-
-    _babylonParamsMissingKey(key, keys, options, scene) {
-        /* Whilst populating the BABYLON instance parameters the `key` does
-        not exist within `options`. */
-        Garden.handleError(
-                    'Camera.babylonParamsMissingKey'
-                    , `Missing key "${key}"`
-                )
-    }
-
     babylonFuncName(...args) {
         /* Bablyon function builds XXXCamera. By default
         this is FreeCamera */
-        let n = this.shapeName(...args);
+        let n = this.babylonFuncNamePartial(...args);
         return `${n}`;
     }
 
-    babylonCall(...args) {
-        /* Produce a babylon object using the given args as
-        parameters for the CreateXXX call.
-        returned is a babylon instance. */
-        this._babylonParams = args;
-        let n = this.babylonFuncName(...args);
-        return new BABYLON[n](...args);
-    }
+    getOrCreate(cache=false) {
 
-    shapeName(...args) {
-        /* Return the partial name of the BABYLON camera type.
-        Default: 'free' */
-        return this.type() || 'Free'
+        let camera = this._babylon;
+        if(camera == undefined) {
+            camera = this.create({})
+            if(cache == true) {
+                this._babylon = camera
+            }
+        };
+        return camera;
     }
 
     activate(scene, control=true, cache=true) {
@@ -76,17 +31,10 @@ class Camera extends BabylonObject {
         If `control` is true (default), the camera will take control
         of the canvas.*/
         let app = Garden.instance();
-        let camera = this._babylon;
-
-        scene = scene || app.scene();
-        if(camera == undefined) {
-            camera = this.create({});
-            if(cache == true) {
-                this._babylon = camera;
-            }
-        };
-
+        let camera = this.getOrCreate(cache)
+        scene = scene || app.scene()
         scene.activeCamera = camera;
+
         if(control == true) {
             return this.attach(app, cache);
         };
@@ -101,15 +49,7 @@ class Camera extends BabylonObject {
         this.create() is called.
         Returns attached camera.*/
         app = app || Garden.instance()
-        let camera = this._babylon;
-
-        if(camera == undefined) {
-            camera = this.create({})
-            if(cache == true) {
-                this._babylon = camera
-            }
-        };
-
+        let camera = this.getOrCreate(cache)
         camera.attachControl(app._canvas, true)
 
         return camera;
