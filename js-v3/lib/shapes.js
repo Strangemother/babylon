@@ -330,7 +330,7 @@ class Decals extends Shape {
 
 
 
-MeshTools.register(
+Garden.register(
     Box
     , Sphere
     , Cylinder
