@@ -17,10 +17,10 @@ app.children.add( i, { height: 3 } )
 
 The result generates a box `width=4` `height=3`.
 
-All types are available in a function call `MeshTools.create` state function:
+All types are available in a function call `Garden.create` state function:
 
 ```js
-MeshTools.create('box', { width: 3})
+Garden.create('box', { width: 3})
 ```
 
 This uses the `Box` scene instance and `Box().create()`.

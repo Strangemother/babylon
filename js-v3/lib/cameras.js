@@ -245,7 +245,6 @@ class WebVRFreeCamera extends FreeCamera {
 }
 
 
-
 class TouchCamera extends FreeCamera {
 
     // TouchCamera >> Move in your world with your touch-gesture device
@@ -296,12 +295,16 @@ class FollowCamera extends FreeCamera {
 }
 
 
-
-
-
-
-
-
-
-
-
+Garden.register(
+        Camera
+        , FreeCamera
+        , ArcRotateCamera
+        , AnaglyphArcRotateCamera
+        , VirtualJoysticksCamera
+        , AnaglyphFreeCamera
+        , WebVRFreeCamera
+        , TouchCamera
+        , GamepadCamera
+        , DeviceOrientationCamera
+        , FollowCamera
+    )
