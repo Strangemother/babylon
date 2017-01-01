@@ -4,6 +4,30 @@ var main = function(){
     window.app = v;
 }
 
+class ActorBox extends BabylonObject {
+    keys(){
+        return ['position']
+    }
+
+    babylonCall(...args) {
+        // build a box
+        return BABYLON.MeshBuilder.CreateBox(...args)
+    }
+
+    get position(){
+        let b = this._babylon;
+        if(!b) Garden.handleError('missingBabylon', '_bablyon instance must exist')
+        return b.position
+    }
+
+    set position(v){
+        this._babylon.position = v
+        return true;
+    }
+}
+
+
+
 class Main extends Garden {
 
     init(config){
