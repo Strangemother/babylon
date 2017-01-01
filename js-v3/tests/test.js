@@ -138,10 +138,10 @@ class ShapesTests {
 }
 
 
-class MeshToolsTests {
+class CreateMethodTest {
     test_create_calls_make() {
         /* create function calls make function */
-        test.classStaticMethodCalled(MeshTools, 'make', function(mock, Klass){
+        test.classStaticMethodCalled(Garden, 'make', function(mock, Klass){
             mock.returns(new Box)
             Klass.create('box');
         })
@@ -193,7 +193,7 @@ Test.add(BaseTests)
 Test.add(BabylonBaseTests)
 Test.add(ShapesTests)
 Test.add(ChildManagerTests)
-Test.add(MeshToolsTests)
+Test.add(CreateMethodTest)
 Test.add(ColorsTests)
 
 })(window)
