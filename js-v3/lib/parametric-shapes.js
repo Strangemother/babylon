@@ -15,7 +15,6 @@ class Lines extends Shape {
 }
 
 
-
 class DashedLines extends Shape {
 
     keys() {
@@ -37,7 +36,6 @@ class DashedLines extends Shape {
 }
 
 
-
 class LineSystem extends Shape {
 
     keys() {
@@ -52,7 +50,6 @@ class LineSystem extends Shape {
         ]
     }
 }
-
 
 
 
@@ -85,7 +82,6 @@ class Ribbon extends Shape {
 }
 
 
-
 class Tube extends Shape {
 
     keys() {
@@ -116,7 +112,6 @@ class Tube extends Shape {
         ]
     }
 }
-
 
 
 
@@ -210,4 +205,13 @@ class Lathe extends Shape {
 
 
 
-
+Garden.register(
+    Lines
+    , DashedLines
+    , LineSystem
+    , Ribbon
+    , Tube
+    , ExtrudedShapes
+    , CustomExtrudedShapes
+    , Lathe
+)
