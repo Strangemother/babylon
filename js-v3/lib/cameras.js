@@ -7,12 +7,6 @@ class Camera extends BabylonObject {
         return 'cameras'
     }
 
-    babylonFuncName(...args) {
-        /* Bablyon function builds XXXCamera. By default
-        this is FreeCamera */
-        let n = this.babylonFuncNamePartial(...args);
-        return `${n}`;
-    }
 
     getOrCreate(cache=false) {
 
@@ -32,24 +26,25 @@ class Camera extends BabylonObject {
         of the canvas.*/
         let app = Garden.instance();
         let camera = this.getOrCreate(cache)
+
         scene = scene || app.scene()
         scene.activeCamera = camera;
 
         if(control == true) {
-            return this.attach(app, cache);
+            return this.attach(app, cache,camera);
         };
 
         return camera;
     }
 
-    attach(app, cache=true) {
+    attach(app, cache=true, camera) {
         /* Attch this instance to the scene. If
         the bablyon instance does not exist, Garden.instance()
         is used. If the camera instance does not exist,
         this.create() is called.
         Returns attached camera.*/
         app = app || Garden.instance()
-        let camera = this.getOrCreate(cache)
+        camera = camera || this.getOrCreate(cache)
         camera.attachControl(app._canvas, true)
 
         return camera;

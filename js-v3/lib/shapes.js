@@ -2,6 +2,11 @@
 class Shape extends BabylonObject {
     /* A Basic shape for an entity in the view. */
 
+    babylonFuncName(...args) {
+        let n = super.babylonFuncName(...args);
+        return `Create${n}`;
+    }
+
     static targetObjectAssignment(cls){
         /* Return a plural of the type*/
         return `shapes`;

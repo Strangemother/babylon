@@ -205,13 +205,16 @@ class BabylonObject extends ChildManager {
     }
 
     babylonFuncName(...args) {
-        let n = this.babylonFuncNamePartial(...args);
-        return `Create${n}`;
-    }
-
-    babylonFuncNamePartial(...args) {
+        /* Bablyon function builds XXXCamera. By default
+        this is FreeCamera */
         /* Return the partial name of the object to create a full
         babylon name Create[name]. Default: 'Mesh' */
         return this.type();
+        // let n = this.babylonFuncNamePartial(...args);
+        // return n;
+        // return `${n}`;
+    }
+
+    babylonFuncNamePartial(...args) {
     }
 }
