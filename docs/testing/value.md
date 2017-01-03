@@ -83,12 +83,8 @@
 |` notHasValues(expected) `         | Assert that the actual tested value not has several expected values passed in an array of expected values. |
 |` contains(expected) `             | Assert that the actual value to contain something (===) to expected within depth. |
 |` notContains(expected) `          | Assert that the actual value to not contain something (!==) to expected within depth. |
-|` isReverseOf(expected) `          | Assert that the actual tested value is the reverse array to the expected array.An array is a reverse of another if they both have the same elements
-(including the same number of duplicates) regardless of their order.
-Elements are checked with strict equals (===). |
-|` isNotReverseOf(expected) `       | Assert that the actual tested value is not the reverse array to the expected array.An array is a reverse of another if they both have the same elements
-(including the same number of duplicates) regardless of their order.
-Elements are checked with strict equals (===). |
+|` isReverseOf(expected) `          | Assert that the actual tested value is the reverse array to the expected array.An array is a reverse of another if they both have the same elements (including the same number of duplicates) regardless of their order. Elements are checked with strict equals (===). |
+|` isNotReverseOf(expected) `       | Assert that the actual tested value is not the reverse array to the expected array.An array is a reverse of another if they both have the same elements (including the same number of duplicates) regardless of their order. Elements are checked with strict equals (===). |
 |` startsWith(str) `                | Assert that the actual value starts with str. |
 |` notStartsWith(str) `             | Assert that the actual value not starts with str. |
 |` endsWith(str) `                  | Assert that the actual value ends with str. |

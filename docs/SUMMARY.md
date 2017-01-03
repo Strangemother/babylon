@@ -8,7 +8,7 @@
 * [Testing](testing/README.md)
    * [HTTPAgent](testing/httpagent.md)
    * [Mocks](testing/mocks.md)
-   * [Assertions](testing/assertions)
+   * [Assertions](testing/assertions.md)
        * [Array](testing/array.md)
        * [Bool](testing/bool.md)
        * [Date](testing/date.md)
