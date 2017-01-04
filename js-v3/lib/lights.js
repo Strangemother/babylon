@@ -76,11 +76,20 @@ class HemisphericLight extends Light {
             // , 'groundColor'
         ]
     }
+
+    directionKey(){
+        return new BABYLON.Vector3(0,1,0)
+    }
 }
 
 
-
-
+Garden.register(
+    Light
+    , PointLight
+    , DirectionalLight
+    , SpotLight
+    , HemisphericLight
+)
 
 
 

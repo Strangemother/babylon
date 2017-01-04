@@ -62,8 +62,10 @@ class Main extends Garden {
 
     makeLights(){
         // create a basic light, aiming 0,1,0 - meaning, to the sky
-        let [scene, engine, canvas] = this._app.babylonSet
-        this.light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
+        // let [scene, engine, canvas] = this._app.babylonSet
+        // this.light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
+        this.light = new HemisphericLight()
+        this.light.addToScene()
     }
 
     makeBox(){
