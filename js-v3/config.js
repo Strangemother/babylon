@@ -4,5 +4,5 @@ CONFIG = {
     // name of the canvas to implement
     , canvasName: '#renderCanvas'
     // width height of the canvas
-    , size: [800, 600]
+    , size: [1000, 800]
 }
