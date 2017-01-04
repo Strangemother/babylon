@@ -188,6 +188,16 @@ class ColorsTests {
     }
 }
 
+class BabylonObjectTests {
+
+    test_args() {
+        /* can provide options */
+        let expected = { foo: 1, bar: 1};
+        let b = new BabylonObject(expected);
+        test.value(b._options).isObject(expected)
+    }
+}
+
 Test.add(InstanceTests)
 Test.add(BaseTests)
 Test.add(BabylonBaseTests)
@@ -195,6 +205,7 @@ Test.add(ShapesTests)
 Test.add(ChildManagerTests)
 Test.add(CreateMethodTest)
 Test.add(ColorsTests)
+Test.add(BabylonObjectTests)
 
 })(window)
 

@@ -69,14 +69,14 @@ class BabylonObject extends ChildManager {
         /* Add this element to the child list of the given parent.
         of childBase.children does not exist an error is thrown */
         if(childBase.children) {
-            childBase.children.add(this, options)
+            return childBase.children.add(this, options)
         }
     }
 
     addToScene(options) {
         /* Add the element to the child list of the default app scene.
         This function uses the addTo(app) */
-        this.addTo(Garden.instance(), options)
+        return this.addTo(Garden.instance(), options)
     }
 
     babylonParams(scene, overrides) {

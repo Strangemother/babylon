@@ -427,7 +427,7 @@ class ChildList {
 class ChildManager extends BaseClass{
 
     constructor(){
-        super()
+        super(...arguments)
         this.id = Math.random().toString(32).slice(2);
     }
 

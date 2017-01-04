@@ -4,19 +4,18 @@ var assets = [
    , 'js/vendor/IT.js'
 
    // Lib
-   , 'js-v2/lib/core/utils.js'
+   , 'js-v3/lib/core/utils.js'
 
    , 'js-v2/vendor/jquery-3.1.1.min.js'
 
    // , 'js-v2/tests/InstanceTests.js'
    , 'js-v2/vendor/mocha/mocha.js'
    , 'js-v2/vendor/unitjs/browser/dist/unit.js'
-   , 'js-v2/lib/tests.js'
+   , 'js-v3/lib/tests.js'
 
-   , 'js-v2/lib/PrintLogger.js'
-
+   , 'js-v3/lib/PrintLogger.js'
    // App
-   , 'js-v2/config.js'
+   , 'js-v3/config.js'
    // , 'js-v2/printLogger.js'
    , 'js-v3/lib/base.js'
    , 'js-v3/lib/adapter.js'
@@ -24,6 +23,7 @@ var assets = [
    , 'js-v2/colors.js'
    , 'js-v2/colors_extended.js'
    , 'js-v3/lib/shapes.js'
+   , 'js-v3/lib/lights.js'
    , 'js-v3/lib/cameras.js'
 
    , 'js-v3/tests/test.js'
