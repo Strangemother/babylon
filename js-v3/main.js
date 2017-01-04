@@ -1,7 +1,8 @@
 var main = function(){
-    logger('Main')
-    let v = new Main(CONFIG);
+    logger('Sandbox')
+    let v = new Sandbox(CONFIG);
     window.app = v;
+
 }
 
 class ActorBox extends BabylonObject {
@@ -88,6 +89,30 @@ class Main extends Garden {
     }
 }
 
+
+class Sandbox extends Garden {
+    init(config){
+        config = config || {};
+        config.backgroundColor = config.backgroundColor || this._baseColor()
+        super.init(config)
+
+        this.run()
+    }
+
+    _baseColor(){
+         return [.2, .2, .4]
+    }
+
+    start(){
+        this._sphere = new Sphere();
+        this._camera = new ArcRotateCamera();
+        this._light = new HemisphericLight();
+
+        this.children.addMany(this._sphere, this._light);
+
+        this._camera.activate()
+    }
+}
 
 var logger = function(name) {
     /* Setup the print logger */
