@@ -145,7 +145,7 @@ class BabylonBase extends TargetObjectAssignmentRegister {
             engine = undefined;
         };
 
-        this.runConfig = runConfig;
+        this.runConfig = runConfig || {};
         this.totalConfig = this.getRunConfig(this.runConfig);
         this.clearColor = this.config('backgroundColor') || this.clearColor
         return this.runLoop(this.runConfig, this._engine)
@@ -336,6 +336,17 @@ class Base extends BabylonInterface {
         /* Perform any first render operations*/
         log('Start run once.')
     }
+
+    get backgroundColor(){
+        /* return the clearColor from the main scene */
+        return this.scene().clearColor
+    }
+
+    set backgroundColor(v){
+        /* return the clearColor from the main scene */
+        this.scene().clearColor = v;
+        return true;
+    }
 }
 
 
@@ -399,13 +410,34 @@ class ChildList {
     }
 
     /* A chainable read list for instances of information for the view.*/
-    add(item, options) {
+    add(children, options) {
         /* Add an item to the list of children*/
 
+        let items = children;
+        if(!Array.isArray(children)) {
+
+            items = [children];
+        }
+
+        let meshes=[], mesh;
         let [scene, engine, canvas] = this.parent._app.babylonSet;
-        let mesh = item.create(options, scene);
-        this.append(item, mesh, options);
-        return mesh;
+
+        for(let item of items) {
+            mesh = item.create(options, scene);
+            this.append(item, mesh, options);
+            meshes.push(mesh);
+        };
+
+        // User did not pass an array, therefore return one
+        // mesh.
+        if(!Array.isArray(children)) return mesh;
+
+        return meshes;
+    }
+
+    addMany(...children) {
+        /* Calls add() for every item given */
+        return this.add(children)
     }
 
     append(item, mesh, options) {
