@@ -487,3 +487,11 @@ class ChildManager extends BaseClass{
     }
 }
 
+
+class BaseProperty extends BaseClass {
+    /* Create a class loading into the base Garden or other target
+    class
+    Like MRO but live and import inheritence. */
+
+}
+
