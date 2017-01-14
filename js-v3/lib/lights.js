@@ -5,6 +5,20 @@ class Light extends BabylonObject {
         return 'lights'
     }
 
+    propKeys(){
+        return [
+            'diffuse'
+            , 'specular'
+        ]
+    }
+
+    diffuseProp(){
+        return new BABYLON.Color3(.7,.7,.7);
+    }
+
+    specularProp(){
+        return new BABYLON.Color3(1, 1, 1);
+    }
 }
 
 class PointLight extends Light {
@@ -14,8 +28,6 @@ class PointLight extends Light {
     keys() {
         return [
             'position'
-            // , 'diffuse'
-            // , 'specular'
         ]
     }
 }
@@ -27,8 +39,6 @@ class DirectionalLight extends Light {
     keys() {
         return [
             'position'
-            // , 'diffuse'
-            // , 'specular'
         ]
     }
 }
@@ -50,10 +60,17 @@ class SpotLight extends Light {
             , 'direction'
             , 'angle'
             , 'exponent'
-            // , 'intensity'
-            // , 'diffuse'
-            // , 'specular'
         ]
+    }
+
+    propKeys(){
+        let keys = super.propKeys();
+        keys.push('intensity')
+        return keys;
+    }
+
+    intensityProp(){
+        return .9
     }
 }
 
@@ -71,14 +88,21 @@ class HemisphericLight extends Light {
     keys() {
         return [
             'direction'
-            // , 'diffuse'
-            // , 'specular'
-            // , 'groundColor'
         ]
+    }
+
+    propKeys(){
+        let keys = super.propKeys();
+        keys.push('groundColor')
+        return keys;
     }
 
     directionKey(){
         return new BABYLON.Vector3(0,1,0)
+    }
+
+    groundColorProp(){
+        return new BABYLON.Color3(0, 0, 0);
     }
 }
 
