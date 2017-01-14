@@ -177,6 +177,13 @@ class GroundFromHeightMap extends Shape {
             , 'updatable'
         ]
     }
+
+    babylonParams(scene, overrides) {
+        let args = super.babylonParams(scene, overrides);
+        let url = overrides.url
+        args.splice(1, 0, url)
+        return args;
+    }
 }
 
 class TiledGround extends Shape {
@@ -361,8 +368,14 @@ class Decals extends Shape {
 
         ]
     }
-}
 
+    babylonParams(scene, overrides) {
+        let args = super.babylonParams(scene, overrides);
+        let mesh = overrides.mesh
+        args.splice(1, 0, mesh)
+        return args;
+    }
+}
 
 
 Garden.register(

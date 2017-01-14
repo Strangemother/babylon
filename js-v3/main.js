@@ -28,7 +28,6 @@ class ActorBox extends BabylonObject {
 }
 
 
-
 class Main extends Garden {
 
     init(config){
@@ -104,13 +103,28 @@ class Sandbox extends Garden {
     }
 
     start(){
-        this._sphere = new Sphere();
+        this._sphere = new Sphere({ color: 'green' });
         this._camera = new ArcRotateCamera();
         this._light = new HemisphericLight();
-
+        //this._shapes()
         this.children.addMany(this._sphere, this._light);
 
         this._camera.activate()
+    }
+
+    _shapes(){
+        let shapes = app.shapes;
+        let c = 0;
+        for(let keyName in shapes) {
+            c += 2;
+            let shape = new shapes[keyName];
+            try {
+                let mesh = this.children.add(shape)
+                mesh.position.x = c;
+            } catch (e){
+                console.warn('Did not make', keyName)
+            }
+        }
     }
 }
 
@@ -121,5 +135,6 @@ var logger = function(name) {
     var logView = logger.create({});
 
 }
+
 
 ;main();
