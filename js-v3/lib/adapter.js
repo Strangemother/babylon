@@ -79,15 +79,15 @@ class BabylonObject extends ChildManager {
         return this.addTo(Garden.instance(), options)
     }
 
-    babylonParams(scene, overrides) {
-        /* Return the configured options in order for this.babylonCall arguments
-        Returned is [name, options, scene] */
-        let name = this.generateName()
-            , options = this.generateOptions(overrides)
-            ;
-
-        return [name, options, scene]
-    }
+    //babylonParams(scene, overrides) {
+    //    /* Return the configured options in order for this.babylonCall arguments
+    //    Returned is [name, options, scene] */
+    //    let name = this.generateName()
+    //        , options = this.generateOptions(overrides)
+    //        ;
+    //
+    //    return [name, options, scene]
+    //}
 
     babylonParams(scene, overrides) {
         /* Return the configured options in order for this.babylonCall arguments
@@ -192,16 +192,34 @@ class BabylonObject extends ChildManager {
         returned is a babylon instance. */
         this._babylonParams = args;
         let n = this.babylonFuncName(...args);
+        let b = this.executeBabylon(this.babylonFunc(), n, ...args);
+        this.assignProperties(b, ...args)
+        return b;
+    }
 
-        return this.executeBabylon(this.babylonFunc(), n, ...args)
+    propKeys(){
+        return []
     }
 
     executeBabylon(babylonFunc, name, ...args) {
         return new babylonFunc[name](...args);
     }
 
+    assignProperties(mesh, ...args) {
+        /* Call properties assigned through the propKeys()
+        assignement */
+        let keys = this.propKeys()
+            , prop
+            ;
+
+        for (var i = 0; i < keys.length; i++) {
+            prop = keys[i];
+            mesh[prop] = this[`${prop}Prop`]();
+        };
+    }
+
     babylonFunc(){
-        return  BABYLON
+        return BABYLON
     }
 
     babylonFuncName(...args) {
@@ -218,3 +236,5 @@ class BabylonObject extends ChildManager {
     babylonFuncNamePartial(...args) {
     }
 }
+
+
