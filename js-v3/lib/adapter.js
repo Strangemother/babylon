@@ -59,9 +59,18 @@ class BabylonObject extends ChildManager {
         let r = this._babylonParams;
         let rd = r != undefined ? r[1]: {};
         let _opts = Object.assign({}, rd, this._options || {}, options);
+
+        let props = this._app.properties
+        for(let key in _opts) {
+            if(props[key] != undefined) {
+                props[key].setup(this, scene, key, _opts);
+            }
+        };
+
         if(r === undefined || cache == false) {
             return this.babylonParams(scene, _opts)
         };
+
         return r
     }
 
@@ -151,7 +160,9 @@ class BabylonObject extends ChildManager {
         let _props = {};
         for(key in overrides) {
             v = this.getLiveProperty(key, o, overrides);
-            _props[v[0]] = v[1];
+            if(v != undefined){
+                _props[v[0]] = v[1];
+            }
         };
 
         // TODO: remove this off this;
