@@ -2,8 +2,13 @@ var main = function(){
     logger('Sandbox')
     let v = new App(CONFIG);
     window.app = v;
+    $('#run_tests').click(runTests);
 
 }
+
+var runTests = function(){
+    Test.run()
+};
 
 class ActorBox extends BabylonObject {
     keys(){
@@ -100,7 +105,7 @@ class App extends Garden {
     start(){
         this.sphere = new Sphere({ color: 'green' });
         this.camera = new ArcRotateCamera();
-        this.light = new HemisphericLight();
+        this.light = new HemisphericLight({ color: 'white' });
         this.children.addMany(this.sphere, this.light);
         this.camera.activate()
     }
