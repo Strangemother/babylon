@@ -62,6 +62,12 @@ let _colors = {
 
 }
 
+colors.get = function(value){
+    if(typeof(value) == 'string')
+        return colors[value]()
+    return value;
+}
+
 colors.white = function() {
     return colors.make(1, 1, 1);
 }
