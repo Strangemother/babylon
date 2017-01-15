@@ -396,6 +396,32 @@ class DisplayListManager {
         this._displaySets[id] = v;
     }
 
+    remove(child) {
+        let items;
+        if(child._displayListName != undefined) {
+            let items = this.get(child._displayListName);
+            if(items == undefined) {
+                console.warn('child has displayListName but no context', child)
+                return
+            };
+
+            items=items[1]
+        } else {
+            console.info('No scene element to remove', child)
+            return
+        }
+
+        if(items == undefined) return
+
+        // let entry = items[child._displayListIndex]
+        let removed = items.splice(child._displayListIndex, 1);
+        if(removed.length > 0) {
+            delete child._displayListIndex;
+            delete child._displayListName;
+        }
+        return removed[0]
+    }
+
     childList() {
         let r = new ChildList(this.parent);
         this._displaySets[r.id] = [r, []];
