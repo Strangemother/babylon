@@ -42,16 +42,21 @@ class ColorProperty extends BaseProperty {
 }
 
 class PositionProperty extends BaseProperty {
+
+
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
-        babylon.position = value;
+        babylon[this.key()] = value;
         return value;
     }
 
     getProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
-        return babylon.position
+        return babylon[this.key()]
     }
 }
 
-Garden.register(ColorProperty, PositionProperty)
+class RotationProperty extends PositionProperty {}
+class ScalingProperty extends PositionProperty {}
+
+Garden.register(ColorProperty, PositionProperty, RotationProperty, ScalingProperty)
