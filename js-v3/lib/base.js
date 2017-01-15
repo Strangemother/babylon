@@ -3,11 +3,13 @@ var SIZE = {
     FULL: 'full'
 }
 
+
 var NotImplementedError = function(message) {
     this.name = 'NotImplemented';
     this.message = message || "The reference call is not implemented";
     this.stack = (new Error(message)).stack;
 }
+
 
 NotImplementedError.prototype = Object.create(Error.prototype)
 NotImplementedError.prototype.constructor = NotImplementedError;
@@ -19,6 +21,7 @@ NotImplementedError.throw = function(m){
 
 
 var _instance = {};
+
 
 class BaseClass {
     /* Base app */
@@ -35,6 +38,7 @@ class BaseClass {
         return _instance
     }
 }
+
 
 class TargetObjectAssignmentRegister extends BaseClass {
 
@@ -190,7 +194,7 @@ class BabylonBase extends TargetObjectAssignmentRegister {
             this._renderers[i](config, i)
         }
     }
-};
+}
 
 
 class BabylonInterface extends BabylonBase {
@@ -308,7 +312,6 @@ class BabylonInterface extends BabylonBase {
 
         throw new Error(n)
     }
-
 }
 
 
@@ -514,6 +517,15 @@ class BaseProperty extends BaseClass {
         return this.key();
     }
 
+    key(){
+        return this.constructor.name.slice(0, -'property'.length).toLowerCase();
+    }
+
+    setup(instance, scene, key, options) {
+        let [_key, v] = this.instanceMethod(instance, scene, options)
+        instance[_key] = v;
+    }
+
     liveProperty(item, objReference, options){
         /* Called by the generateOptions function on first options
         detection.
@@ -523,15 +535,93 @@ class BaseProperty extends BaseClass {
         return this.initProperty(item, objReference, options);
     }
 
+    instanceMethod(item, scene, options) {
+        /* Set a method on the instance if one is required. */
+        let toSet, key, f;
+        [toSet, key] = this.setInstanceMethod();
+
+        if(!this.isTargetClass(item)) {
+            // check for class.
+            return
+        };
+
+        f = (function(propInst, key){
+
+            return function(v){
+                return propInst.propCall(this, key, v)
+            };
+
+        })(this, key)
+
+        if(toSet) {
+            return [key, f]
+        }
+    }
+
+    propCall(instance, key, v, b){
+        let ins = this.isTargetClass(instance)
+        let pn = ins.name;
+        let fn = 'getProperty'
+
+        if(v !== undefined) {
+            fn = 'setProperty'
+        };
+
+        let tn = `${pn}_${fn}`;
+        if(this[tn] == undefined) {
+            tn = fn;
+        }
+
+        return this[tn](instance, key, v, b);
+    }
+
+    isTargetClass(item) {
+        /* REturns the first mathing class instance of*/
+        for(let _type of this.instanceTypes()) {
+            if(item instanceof _type) return _type;
+        };
+        return false;
+    }
+
+    instanceTypes() {
+        return [BabylonObject]
+    }
+
+    setInstanceMethod(){
+        return [true, this.key()]
+    }
+
     initProperty(item, objReference, options) {
         /* First method called in a sequence for a loading property.
         Returned is the live instance value within the options.*/
-        return options[this.name];
+        return [this.name, this.initValue(item, objReference, options)];
     }
 
+    initValue(item, objReference, options){
+        return options[this.name]
+    }
 
     afterProperty(babylon, instance, key, properties){
-
+        /* Called by assignLiveProperties immediately after the
+        babylon execution. This method should assign values
+        to the BABYLON instance. */
+        this.propCall(instance, key, properties[key], babylon)
     }
-}
 
+    setProperty(instance, key, value, babylon) {
+        /* Set the value to the instance, optionally recieving a babylon
+        instance */
+        babylon = babylon || instance._babylon;
+        babylon[key] = value;
+    }
+
+    getProperty(instance, key, babylon){
+        /* Get the key from the instance.
+        By default this returns the value applied by `initProperty`*/
+        // babylon = babylon || instance._babylon;
+        babylon = babylon || instance._babylon;
+        if(babylon[key] != undefined) { return babylon[key]; }
+        return instance._properties[key]
+    }
+
+}
