@@ -5,7 +5,7 @@
 * [Garden](garden/README.md)
 * [Mesh](mesh/README.md)
 * [Cameras](cameras/README.md)
-* [Colours](colours/README.md)
+* [Colours and Materials](colours/README.md)
 * [Testing](testing/README.md)
    * [HTTPAgent](testing/httpagent.md)
    * [Mocks](testing/mocks.md)
@@ -23,4 +23,5 @@
        * [Number](testing/number.md)
 * [Architecture](architecture/README.md)
 * [BabylonObject](babylonobject/README.md)
+* [Properties](properties/README.md)
 

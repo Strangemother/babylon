@@ -1,4 +1,4 @@
-# Colours
+# Colours and Materials
 
 The `colors` module provides a layer of abstraction for generation standard `Color3` BABYLON classes.
 
@@ -7,5 +7,57 @@ let green = colors.green()
 // Color3(0, 1, 0)
 ```
 
-You can generate your own colors using `color.make`.
+Adding a color to a mesh through the definition object:
 
+```js
+let ball = new Sphere({ color: 'green' });
+ball.color('white')
+```
+
+
+You can generate your own colors using `color.make`. Materials exist in the same format, allowing the generation of `StandardMaterial` types. To apply a color, you'll need a material:
+
+```js
+let blueMaterial = materials.blue()
+// StandardMaterial...
+```
+
+The `materials.color()` function can generate a color on the fly. Using a material just like a normal BABYLON material:
+
+```js
+box = new Box;
+mesh = app.children.add(box)
+mesh.material = materials.color(app.scene(), 'red')
+```
+Applying the `mesh.material` is the BABYLON way. The Same is achieved using the object definition value:
+
+```js
+let box = new Box({color: 'red'});
+```
+
+You can change the colour after the babylon instance is on the scene:
+
+```js
+box.color('red')
+// StandardMaterial::diffuseColor == Color4 {r: 1, g: 0, b: 0, a: 1}
+```
+
+Because this property generates the correct values for BABYLON, you will expect a mutated result from the same call. A _set_ will apply new babylon values, a _get_ returns the bablyon state values:
+
+```js
+let ball = new Sphere({color: 'blue'})
+ball.addToScene()
+// Mesh
+ball.color()
+// Color4 {r: 0, g: 0, b: 1, a: 1}
+ball.color('yellow')
+// StandardMaterial
+ball.color()
+// Color4 {r: 1, g: 1, b: 0, a: 1}
+```
+
+The `Light` class can accept a color:
+
+```js
+let light = new Light({ color: 'white' });
+```
