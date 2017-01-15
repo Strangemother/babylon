@@ -186,6 +186,32 @@ class ColorsTests {
         test.value(r.g).is(1)
         test.value(r.b).is(0)
     }
+
+    test_mesh_apply() {
+        /* Can apply a color to a mesh*/
+        let box = new Box({color: 'red'});
+        box.addToScene()
+        let r = box.color();
+        test.value(r.r).is(1)
+        test.value(r.g).is(0)
+        test.value(r.b).is(0)
+
+        let mat = box.color('green');
+        let diffuseColor = mat.diffuseColor;
+
+        test.value(mat).isInstanceOf(BABYLON.StandardMaterial)
+        test.object(box._babylon.material).match(mat)
+        test.value(diffuseColor.r).is(0)
+        test.value(diffuseColor.g).is(1)
+        test.value(diffuseColor.b).is(0)
+
+        r = box.color()
+
+        test.value(r.r).is(0)
+        test.value(r.g).is(1)
+        test.value(r.b).is(0)
+
+    }
 }
 
 class BabylonObjectTests {
