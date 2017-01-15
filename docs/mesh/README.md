@@ -33,6 +33,15 @@ b.addTo(app /*, {width: 3} */)
 
 anything with a `children` manager can handle a new object.
 
+Destroying an object is one command. You can regenerate from the same parameters:
+
+```js
+b=new Box
+b.addTo(app /*, {width: 3} */)
+b.destroy()
+b.addToScene()
+```
+
 All basic BABYLON types are extended in this manner. checkout `shapes.js` for the classes. You can find class instances in you main app `app.shapes`:
 
 ```
