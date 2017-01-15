@@ -205,7 +205,18 @@ class BabylonObject extends ChildManager {
         /* Remove the item from the view and destroy its data. This
         should attempt a complete memory removal. */
         let n = self.constructor.name;
-        return NotImplementedError.throw(`${n}.destroy() not implemented`);
+
+        let b = this._babylon;
+        if(b) {
+            b.dispose()
+        };
+
+        let displayInstance = this._app.displayListManager.remove(this);
+
+        delete this._properties
+        delete this._babylonParams
+
+        return displayInstance;
     }
 
     type(v){
