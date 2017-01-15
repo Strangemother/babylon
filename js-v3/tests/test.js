@@ -2,6 +2,7 @@
 
 var test = Test.assertions;
 
+
 class InstanceTests {
 
     test_exists() {
@@ -22,8 +23,6 @@ class ChildManagerTests {
         c._babylon = expected
         test.value(c._babylon).is(expected)
     }
-
-
 }
 
 class BaseTests {
@@ -33,6 +32,7 @@ class BaseTests {
         test.classMethodCalled(BaseClass, 'init')
     }
 }
+
 
 class BabylonBaseTests {
 
@@ -60,8 +60,8 @@ class BabylonBaseTests {
         test.value(value).is(expected);
         test.value(b._stop).is(expected);
     }
-
 }
+
 
 class ShapesTests {
     _shapes(){
@@ -106,6 +106,7 @@ class ShapesTests {
         expected = [0.05, -0.05, 0.05, -0.05, -0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, -0.05, -0.05, 0.05, -0.05, -0.05, -0.05, -0.05, 0.05, -0.05, -0.05, 0.05, 0.05, -0.05, 0.05, -0.05, -0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, -0.05, 0.05, 0.05, -0.05, -0.05, 0.05, -0.05, -0.05, -0.05, -0.05, 0.05, -0.05, -0.05, 0.05, 0.05, -0.05, 0.05, -0.05, 0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, -0.05, 0.05, 0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, 0.05]
 
         test.array(expected).match(result)
+        e.dispose();
 
         b = new Box()
         e = b.create({ size: 1, updatable: false})
@@ -114,6 +115,9 @@ class ShapesTests {
 
         test.array(expected).match(result)
 
+        e.dispose();
+
+
         b = new Box()
         e = b.create({ size: 2, updatable: false})
         result = e._geometry._vertexBuffers.position._data
@@ -121,6 +125,7 @@ class ShapesTests {
 
         test.array(expected).match(result)
 
+        e.dispose();
         b = new Box()
         e = b.create({ size: 3, updatable: false})
         result = e._geometry._vertexBuffers.position._data
@@ -128,12 +133,14 @@ class ShapesTests {
 
         test.array(expected).match(result)
 
+        e.dispose();
         b = new Box()
         e = b.create({ height: 3, depth: 1, updatable: false})
         result = e._geometry._vertexBuffers.position._data
         expected = [0.5, -1.5, 0.5, -0.5, -1.5, 0.5, -0.5, 1.5, 0.5, 0.5, 1.5, 0.5, 0.5, 1.5, -0.5, -0.5, 1.5, -0.5, -0.5, -1.5, -0.5, 0.5, -1.5, -0.5, 0.5, 1.5, -0.5, 0.5, -1.5, -0.5, 0.5, -1.5, 0.5, 0.5, 1.5, 0.5, -0.5, 1.5, 0.5, -0.5, -1.5, 0.5, -0.5, -1.5, -0.5, -0.5, 1.5, -0.5, -0.5, 1.5, 0.5, -0.5, 1.5, -0.5, 0.5, 1.5, -0.5, 0.5, 1.5, 0.5, 0.5, -1.5, 0.5, 0.5, -1.5, -0.5, -0.5, -1.5, -0.5, -0.5, -1.5, 0.5]
 
         test.array(expected).match(result)
+        e.dispose();
     }
 }
 
@@ -141,12 +148,15 @@ class ShapesTests {
 class CreateMethodTest {
     test_create_calls_make() {
         /* create function calls make function */
+        var b;
         test.classStaticMethodCalled(Garden, 'make', function(mock, Klass){
             mock.returns(new Box)
-            Klass.create('box');
-        })
+            b = Klass.create('box');
+        });
+        b.destroy()
     }
 }
+
 
 class ColorsTests {
 
@@ -211,6 +221,8 @@ class ColorsTests {
         test.value(r.g).is(1)
         test.value(r.b).is(0)
 
+        box.destroy()
+
     }
 }
 
@@ -224,6 +236,33 @@ class BabylonObjectTests {
     }
 }
 
+
+class PropertyTests {
+    test_properties() {
+        let b = new Box({
+            position: new BABYLON.Vector3(1,2,3)
+            , scaling: new BABYLON.Vector3(1,2,3)
+        });
+        let mesh = b.addToScene();
+        let _babylon = b._babylon;
+        test.value(mesh).match(_babylon)
+
+        let p = mesh.position;
+        test.value(p.x).is(1)
+        test.value(p.y).is(2)
+        test.value(p.z).is(3)
+
+        let s = mesh.scaling;
+        test.value(s.x).is(1)
+        test.value(s.y).is(2)
+        test.value(s.z).is(3)
+
+        b.destroy()
+
+    }
+}
+
+
 Test.add(InstanceTests)
 Test.add(BaseTests)
 Test.add(BabylonBaseTests)
@@ -232,6 +271,7 @@ Test.add(ChildManagerTests)
 Test.add(CreateMethodTest)
 Test.add(ColorsTests)
 Test.add(BabylonObjectTests)
+Test.add(PropertyTests)
 
 })(window)
 
