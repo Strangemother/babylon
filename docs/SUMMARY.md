@@ -2,6 +2,7 @@
 
 * [Introduction](README.md)
 * [File Loader](file_loader/README.md)
+* [Garden](garden/README.md)
 * [Mesh](mesh/README.md)
 * [Cameras](cameras/README.md)
 * [Colours](colours/README.md)

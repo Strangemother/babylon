@@ -42,7 +42,7 @@ The code within `Garden` is a teaching and thinking tool. Prototyping needs clar
 
 Using ES6 and _adapter pattern_ inheritence, a `Box` class looks like this:
 
-```
+```js
 
 class Box extends Shape {
     /* A basic mesh object to help build BABYLON.Mesh components*/
