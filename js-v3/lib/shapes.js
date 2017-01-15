@@ -33,6 +33,14 @@ class Shape extends BabylonObject {
     executeBabylon(babylonFunc, name, ...args) {
         return babylonFunc[name](...args);
     }
+
+    dupe(name) {
+        name = name || this.id;
+        let i = new this.constructor
+        i._babylon = new BABYLON.InstancedMesh(simpleID(name), this._babylon);
+        /* return a new instance or _duplicate item_ instance*/
+        return i;
+    }
 }
 
 class Box extends Shape {
