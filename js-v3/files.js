@@ -2,6 +2,7 @@ var assets = [
    // Vendor require
    "js/babylon-2-5.custom.js"
    , 'js/vendor/IT.js'
+   , 'js/vendor/color.js'
 
    // Lib
    , 'js-v3/lib/core/utils.js'
@@ -19,6 +20,7 @@ var assets = [
    // , 'js-v2/printLogger.js'
    , 'js-v3/lib/base.js'
    , 'js-v3/lib/adapter.js'
+   , 'js-v3/lib/core/liveProperties.js'
    , 'js-v3/lib/mesh.js'
    , 'js-v2/colors.js'
    , 'js-v2/colors_extended.js'

@@ -1,6 +1,6 @@
 var main = function(){
     logger('Sandbox')
-    let v = new Sandbox(CONFIG);
+    let v = new App(CONFIG);
     window.app = v;
 
 }
@@ -88,6 +88,23 @@ class Main extends Garden {
     }
 }
 
+
+class App extends Garden {
+    init(config){
+        config = config || {};
+        config.backgroundColor = [.2, .2, .4];
+        super.init(config);
+        this.run();
+    }
+
+    start(){
+        this.sphere = new Sphere({ color: 'green' });
+        this.camera = new ArcRotateCamera();
+        this.light = new HemisphericLight();
+        this.children.addMany(this.sphere, this.light);
+        this.camera.activate()
+    }
+}
 
 class Sandbox extends Garden {
     init(config){

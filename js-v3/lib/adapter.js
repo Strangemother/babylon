@@ -99,7 +99,6 @@ class BabylonObject extends ChildManager {
 
         let a = [name];
         let keys = this.keys();
-
         for(let key of keys){
             if(options[key]) {
                 a.push(options[key]);
@@ -146,14 +145,32 @@ class BabylonObject extends ChildManager {
             v = this.getOptionKey(key);
             if(v !== undefined){
                 o[key] = v;
-            }
-        }
+            };
+        };
 
+        let _props = {};
         for(key in overrides) {
-            o[key] = overrides[key]
-        }
+            v = this.getLiveProperty(key, o, overrides);
+            _props[v[0]] = v[1];
+        };
 
-        return o
+        // TODO: remove this off this;
+        this._properties = _props;
+        return o;
+    }
+
+    getLiveProperty(key, o, overrides) {
+        /* Return a call to the Property.liveProperty if it
+        exists, else default to the override[key] */
+        let properties = this._app.properties
+        if(properties[key] != undefined) {
+            let [_key, v] = properties[key].liveProperty(this, o, overrides)
+            if(v !== null) {
+                return [_key, v]
+            }
+        } else {
+            o[key] = overrides[key]
+        };
     }
 
     getOptionKey(key) {
@@ -168,17 +185,16 @@ class BabylonObject extends ChildManager {
 
     generateName(){
         /*Create a name for the babylon instance*/
-        let r = Math.random().toString(32).slice(-5)
-        let n = this.type().toLowerCase()
-        return `${n}_${r}`
+        let r = Math.random().toString(32).slice(-5);
+        let n = this.type().toLowerCase();
+        return `${n}_${r}`;
     }
-
 
     destroy(){
         /* Remove the item from the view and destroy its data. This
         should attempt a complete memory removal. */
-        let n = self.constructor.name
-        return NotImplementedError.throw(`${n}.destroy() not implemented`)
+        let n = self.constructor.name;
+        return NotImplementedError.throw(`${n}.destroy() not implemented`);
     }
 
     type(v){
@@ -194,6 +210,7 @@ class BabylonObject extends ChildManager {
         let n = this.babylonFuncName(...args);
         let b = this.executeBabylon(this.babylonFunc(), n, ...args);
         this.assignProperties(b, ...args)
+        this.assignLiveProperties(b, ...args)
         return b;
     }
 
@@ -216,6 +233,15 @@ class BabylonObject extends ChildManager {
             prop = keys[i];
             mesh[prop] = this[`${prop}Prop`]();
         };
+    }
+
+    assignLiveProperties(mesh, ...args) {
+
+        let properties = this._app.properties
+        let _properties = this._properties
+        for(let key in _properties) {
+            properties[key].afterProperty(mesh, this, key, _properties)
+        }
     }
 
     babylonFunc(){

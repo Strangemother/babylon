@@ -359,3 +359,9 @@ var mergeOnKey = function(key, ...arrays) {
     return cacheRes;
     return res;
 }
+
+var simpleID = function(optional=''){
+    let id = Math.random().toString(32).slice(2);
+    let insert = optional != ''? '_': '';
+    return `${optional}${insert}${id}`
+}

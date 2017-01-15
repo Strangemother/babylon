@@ -1,4 +1,44 @@
 var colors = {};
+var materials = {};
+var modifiers = {};
+
+materials.white = function(scene) {
+    var mat = materials.standard(scene, 'White')
+    mat.diffuseColor = colors.white()
+    return mat
+}
+
+materials.blue = function(scene) {
+    var mat = materials.standard(scene, 'Blue')
+    mat.emissiveColor = colors.blue()
+    return mat
+}
+
+materials.standard = function(scene, name) {
+    var m = new BABYLON.StandardMaterial(name, scene);
+    return m;
+}
+
+materials.color = function(scene, name){
+    let item = name;
+    if(typeof(name) == 'string') {
+        item = colors[name]()
+    } else {
+        name = simpleID(item.name)
+    }
+
+    let m = materials.standard(scene, name);
+    m.diffuseColor = item;
+    return m
+}
+
+modifiers.fog = function(scene) {
+    scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+    scene.fogDensity = 0.04;
+    scene.fogColor = new BABYLON.Color3(0.8, 0.83, 0.8);
+}
+
+
 let _colors = {
     red:       [1, 0, 0]
     , green:   [0, 1, 0]
