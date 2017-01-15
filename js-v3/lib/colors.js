@@ -2,6 +2,9 @@ var colors = {};
 var materials = {};
 var modifiers = {};
 
+colors.DIFFUSE = 'diffuseColor'
+colors.EMISSIVE = 'emessiveColor'
+
 materials.white = function(scene) {
     var mat = materials.standard(scene, 'White')
     mat.diffuseColor = colors.white()
@@ -19,7 +22,7 @@ materials.standard = function(scene, name) {
     return m;
 }
 
-materials.color = function(scene, name){
+materials.color = function(scene, name, type=colors.DIFFUSE){
     let item = name;
     if(typeof(name) == 'string') {
         item = colors[name]()
@@ -28,7 +31,7 @@ materials.color = function(scene, name){
     }
 
     let m = materials.standard(scene, name);
-    m.diffuseColor = item;
+    m[type] = item;
     return m
 }
 
@@ -104,6 +107,11 @@ colors.hex = function(hexVal){
 }
 
 
+colors.rgbToHex = function(...args) {
+    let [r,g,b] = args.map(x => x*255)
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
 colors.make = function(r, g, b, a) {
     if(r instanceof Array && g == undefined && b == undefined) {
         var v = r;
@@ -120,6 +128,7 @@ colors.make = function(r, g, b, a) {
     return new BABYLON.Color4(r,g,b,a);
 }
 
+colors.names = [];
 
 colors.addColors = function(_colors, overwrite=true) {
     /* Add an object of colors,
@@ -135,6 +144,8 @@ colors.addColors = function(_colors, overwrite=true) {
                 console.warn('overwrite ' + name)
             }
         }
+
+        colors.names.push(name)
 
         _colors[`_${name}`] = _colors[name];
 
