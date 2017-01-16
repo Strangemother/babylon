@@ -10,7 +10,8 @@ class Trigger extends BaseClass {
         return
     }
 
-    assignmentName(){
+    static targetObjectAssignment(){
+        /* Camera classes are packaged into Garden.triggers */
         return 'triggers'
     }
 
