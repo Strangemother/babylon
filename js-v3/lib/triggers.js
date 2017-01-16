@@ -10,6 +10,13 @@ class Trigger extends BaseClass {
         return
     }
 
+    init(executeFunction, ...args) {
+        if(executeFunction != undefined) {
+            this._executeFunction = executeFunction;
+        };
+        this._initArgs = args;
+    }
+
     static targetObjectAssignment(){
         /* Camera classes are packaged into Garden.triggers */
         return 'triggers'
@@ -23,6 +30,12 @@ class Trigger extends BaseClass {
     }
 
     getTriggerName() {
+        /* Return the string name of the BABYLON trigger.
+        By Default the class name prefixed with "On" should
+        match a BABYLON trigger.
+
+            On[PickTrigger]
+        */
         let name = this.constructor.name;
         return `On${name}`;
 
@@ -55,19 +68,38 @@ class Trigger extends BaseClass {
     }
 
     getBabylonAction(){
+        /* Return the BABYLON action type,
+        By default this is the ExecureCodeAction */
         return BABYLON.ExecuteCodeAction
     }
 
     actionArgs() {
+        /* Returns an array of [action, args] args for the action caller.*/
         return [this.getBabylonAction(), this.babylonArgs()]
     }
 
     babylonArgs(){
-        return [this.executeFunction]
+        return [this.babylonExecuteFunction()]
     }
 
-    executeFunction(){
-        console.log('Trigger')
+    babylonExecuteFunction(...args){
+        /* Returns a function for the ExecuteAction - Calling this.executeFunction
+        within the right scope. */
+        return (function(_this, ..._args){
+            return function(){
+                _this.executeFunction(this, ..._args)
+            }
+        })(this, ...args)
+    }
+
+    executeFunction(action, ...args) {
+        /* Called by BABYLON action when the action occurs within the Scene.
+        Nothing is returned. If the this._executeFunction exists, it's called
+        with trigger and args. */
+        console.log('Trigger');
+        if(this._executeFunction) {
+            this._executeFunction(action, ...args)
+        }
     }
 }
 
