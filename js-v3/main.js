@@ -150,11 +150,30 @@ class App extends Garden {
     }
 
     start(){
-        this.sphere = new Sphere({ color: 'green' });
+
+        let b1 = new Sphere({
+            color: 'red'
+            , position: asVector(0, 1, 0)
+        });
+
+        let b2 = new Sphere({
+            color: 'dodgerBlue'
+            , position: asVector(0, 2, 0)
+        });
+
+        let b3 = new Sphere({
+            color: 'gold'
+            , position: asVector(0, 3, 0)
+        });
+
+        this.balls = this.children.addMany(b1, b2, b3)
+
         this.camera = new ArcRotateCamera();
         this.light = new HemisphericLight({ color: 'white' });
+
+        this.sphere = new Sphere({ color: 'green' });
         this.children.addMany(this.sphere, this.light);
-        this.camera.activate()
+        this.camera.activate();
     }
 }
 
