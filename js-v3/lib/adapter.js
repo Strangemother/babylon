@@ -283,6 +283,17 @@ class BabylonObject extends ChildManager {
 
     babylonFuncNamePartial(...args) {
     }
-}
 
+    actionManager() {
+        /* Return an action manager. If undefined a new one is created.*/
+        let b = this._babylon;
+
+        if(b != undefined && b.actionManager == undefined) {
+            let scene = this._app.scene();
+            b.actionManager = new BABYLON.ActionManager(scene);
+        }
+
+        return b.actionManager;
+    }
+}
 
