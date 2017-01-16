@@ -365,3 +365,38 @@ var simpleID = function(optional=''){
     let insert = optional != ''? '_': '';
     return `${optional}${insert}${id}`
 }
+
+var asVector = function(...args){
+    /*
+        Create a BABYLON Vector type using
+        arguments:
+
+            asVector(10)           => Vector2(10, 10)
+            asVector([10])         => Vector2(10, 10)
+            asVector(1, 2)         => Vector2(1, 2)
+            asVector([1, 2])       => Vector2(1, 2)
+            asVector(1, 2, 3)      => Vector3(1, 2, 3)
+            asVector([1, 2, 3])    => Vector3(1, 2, 3)
+            asVector(1, 2, 3, 4)   => Vector4(1, 2, 3, 4)
+            asVector([1, 2, 3, 4]) => Vector4(1, 2, 3, 4)
+     */
+    let B = BABYLON;
+    let classes = [
+        undefined
+        , function(a){
+            if(IT.g(a).is('number')) return asVector(a, a);
+            NotImplementedError.throw('Vector requires a Number type');
+        }
+        , B.Vector2
+        , B.Vector3
+        , B.Vector4
+    ];
+
+    let a = args;
+    if(args.length == 1 && Array.isArray(a[0])){
+        a = args[0]
+    };
+
+    let v = new classes[a.length](...a);
+    return v;
+}
