@@ -54,8 +54,12 @@ class Trigger extends BaseClass {
         return action;
     }
 
+    getBabylonAction(){
+        return BABYLON.ExecuteCodeAction
+    }
+
     actionArgs() {
-        return [BABYLON.ExecuteCodeAction, this.babylonArgs()]
+        return [this.getBabylonAction(), this.babylonArgs()]
     }
 
     babylonArgs(){

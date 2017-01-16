@@ -166,7 +166,8 @@ class App extends Garden {
             , position: asVector(0, 3, 0)
         });
 
-        this.balls = this.children.addMany(b1, b2, b3)
+        this.balls = [b1, b2, b3]
+        this.children.addMany(b1, b2, b3)
 
         this.camera = new ArcRotateCamera();
         this.light = new HemisphericLight({ color: 'white' });
