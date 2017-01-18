@@ -59,4 +59,39 @@ class PositionProperty extends BaseProperty {
 class RotationProperty extends PositionProperty {}
 class ScalingProperty extends PositionProperty {}
 
-Garden.register(ColorProperty, PositionProperty, RotationProperty, ScalingProperty)
+class ActionProperty extends BaseProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+
+    setProperty(instance, key, value, babylon) {
+        debugger;
+    }
+}
+
+class TriggerProperty extends BaseProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+
+    setProperty(instance, key, value, babylon) {
+        /*Trigger function calles a register on the native
+        object BABYLON ofor instance._bablyon */
+        if( value instanceof(Trigger) ) {
+            return value.action(instance)
+        } else {
+            NotImplementedError.throw('trigger() method accepts Trigger only')
+        }
+
+    }
+}
+
+Garden.register(ColorProperty
+    , PositionProperty
+    , RotationProperty
+    , ScalingProperty
+    // , ActionProperty
+    , TriggerProperty
+    )
