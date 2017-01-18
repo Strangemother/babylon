@@ -344,3 +344,12 @@ button:hover {background: #CCC;}
 .inline h1 + button {
     margin: 0 1rem;
 }
+
+html {
+    background: #333;
+}
+
+body div#mocha.themed {
+    background: inherit;
+    color: #747474;
+}
