@@ -1,6 +1,10 @@
 # Array
 
+Array Type:
 
+```js
+test.array([]).match([])
+```
 
 | function | description |
 | -- | -- |
