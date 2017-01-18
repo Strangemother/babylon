@@ -41,7 +41,7 @@ class Trigger extends BaseClass {
 
     }
 
-    action(mesh) {
+    action(item) {
         /* Create and return an action trigger.
         If an item is given, the new trigger is registered
         to the ActionManager.
@@ -52,12 +52,22 @@ class Trigger extends BaseClass {
             p.action(m)
             // Pick view item.
         */
-        let [bCaller, bArgs] = this.actionArgs();
+        let scene = Garden.instance().scene();
+        let mesh = item || scene;
+
+        // Instance protect.
+        if( item instanceof(BabylonObject) && item._babylon != undefined) {
+            console.info('Fetching _babylon from action object');
+            mesh = mesh._babylon;
+        };
+
+        let [bCaller, bArgs] = this.actionArgs(item);
         let trigger = this.getBabylonValue();
+
         let action = new bCaller(trigger, ...bArgs);
+
         if(mesh != undefined) {
             if(!mesh.actionManager) {
-                let scene = Garden.instance().scene()
                 mesh.actionManager = new BABYLON.ActionManager(scene);
             };
 
@@ -73,36 +83,142 @@ class Trigger extends BaseClass {
         return BABYLON.ExecuteCodeAction
     }
 
-    actionArgs() {
+    actionArgs(...args) {
         /* Returns an array of [action, args] args for the action caller.*/
-        return [this.getBabylonAction(), this.babylonArgs()]
+        return [this.getBabylonAction(), this.babylonArgs(...args)]
     }
 
-    babylonArgs(){
-        return [this.babylonExecuteFunction()]
+    babylonArgs(...args){
+        return [this.babylonExecuteFunction(...args)]
     }
 
     babylonExecuteFunction(...args){
         /* Returns a function for the ExecuteAction - Calling this.executeFunction
         within the right scope. */
         return (function(_this, ..._args){
-            return function(){
-                _this.executeFunction(this, ..._args)
+            return function(evt){
+                _this.executeFunction(this, evt, ..._args)
             }
         })(this, ...args)
     }
 
-    executeFunction(action, ...args) {
+    executeFunction(action, evt, referenceItem, ...args) {
         /* Called by BABYLON action when the action occurs within the Scene.
         Nothing is returned. If the this._executeFunction exists, it's called
         with trigger and args. */
-        console.log('Trigger');
+
         if(this._executeFunction) {
-            this._executeFunction(action, ...args)
-        }
+            this._executeFunction(action, evt, referenceItem, ...args)
+            return;
+        };
+
+        console.log('Trigger', referenceItem.id, this.getTriggerName());
     }
 }
 
+
+class KeyTrigger extends Trigger {
+    /* A slightly altered trigger for quicker binding to the
+    scene with keys.*/
+
+    init(key=this.defaultChar(), executeFunction, ...args) {
+        /* KeyTrigger accepts key char as first argument. */
+        if( executeFunction == undefined
+            && IT.g(key).is('function') ) {
+            executeFunction = key;
+            key = this.defaultChar()
+        }
+        super.init(executeFunction, ...args)
+        this.keyChar = key
+    }
+
+    defaultChar(){
+        return 'Enter'
+    }
+
+    getTriggerName(){
+        return 'OnKeyUpTrigger'
+    }
+
+    char(){
+        /* Return the trigger character*/
+        return this.keyChar
+    }
+
+    babylonArgs(){
+        /* Override to inject the extra args into the executeFunction -
+        for convenience. */
+        return [this.babylonExecuteFunction(this.char())]
+    }
+
+    getBabylonValue(){
+        /* Return the Babylon class*/
+        let b = super.getBabylonValue()
+        return { trigger: b, parameter: this.char() };
+    }
+
+    action(scene) {
+        scene = scene || Garden.instance().scene();
+        return super.action(scene)
+    }
+
+    // executeFunction(action, evt, char, ...args) {
+    //     /* Trigger function accepts the extra arg `char`.
+    //     By nature of the API, the override is not required as the char
+    //     would be the first var in ...args*/
+    //     return super.executeFunction(...arguments)
+    // }
+
+}
+
+class KeyHandler extends Trigger {
+
+    init(direction='Up', executeFunction, ...args) {
+        /* Store the direction, call the super and
+        call the action with the instance Scene.*/
+        if( executeFunction == undefined
+            && IT.g(direction).is('function') ) {
+            executeFunction = direction;
+            direction = 'Up';
+        };
+
+        this.direction = direction;
+        super.init(executeFunction, ...args)
+        this.action(Garden.instance().scene());
+    }
+
+    getTriggerName(){
+        /* Return name of the trigger, applied with this.direction */
+        return `OnKey${this.direction}Trigger`
+    }
+
+    char(){
+        /* Return the trigger character*/
+        return this.lastChar
+    }
+
+    executeFunction(action, evt, ...args) {
+        /* Called by BABYLON action when the action occurs within the Scene.
+        Nothing is returned. If the this._executeFunction exists, it's called
+        with trigger and args. */
+
+        if(this._executeFunction) {
+            this._executeFunction(action, evt, evt.sourceEvent.key, ...args)
+            return;
+        };
+
+        console.log('Key Handle', evt.sourceEvent.key);
+    }
+
+    set handler(func) {
+        this._executeFunction = func;
+        return true;
+    }
+
+    get handler(){
+        return this._executeFunction;
+    }
+}
 
 class PickTrigger extends Trigger {
     // BABYLON.ActionManager.
