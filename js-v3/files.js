@@ -24,6 +24,7 @@ var assets = [
    , 'js-v3/lib/lights.js'
    , 'js-v3/lib/cameras.js'
    , 'js-v3/lib/triggers.js'
+   , 'js-v3/lib/actions.js'
 
    , 'js-v3/tests/test.js'
    , 'js-v3/main.js'
