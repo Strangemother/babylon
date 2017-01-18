@@ -4,7 +4,7 @@
 ### object
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual object equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual object to the negative equality by content and if possible, recursively. |
 |` isIdenticalTo(expected) `        | Assert that the actual object is identical to (===) expected value. |

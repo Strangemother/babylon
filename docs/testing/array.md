@@ -7,7 +7,7 @@ test.array([]).match([])
 ```
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |`is(expected)`                   | Assert actual value equality by content and if possible, recursively. |
 |`isNot(expected)`                | Assert actual value to the negative equality by content and if possible, recursively. |
 |`isIdenticalTo(expected)`        | Assert that the actual value is identical to (===) expected value. |

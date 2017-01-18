@@ -2,7 +2,7 @@
 
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual value equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual value to the negative equality by content and if possible, recursively. |
 |` isEqualTo(expected) `            | Assert that the actual value is equal to (==) the expected value. |

@@ -3,7 +3,7 @@
 ### number
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual number equality. |
 |` isNot(expected) `                | Assert actual number to the negative equality. |
 |` isIdenticalTo(expected) `        | Assert that the actual number is identical to (===) expected number. |

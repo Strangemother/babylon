@@ -2,7 +2,7 @@
 
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual Date equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual Date to the negative equality by content and if possible, recursively. |
 |` isIdenticalTo(expected) `        | Assert that the actual Date is identical to (===) expected date. |

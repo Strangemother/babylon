@@ -1,7 +1,7 @@
 # Regexp
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual RegExp equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual RegExp to the negative equality by content and if possible, recursively. |
 |` isIdenticalTo(expected) `        | Assert that the actual RegExp is identical to (===) expected value. |

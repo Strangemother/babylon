@@ -2,7 +2,7 @@
 
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual Error exception equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual Error exception to the negative equality by content and if possible, recursively. |
 |` isIdenticalTo(expected) `        | Assert that the actual Error exception is identical to (===) expected value. |

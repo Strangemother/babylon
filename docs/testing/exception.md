@@ -4,7 +4,7 @@
 ### Exception
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual exception equality by content and if possible, recursively. |
 |` isNot(expected) `                | Assert actual exception to the negative equality by content and if possible, recursively. |
 |` isIdenticalTo(expected) `        | Assert that the actual exception is identical to (===) expected value. |

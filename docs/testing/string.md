@@ -1,7 +1,7 @@
 # String
 
 | function | description |
-| -- | -- |
+| --- | --- |
 |` is(expected) `                   | Assert actual string equality. |
 |` isNot(expected) `                | Assert actual string to the negative equality. |
 |` isIdenticalTo(expected) `        | Assert that the actual string is identical to (===) expected value. |
