@@ -74,4 +74,21 @@ class ColorProperty extends BaseProperty {
 }
 ```
 
+## Auto Properties
 
+The function property assignment only occurs if the parameter exists within the instance configuration. For example; the `new Box({ color: 'red' })` will have the `color()` function. The `new Box()` will not have the function.
+
+To ensure your property is created without the user specification, you change the location of the loading property. By default a `Property` class will exist in `Garden().instance().properties`.
+
+Change the `targetObjectAssignment()` value to `autoProperties`.
+
+```js
+class ActionProperty extends BaseProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+}
+```
+
+This example ensures the `action` property exists on evey Garden object.

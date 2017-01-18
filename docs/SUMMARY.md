@@ -4,6 +4,7 @@
 * [File Loader](file_loader/README.md)
 * [Garden](garden/README.md)
 * [Mesh](mesh/README.md)
+* [Actions](actions/README.md)
 * [Triggers](triggers/README.md)
 * [Cameras](cameras/README.md)
 * [Colours and Materials](colours/README.md)

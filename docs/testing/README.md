@@ -28,17 +28,6 @@ Test.add(InstanceTests)
 
 To run your tests run use `Test.run()`. A mocha test panel will be presented.
 
-## Assertions
-
-
-### Bool
-
-
-### Date
-
-
-### Error
-
 
 
 
