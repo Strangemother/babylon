@@ -99,9 +99,17 @@ class TargetObjectAssignmentRegister extends BaseClass {
             instName = inst.name || name;
             camelName = `${name.slice(0,1).toLowerCase()}${name.slice(1)}`
 
+            if(location[instName] != undefined) {
+                console.warn('Overwriting', instName, 'on', location)
+            }
             location[instName] = inst;
             if(item.targetObjectAssignment) {
-                let n = item.targetObjectAssignment(inst)
+                let n = item.targetObjectAssignment(inst, _instance)
+                console.log('n', n)
+                if(n === undefined) {
+                    console.warn('targetObjectAssignment name was undefined for', inst);
+                }
+
                 if(_instance[n] == undefined) {
                     _instance[n] = {}
                 };
