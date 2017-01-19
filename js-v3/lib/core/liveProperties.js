@@ -27,6 +27,8 @@ class ColorProperty extends BaseProperty {
     Shape_setProperty(instance, key, value, babylon) {
         let scene = instance._app.scene()
         babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
         let c = colors.get(value);
         instance._properties[key] = c
         return babylon.material = materials.color(scene, c)
@@ -34,6 +36,8 @@ class ColorProperty extends BaseProperty {
 
     Light_setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
         let c = colors.get(value)
         instance._properties[key] = c
         babylon.diffuse = c
@@ -46,29 +50,21 @@ class PositionProperty extends BaseProperty {
 
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
         babylon[this.key()] = value;
         return value;
     }
 
     getProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
+
+        if(!babylon) return undefined;
         return babylon[this.key()]
     }
 }
 
 class RotationProperty extends PositionProperty {}
 class ScalingProperty extends PositionProperty {}
-
-class ActionProperty extends BaseProperty {
-
-    static targetObjectAssignment(classInstance, gInstance) {
-        return 'autoProperties'
-    }
-
-    setProperty(instance, key, value, babylon) {
-        debugger;
-    }
-}
 
 class TriggerProperty extends BaseProperty {
 
@@ -92,6 +88,5 @@ Garden.register(ColorProperty
     , PositionProperty
     , RotationProperty
     , ScalingProperty
-    // , ActionProperty
     , TriggerProperty
     )

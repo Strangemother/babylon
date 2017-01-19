@@ -77,6 +77,10 @@ class Trigger extends BaseClass {
         return action;
     }
 
+    get _babylon(){
+        return this.action()
+    }
+
     getBabylonAction(){
         /* Return the BABYLON action type,
         By default this is the ExecureCodeAction */

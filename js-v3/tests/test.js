@@ -262,6 +262,19 @@ class PropertyTests {
     }
 }
 
+class DisplayListManagerTests {
+    test_destroy(){
+        /* Will true destroy an entity. */
+        let b = new Box();
+        b.addToScene()
+        let dli = b._displayListIndex;
+        test.value(app.children.displayList[dli][0]).match(b);
+
+        test.bool(app.children.displayList[dli] == undefined).isFalse()
+        b.destroy();
+        test.bool(app.children.displayList[dli] == undefined).isTrue()
+    }
+}
 
 Test.add(InstanceTests)
 Test.add(BaseTests)
@@ -272,6 +285,7 @@ Test.add(CreateMethodTest)
 Test.add(ColorsTests)
 Test.add(BabylonObjectTests)
 Test.add(PropertyTests)
+Test.add(DisplayListManagerTests)
 
 })(window)
 

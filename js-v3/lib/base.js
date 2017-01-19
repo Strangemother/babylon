@@ -85,16 +85,16 @@ class TargetObjectAssignmentRegister extends BaseClass {
     }
 
     static register(...items){
-        let named = this.assignmentName();
+        // let named = Garden.assignmentName();
         let _instance = Garden.instance();
         /* Register a component for later creation via MeshTool.make and .create*/
-        let location = _instance[named] || {};
+        let location = {};
         let name, camelName, aName, inst, instName
 
         for(let item of items) {
             inst = item.assignmentReference ? item.assignmentReference(item): item;
-            aName = item.assignmentName ? item.assignmentName(item): named;
-            location = _instance[named] || location;
+            aName = item.assignmentName ? item.assignmentName(item): 'named';
+            location = _instance[aName] || location;
             name = item.name.toLowerCase();
             instName = inst.name || name;
             camelName = `${name.slice(0,1).toLowerCase()}${name.slice(1)}`
@@ -102,10 +102,11 @@ class TargetObjectAssignmentRegister extends BaseClass {
             if(location[instName] != undefined) {
                 console.warn('Overwriting', instName, 'on', location)
             }
+
             location[instName] = inst;
+
             if(item.targetObjectAssignment) {
                 let n = item.targetObjectAssignment(inst, _instance)
-                console.log('n', n)
                 if(n === undefined) {
                     console.warn('targetObjectAssignment name was undefined for', inst);
                 }
@@ -183,7 +184,7 @@ class BabylonBase extends TargetObjectAssignmentRegister {
     _loop(config, engine) {
         engine = engine || this._engine;
         var self = this;
-
+        this._ran = true;
         if(engine) {
             engine.runRenderLoop(function() {
                self.renderLoop(config)
@@ -198,6 +199,7 @@ class BabylonBase extends TargetObjectAssignmentRegister {
     }
 
     renderLoop(config) {
+
         for (var i = 0; i < this._renderers.length; i++) {
             this._renderers[i](config, i)
         }
@@ -375,12 +377,43 @@ class Base extends BabylonInterface {
 
 class Garden extends Base {
 
+    static assignmentName(){
+        return 'appClasses'
+    }
+
     static instance(){
         return _instance;
     }
 
+
     version(){
         return 0.2
+    }
+
+    static config(v) {
+        if(v != undefined) {
+            _instance._config = v;
+            return this;
+        };
+
+        return _instance._config;
+    }
+
+    static run(name, config, runConfig){
+        config = config || Garden.config()
+        let klass = name;
+        if( IT.g(name).is('string') ) {
+            klass = _instance.appClasses[name]
+        }
+
+        let app = new klass(config);
+
+        app.run(runConfig)
+        return app;
+    }
+
+    switch(name, destroy=true) {
+
     }
 }
 
@@ -407,7 +440,8 @@ class DisplayListManager {
     remove(child) {
         let items;
         if(child._displayListName != undefined) {
-            let items = this.get(child._displayListName);
+
+            items = this.get(child._displayListName);
             if(items == undefined) {
                 console.warn('child has displayListName but no context', child)
                 return
@@ -422,11 +456,13 @@ class DisplayListManager {
         if(items == undefined) return
 
         // let entry = items[child._displayListIndex]
-        let removed = items.splice(child._displayListIndex, 1);
+        let removed = items[child._displayListIndex];
         if(removed.length > 0) {
+            this._displaySets[child._displayListName][1][child._displayListIndex] = undefined
             delete child._displayListIndex;
             delete child._displayListName;
         }
+
         return removed[0]
     }
 
@@ -500,6 +536,19 @@ class ChildList {
         // _displayList[item.id] = v
         return index;
     }
+
+    destroy(){
+        /* destroy all children */
+        let children = this.displayList
+            , dlm = this.parent.displayListManager
+            , item
+            , removed
+            ;
+
+        for(let child of children) {
+            item = child[0].destroy();
+        }
+    }
 }
 
 
@@ -524,7 +573,11 @@ class ChildManager extends BaseClass {
     get _babylon() {
         if(this._babylon_node) return this._babylon_node
         if(this._displayListName == undefined) return undefined
-        return this._displayList[this._displayListIndex][1]
+        let dl = this._displayList[this._displayListIndex];
+        if(dl != undefined) {
+            return dl[1]
+        }
+        return undefined;
     }
 
     set _babylon(babylonItem) {

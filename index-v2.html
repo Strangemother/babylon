@@ -33,7 +33,7 @@
       <button  v-on:click='toggleIsOpen'>Toggle</button>
    </div>
 
-   <div class="controls" v-bind:class="{ closed: isClosed }">
+   <div class="controls" v-bind:class="{ open: isOpen }">
       <div class="cs">
          <label>
             <span class="text">{{ lightContrastValue }}</span>
@@ -60,7 +60,7 @@
       </div>
    </div>
 
-   <div class="colors-container"  v-bind:class="{ closed: isClosed }">
+   <div class="colors-container"  v-bind:class="{ open: isOpen }">
       <div class="color-item"
          v-for='color in colors'
          v-bind:class="{ bright: lightContrast(color) }"

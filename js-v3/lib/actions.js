@@ -27,8 +27,7 @@ class Action extends BabylonObject {
 
     getTrigger(){
         /* Can return a BABYLON On[KeyTrigger] or a Garden Type.*/
-        debugger;
-        return this.trigger;
+        return new this.trigger;
     }
 
     getPropertyPath(){
@@ -48,7 +47,7 @@ class Action extends BabylonObject {
         /* Combine and return the babylon content
         to a real action. Returned is a Babylon Action type instance */
         let aClass = this.getBabylonClass();
-        let tClass = trigger || this.getTrigger();
+        let tClass = asBabylon(trigger || this.getTrigger());
         let pPath = path || this.getPropertyPath();
         let cond = condition || this.getCondition();
 

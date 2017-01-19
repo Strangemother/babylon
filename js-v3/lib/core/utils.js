@@ -263,7 +263,7 @@ var asVector = function(...args){
 var asBabylon = function(item) {
     /* Return a bablyon item from the given reference. */
     if( item instanceof(BabylonObject)
-        && item._babylon != undefined ) {
+        || item._babylon != undefined ) {
         return item._babylon;
     };
 
