@@ -324,8 +324,11 @@ class Garden extends Base {
         }
 
         let app = new klass(config);
+        if(!app._ran){
 
-        app.run(runConfig)
+            app.run(runConfig)
+        };
+
         return app;
     }
 
