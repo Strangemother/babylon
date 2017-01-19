@@ -8,9 +8,10 @@ var assets = [
    , 'js-v2/vendor/mocha/mocha.js'
    , 'js-v2/vendor/unitjs/browser/dist/unit.js'
 
+
+
    , 'js-v3/lib/core/utils.js'
    , 'js-v3/lib/tests.js'
-
    , 'js-v3/lib/PrintLogger.js'
 
    , 'js-v3/lib/core/base.js'

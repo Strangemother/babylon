@@ -1,4 +1,12 @@
-class ColorProperty extends BaseProperty {
+class AutoProperty extends BaseProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+}
+
+
+class ColorProperty extends AutoProperty {
     key(){
         return 'color'
     }
@@ -66,13 +74,6 @@ class PositionProperty extends BaseProperty {
 class RotationProperty extends PositionProperty {}
 class ScalingProperty extends PositionProperty {}
 
-class AutoProperty extends BaseProperty {
-
-    static targetObjectAssignment(classInstance, gInstance) {
-        return 'autoProperties'
-    }
-}
-
 
 class TriggerProperty extends AutoProperty {
 
@@ -95,8 +96,9 @@ class WireframeProperty extends AutoProperty {
 
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
+        let mat = babylon.material || instance.color('white')
 
-        babylon.material.wireframe = value;
+        mat.wireframe = value;
     }
 
     getProperty(instance, key, value, babylon) {
