@@ -313,17 +313,11 @@ button:hover {background: #CCC;}
     font-family: Arial;
 }
 
-.controls.closed {
-    display: none;
-}
-
-.colors-container.closed {
-    display: none;
-}
 
 .colors-container {
     overflow: hidden;
     border: solid 4px #555;
+    display: none;
 }
 
 .controls {
@@ -331,6 +325,15 @@ button:hover {background: #CCC;}
     color: #FFF;
     padding: 1.5rem 2rem;
     overflow: hidden;
+    display: none;
+}
+
+.controls.open {
+    display: block
+}
+
+.colors-container.open {
+    display: flex;
 }
 
 .inline {
