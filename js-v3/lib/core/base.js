@@ -223,13 +223,25 @@ class BaseProperty extends BaseClass {
         return this.key();
     }
 
+    getterSetter(){
+        return false;
+    }
+
     key(){
         return this.constructor.name.slice(0, -'property'.length).toLowerCase();
     }
 
     setup(instance, scene, key, options) {
         let [_key, v] = this.instanceMethod(instance, scene, options)
-        instance[_key] = v;
+        if(this.getterSetter()) {
+            Object.defineProperty(instance, _key, {
+                get: v
+                , set: v
+            })
+        } else {
+            instance[_key] = v;
+
+        }
     }
 
     liveProperty(item, objReference, options){
