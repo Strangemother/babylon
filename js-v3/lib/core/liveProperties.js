@@ -66,11 +66,15 @@ class PositionProperty extends BaseProperty {
 class RotationProperty extends PositionProperty {}
 class ScalingProperty extends PositionProperty {}
 
-class TriggerProperty extends BaseProperty {
+class AutoProperty extends BaseProperty {
 
     static targetObjectAssignment(classInstance, gInstance) {
         return 'autoProperties'
     }
+}
+
+
+class TriggerProperty extends AutoProperty {
 
     setProperty(instance, key, value, babylon) {
         /*Trigger function calles a register on the native
@@ -80,7 +84,24 @@ class TriggerProperty extends BaseProperty {
         } else {
             NotImplementedError.throw('trigger() method accepts Trigger only')
         }
+    }
+}
 
+
+class WireframeProperty extends AutoProperty {
+    getterSetter(){
+        return true
+    }
+
+    setProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+
+        babylon.material.wireframe = value;
+    }
+
+    getProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        return babylon.material.wireframe
     }
 }
 
@@ -89,4 +110,5 @@ Garden.register(ColorProperty
     , RotationProperty
     , ScalingProperty
     , TriggerProperty
+    , WireframeProperty
     )
