@@ -12,11 +12,13 @@ var assets = [
    , 'js-v3/lib/tests.js'
 
    , 'js-v3/lib/PrintLogger.js'
-   // App
-   , 'js-v3/config.js'
-   , 'js-v3/lib/base.js'
-   , 'js-v3/lib/adapter.js'
+
+   , 'js-v3/lib/core/base.js'
+   , 'js-v3/lib/core/display.js'
+   , 'js-v3/lib/core/interface.js'
+   , 'js-v3/lib/core/adapter.js'
    , 'js-v3/lib/core/liveProperties.js'
+
    , 'js-v3/lib/mesh.js'
    , 'js-v3/lib/colors.js'
    , 'js-v3/lib/colors_extended.js'
@@ -25,10 +27,13 @@ var assets = [
    , 'js-v3/lib/cameras.js'
    , 'js-v3/lib/triggers.js'
    , 'js-v3/lib/actions.js'
+
    , 'js-v3/tests/test.js'
 
+   , 'js-v3/config.js'
    , 'js-v3/app.js'
    , 'js-v3/main.js'
+   , 'js-v3/view.js'
 ];
 
 assetLoader
