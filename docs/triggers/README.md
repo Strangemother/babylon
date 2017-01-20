@@ -7,9 +7,10 @@ A BABYLON Trigger performs execution of commands through an action register refe
 Lets look at the basic BABYLON register action. In this example, we can add a Sphere to the scene and apply a default click trigger:
 
 ```js
-let ball = new Sphere();
-let pick = new PickTrigger();
-let action = pick.action(m._babylon)
+box = new Box();
+box.addToScene();
+pick = new PickTrigger();
+action = pick.action(box._babylon)
 // ExecuteCodeAction
 ```
 
@@ -18,12 +19,13 @@ Clicking the Scene Sphere will log `"Trigger"` to the console. This saves a few 
 You can alter the basic caller by providing a function `executeFunction`.
 
 ```js
-let ball = new Sphere();
+let ball = new Sphere({ position: [1, 1, 1]});
 let clickFunc = function(){
     console.log('Clicked');
 };
+ball.addToScene();
 let pick = new PickTrigger(clickFunc);
-let action = pick.action(m._babylon)
+let action = pick.action(ball._babylon)
 // ExecuteCodeAction
 ```
 

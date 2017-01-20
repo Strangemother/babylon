@@ -27,7 +27,7 @@ This uses the `Box` scene instance and `Box().create()`.
 Similarly, you can perform the same with `Box().addTo`:
 
 ```js
-b=new Box
+b = new Box
 b.addTo(app /*, {width: 3} */)
 ```
 
