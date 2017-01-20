@@ -67,7 +67,7 @@ class BabylonObject extends ChildManager {
             }
         };
 
-       for(let key in this._app.autoProperties) {
+        for(let key in this._app.autoProperties) {
             props[key].setup(this, scene, key, _opts);
         };
 

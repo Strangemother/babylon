@@ -1,8 +1,31 @@
+class QuickProperty extends BaseProperty {
+
+    setProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        return this._set(instance, babylon, key, value)
+    }
+
+    getProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        return this._get(instance, babylon, key, value)
+    }
+
+    _get(instance, babylon, key, value) {
+        return instance[key]._value;
+    }
+
+    _set(instance, babylon, key, value) {
+        instance[key]._value = value;
+    }
+
+}
+
 class AutoProperty extends BaseProperty {
 
     static targetObjectAssignment(classInstance, gInstance) {
         return 'autoProperties'
     }
+
 }
 
 
@@ -53,6 +76,7 @@ class ColorProperty extends AutoProperty {
     }
 }
 
+
 class PositionProperty extends BaseProperty {
 
 
@@ -79,7 +103,7 @@ class TriggerProperty extends AutoProperty {
 
     setProperty(instance, key, value, babylon) {
         /*Trigger function calles a register on the native
-        object BABYLON ofor instance._bablyon */
+        object BABYLO N ofor instance._babylon */
         if( value instanceof(Trigger) ) {
             return value.action(instance)
         } else {
@@ -89,22 +113,26 @@ class TriggerProperty extends AutoProperty {
 }
 
 
-class WireframeProperty extends AutoProperty {
+
+class WireframeProperty extends QuickProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+
     getterSetter(){
         return true
     }
 
-    setProperty(instance, key, value, babylon) {
-        babylon = babylon == undefined? instance._babylon: babylon;
-        let mat = babylon.material || instance.color('white')
+    _get(instance, babylon, key, value) {
+        return babylon.material ? babylon.material.wireframe: false;
+    }
 
+    _set(instance, babylon, key, value) {
+        let mat = babylon.material || instance.color('white')
         mat.wireframe = value;
     }
 
-    getProperty(instance, key, value, babylon) {
-        babylon = babylon == undefined? instance._babylon: babylon;
-        return babylon.material.wireframe
-    }
 }
 
 Garden.register(ColorProperty

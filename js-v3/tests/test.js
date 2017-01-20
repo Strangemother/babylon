@@ -216,7 +216,6 @@ class ColorsTests {
         test.value(diffuseColor.b).is(0)
 
         r = box.color()
-
         test.value(r.r).is(0)
         test.value(r.g).is(1)
         test.value(r.b).is(0)
@@ -258,7 +257,18 @@ class PropertyTests {
         test.value(s.z).is(3)
 
         b.destroy()
+    }
 
+    test_wireframe(){
+        /* Can change wireframe */
+        let b = new Box({
+            position: new BABYLON.Vector3(1,2,3)
+        });
+        let mesh = b.addToScene();
+        let _babylon = b._babylon;
+        test.value(mesh).match(_babylon)
+
+        test.value(b.wireframe).isFalse()
     }
 }
 

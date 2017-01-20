@@ -65,6 +65,7 @@ class App extends Garden {
         config = config || {};
         config.backgroundColor = [.2, .2, .4];
         super.init(config);
+
         this.run();
     }
 
