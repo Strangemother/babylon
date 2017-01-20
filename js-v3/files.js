@@ -21,14 +21,14 @@ var assets = [
    , 'js-v3/lib/core/liveProperties.js'
 
    , 'js-v3/lib/mesh.js'
-   , 'js-v3/lib/colors.js'
-   , 'js-v3/lib/colors_extended.js'
-   , 'js-v3/lib/shapes.js'
-   , 'js-v3/lib/lights.js'
-   , 'js-v3/lib/cameras.js'
-   , 'js-v3/lib/triggers.js'
-   , 'js-v3/lib/actions.js'
+   , 'js-v3/lib/babylon/colors.js'
+   , 'js-v3/lib/babylon/shapes.js'
+   , 'js-v3/lib/babylon/lights.js'
+   , 'js-v3/lib/babylon/cameras.js'
+   , 'js-v3/lib/babylon/triggers.js'
+   , 'js-v3/lib/babylon/actions.js'
 
+   , 'js-v3/lib/extras/colors_extended.js'
    , 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'
