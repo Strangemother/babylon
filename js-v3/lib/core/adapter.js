@@ -317,13 +317,20 @@ class Garden extends Base {
     }
 
     static run(name, config, runConfig){
+        if(config == undefined && IT.g(name).is('object')) {
+            config = name;
+            name = undefined;
+        };
+
         config = config || Garden.config()
         let klass = name;
         if( IT.g(name).is('string') ) {
             klass = _instance.appClasses[name]
         }
 
-        let app = new klass(config);
+
+        let C = (klass || Garden);
+        let app = new C(config);
 
         app.run(runConfig)
         return app;
