@@ -53,6 +53,19 @@ class DisplayListManager {
         this._displaySets[r.id] = [r, []];
         return r;
     }
+
+    destroy(){
+        /* destroy all children */
+        let children = this._displaySets
+            , item
+            , removed
+            ;
+
+        for(let key in children) {
+            children[key][0].destroy()
+            delete children[key]
+        }
+    }
 }
 
 
@@ -122,7 +135,6 @@ class ChildList {
     destroy(){
         /* destroy all children */
         let children = this.displayList
-            , dlm = this.parent.displayListManager
             , item
             , removed
             ;
