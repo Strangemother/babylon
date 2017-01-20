@@ -92,3 +92,39 @@ class ActionProperty extends BaseProperty {
 ```
 
 This example ensures the `action` property exists on evey Garden object.
+
+
+## Getter Setter Properties
+
+A live property will provide a method or a getter setter property to your Garden instance. This help generate an API to drive your BABYLON object.
+
+Creating a property bt default would generate a chain method:
+
+```js
+class ColorProperty extends BaseProperty {
+
+}
+
+box = new Box()
+box.color('red')
+```
+
+This is some demo code of the _color_ function. To change this to a getter setter, apply the `gettersetter` function to your class.
+
+Here is an example of the `wireframe` property:
+
+```js
+class WireframeProperty extends BaseProperty {
+    getterSetter(){
+        return true
+    }
+}
+
+box - new Box();
+box.wireframe
+// false
+box.wireframe = true
+// true
+```
+
+TouYou can see in the getter setter example the `wireframe` property is not a function.
