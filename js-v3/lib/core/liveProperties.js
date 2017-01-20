@@ -83,8 +83,9 @@ class PositionProperty extends BaseProperty {
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
         if(!babylon) return undefined;
-        babylon[this.key()] = value;
-        return value;
+        let v = asVector(value);
+        babylon[this.key()] = v;
+        return v;
     }
 
     getProperty(instance, key, value, babylon) {
