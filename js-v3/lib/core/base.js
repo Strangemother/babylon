@@ -266,6 +266,9 @@ class BaseProperty extends BaseClass {
         f = (function(propInst, key){
 
             return function(...v){
+                if(!propInst.arrayProp()){
+                    v = v[0]
+                };
                 return propInst.propCall(this, key, v)
             };
 
@@ -274,6 +277,10 @@ class BaseProperty extends BaseClass {
         if(toSet) {
             return [key, f]
         }
+    }
+
+    arrayProp(){
+        return false;
     }
 
     propCall(instance, key, v, b){

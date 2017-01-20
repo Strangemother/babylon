@@ -237,6 +237,7 @@ var asVector = function(...args){
             asVector([1, 2, 3])    => Vector3(1, 2, 3)
             asVector(1, 2, 3, 4)   => Vector4(1, 2, 3, 4)
             asVector([1, 2, 3, 4]) => Vector4(1, 2, 3, 4)
+            asVector(new Vector#())=> Vector#()
      */
     let B = BABYLON;
     let classes = [
