@@ -2,6 +2,14 @@
 
 class Camera extends BabylonObject {
 
+    constructor({activate = false, scene=undefined, control=true, cache=true} = {}){
+        super()
+        if(activate) {
+            console.info('Activate camera', this.id)
+            this.activate(scene, control, cache)
+        }
+    }
+
     static targetObjectAssignment(){
         /* Camera classes are packaged into Garden.cameras */
         return 'cameras'
