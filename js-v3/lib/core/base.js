@@ -265,7 +265,7 @@ class BaseProperty extends BaseClass {
 
         f = (function(propInst, key){
 
-            return function(v){
+            return function(...v){
                 return propInst.propCall(this, key, v)
             };
 
