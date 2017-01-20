@@ -243,7 +243,14 @@ var asVector = function(...args){
         undefined
         , function(a){
             if(IT.g(a).is('number')) return asVector(a, a);
-            NotImplementedError.throw('Vector requires a Number type');
+            if(a.constructor != undefined) {
+                let al = [ "Vector2" ,"Vector3" ,"Vector4" ];
+                if( al.indexOf(a.constructor.name) > -1){
+                    return a;
+                };
+            };
+
+            NotImplementedError.throw('asVector requires a Number or Vector# type');
         }
         , B.Vector2
         , B.Vector3
