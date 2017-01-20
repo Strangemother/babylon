@@ -1,3 +1,21 @@
+class Simple extends Garden {
+    init(config){
+        config = config || {};
+        config.backgroundColor = config.backgroundColor || [.2, .2, .4]
+        super.init(config)
+    }
+
+    start(){
+        this.box = new Box({ color: 'green' });
+        this._light = new HemisphericLight();
+
+        this.children.addMany(this.box, this._light);
+
+        this._camera = new ArcRotateCamera({activate:true});
+        // this._camera.activate()
+    }
+}
+
 
 class Main extends Garden {
 
@@ -62,6 +80,7 @@ class Main extends Garden {
 
 class App extends Garden {
     init(config){
+
         config = config || {};
         config.backgroundColor = [.2, .2, .4];
         super.init(config);
@@ -89,12 +108,12 @@ class App extends Garden {
         this.balls = [b1, b2, b3]
         this.children.addMany(b1, b2, b3)
 
-        this.camera = new ArcRotateCamera();
+        this._camera = new ArcRotateCamera();
         this.light = new HemisphericLight({ color: 'white' });
 
         this.sphere = new Sphere({ color: 'green' });
         this.children.addMany(this.sphere, this.light);
-        this.camera.activate();
+        this._camera.activate();
     }
 }
 
@@ -138,4 +157,4 @@ class Sandbox extends Garden {
 }
 
 
-Garden.register(Main, App, Sandbox);
+Garden.register(Simple, Main, App, Sandbox);
