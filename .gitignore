@@ -88,3 +88,5 @@ $RECYCLE.BIN/
 assets/house.3ds
 js/lib/dev/gridster/demos/assets/img/sprite.png
 docs/_book/
+project.sublime-project
+*.sublime-workspace
