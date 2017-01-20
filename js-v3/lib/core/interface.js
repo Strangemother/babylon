@@ -120,18 +120,35 @@ class Base extends BabylonInterface {
 
     init(config){
         super.init(config)
-        this.displayListManager = new DisplayListManager(this)
-        this.children = this.displayListManager.childList() // new ChildList(this)
+        this._setupDisplayManager()
+        this._inheritInstanceKeys(_instance)
         this._renderers.push(this.startCaller.bind(this))
-        if(_instance != undefined) {
-            let keys = Object.keys(_instance);
+    }
+
+    _inheritInstanceKeys(_i) {
+        _i = _i || _instance
+        if(_i != undefined) {
+            let keys = Object.keys(_i);
             for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                this[key] = _instance[key]
+                this[key] = _i[key]
             }
+            this._inheritedKeys = keys;
         };
 
         _instance = this;
+    }
+
+    _setupDisplayManager(){
+        this.displayListManager = new DisplayListManager(this)
+        this.children = this.displayListManager.childList() // new ChildList(this)
+    }
+
+    destroy(){
+        this.displayListManager.destroy();
+        delete this.children
+        delete this.displayListManager
+
     }
 
     get babylonSet(){
