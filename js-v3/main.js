@@ -2,7 +2,7 @@ var main = function(){
     logger('Sandbox')
     //let v = new App(CONFIG);
     Garden.config(CONFIG)
-    app = Garden.run('App')
+    app = Garden.run('Simple')
     window.app = app
     $('#run_tests').click(runTests);
 }
