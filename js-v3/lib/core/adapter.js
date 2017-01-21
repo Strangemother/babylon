@@ -387,6 +387,8 @@ class Garden extends Base {
         };
 
         config = config || Garden.config()
+
+        name = name || config.appName;
         let klass = name;
         if( IT.g(name).is('string') ) {
             klass = _instance.appClasses[name]

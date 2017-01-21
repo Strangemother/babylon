@@ -7,7 +7,7 @@ var main = function(){
 
 
     Garden.config(CONFIG)
-    window.app = Garden.run('Animate')
+    window.app = Garden.run()
 
 }
 

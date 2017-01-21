@@ -33,6 +33,7 @@ var assets = [
 
    , 'js-v3/config.js'
    , 'js-v3/app.js'
+   , 'js-v3/app_animateboxes.js'
    , 'js-v3/main.js'
    , 'js-v3/view.js'
 ];

@@ -138,6 +138,14 @@ Garden.config(CONFIG)
 Garden.run('Sandbox')
 ```
 
+#### Config
+
+Run the chosen app through `config.appName`
+```js
+Garden.config({ appName: 'Sandbox' })
+Garden.run()
+```
+
 #### String
 
 Reference your initial app by string.

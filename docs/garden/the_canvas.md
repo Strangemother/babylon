@@ -75,3 +75,20 @@ The canvas width and height are measured on `run()`. The BABYLON scene will be c
 If the canvas sizing is relative to the page, your scene will distort when the DOM changes. In this case you'll call BABYLON `resize()` method to correct the skew.
 
 
+## appName
+
+You can load and run many apps into Garden. Pick which app to load initially, using the `appName` value:
+
+```js
+CONFIG = {
+    appName: 'Sandbox'
+}
+
+class SandBox extends Garden {}
+
+Garden.register(Sandbox)
+
+let app = Garden.run()
+// run Sandbox
+```
+
