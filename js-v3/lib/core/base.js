@@ -37,6 +37,27 @@ class BaseClass {
         /* Hook to the base app instance. For scene sharing*/
         return _instance
     }
+
+    static classChain(){
+        /* Returns an array of string for the
+        class extend list. */
+        return classChain(this, true)
+    }
+
+    classChain(){
+        return classChain(this.constructor, true)
+    }
+
+    static get gardenType(){
+        /* return a value for Garden.
+        Used during instance checking  */
+        return 'class'
+    }
+
+    get gardenType(){
+        return 'instance'
+    }
+
 }
 
 
@@ -233,7 +254,7 @@ class BaseProperty extends BaseClass {
 
     setup(instance, scene, key, options) {
         let [_key, v] = this.instanceMethod(instance, scene, options)
-        if(this.getterSetter()) {
+        if(this.getterSetter() && instance.gardenType == 'instance') {
             Object.defineProperty(instance, _key, {
                 get: v
                 , set: v
@@ -288,7 +309,11 @@ class BaseProperty extends BaseClass {
         let pn = ins.name;
         let fn = 'getProperty'
 
-        if(v !== undefined) {
+        if(this.arrayProp()) {
+            if(v.length != 0) {
+                fn = 'setProperty'
+            }
+        } else if(v !== undefined) {
             fn = 'setProperty'
         };
 
