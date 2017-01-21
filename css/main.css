@@ -6,7 +6,11 @@ html, body {
    padding: 0;
 }
 
-#renderCanvas, #game_canvas {display: inline-block;}
+#renderCanvas, #game_canvas {
+    display: inline-block;
+    min-width: 800px;
+    min-height: 600px;
+}
 
 .game-canvas {
    width: 100%;
@@ -355,4 +359,8 @@ html {
 body div#mocha.themed {
     background: inherit;
     color: #747474;
+}
+
+.themed #mocha-stats em {
+    color: white;
 }
