@@ -45,6 +45,12 @@ class BabylonObject extends ChildManager {
         return this.babylonCall(...args);
     }
 
+    static create(options, scene, cache=false) {
+
+        let c = new this;
+        return c.create(options, scene, cache)
+    }
+
     setup(scene, options, cache=true){
         /* Perform any initial setuup of your Shape, building out your
         entity variables or starting view listeners.
