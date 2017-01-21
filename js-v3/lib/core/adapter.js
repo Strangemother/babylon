@@ -273,10 +273,11 @@ class BabylonObject extends ChildManager {
 
         for (var i = 0; i < keys.length; i++) {
             prop = keys[i];
-            let pv =  this[`${prop}Prop`]();
+            let optionValue = this._options[prop];
+            let pv =  this[`${prop}Prop`](optionValue);
             let pvs =  this[`${prop}PropSetter`];
             if(pvs != undefined) {
-                pvs.call(this, mesh, prop, ...args)
+                pvs.call(this, mesh, prop, pv || optionValue, ...args)
             } else {
                 mesh[prop] = pv
 
