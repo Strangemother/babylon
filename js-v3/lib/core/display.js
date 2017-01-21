@@ -140,7 +140,11 @@ class ChildList {
             ;
 
         for(let child of children) {
-            item = child[0].destroy();
+            if(child[0].destroy){
+                item = child[0].destroy();
+            } else {
+                child[1].dispose()
+            }
         }
     }
 }
