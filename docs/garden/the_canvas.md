@@ -17,7 +17,7 @@ let app = Garden.run()
 Providing the target HTML canvas is defined in you main config
 
 ```HTML
-   <canvas id="renderCanvas" class="main-canvas"></canvas>
+<canvas id="renderCanvas" class="main-canvas"></canvas>
 ```
 
 ```js
@@ -33,7 +33,7 @@ When omiting the `canvasName`, Garden will attempt to discover the referenced ca
 
 
 ```HTML
-   <canvas id="MyGame" class="main-canvas"></canvas>
+<canvas id="MyGame" class="main-canvas"></canvas>
 ```
 
 ```js
@@ -46,7 +46,7 @@ If a name fails to resolve, `#garden` is used:
 
 
 ```HTML
-   <canvas id="garden" class="main-canvas"></canvas>
+<canvas id="garden" class="main-canvas"></canvas>
 ```
 
 ```js

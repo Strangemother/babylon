@@ -144,7 +144,7 @@ To expand this, including a color:
 box = new Box({color: 'red'});
 box.addToScene()
 light = new app.lights.HemisphericLight()
-light.addToScene()
+light.addToScene({color: 'white' })
 ```
 
 Change this to a light blue light bulb and a white box.
