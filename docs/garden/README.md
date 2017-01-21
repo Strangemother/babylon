@@ -7,6 +7,13 @@ var app = new Garden();
 app.run();
 ```
 
+To start Garden without any code you can run:
+
+```js
+app = Garden.run(CONFIG)
+app.children.add(Box)
+```
+
 All the tooling required lives within the `app` Garden instance.
 
 ## Basics
@@ -27,6 +34,24 @@ mesh.position.x = 2;
 let light = new HemisphericLight();
 app.children.addMany(light);
 ```
+
+### Add a camera
+
+
+Changing or applying a default camera is one line:
+
+```js
+let camera = new app.cameras.ArcRotateCamera(activate=true);
+```
+
+You can switch cameras on-the-fly:
+
+```js
+let camera = new app.cameras.ArcRotateCamera();
+let freeCam = new app.cameras.FreeCamera({ position:asVector(1,0,1)) });
+freeCam.activate()
+```
+
 
 ## Extending
 
@@ -137,3 +162,11 @@ If you need to decide when run, provide a function. The return value from the fu
 var app = Garden.run(function() { return Sandbox });
 ```
 
+### No App
+
+Run Garden without an override of any type. Allowing for fast prototyping of ideas:
+
+```
+var app = Garden.run(CONFIG);
+var scene = app.scene()
+```
