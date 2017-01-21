@@ -1,10 +1,19 @@
 var main = function(){
-    logger('Sandbox')
+
     //let v = new App(CONFIG);
-    Garden.config(CONFIG)
-    app = Garden.run('Simple')
-    window.app = app
+
     $('#run_tests').click(runTests);
+    window.app = simpleExample()
+
+    return
+
+    Garden.config(CONFIG)
+    window.app = Garden.run('Simple')
+
+}
+
+var simpleExample = function(){
+    return Garden.run(CONFIG)
 }
 
 var runTests = function(){
