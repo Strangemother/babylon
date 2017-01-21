@@ -108,13 +108,16 @@ class Animation extends BabylonObject {
         ]
     }
 
-    setKeysProp() {
+    setKeysProp(optionValue) {
+        if( optionValue != undefined) {
+            this.frames( ...optionValue )
+        }
 
         return this.frames()
     }
 
-    setKeysPropSetter(mesh, prop, ...args) {
-        mesh[prop](this.setKeysProp())
+    setKeysPropSetter(mesh, prop, optionValue, ...args) {
+        mesh[prop](optionValue || this.setKeysProp())
     }
 
     addToMesh(mesh, config) {
