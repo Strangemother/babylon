@@ -1,13 +1,19 @@
 # Summary
 
 * [Introduction](README.md)
-* [File Loader](file_loader/README.md)
 * [Garden](garden/README.md)
+   * [Examples](garden/examples.md)
+   * [Config](garden/the_canvas.md)
+* [File Loader](file_loader/README.md)
 * [Mesh](mesh/README.md)
 * [Actions](actions/README.md)
 * [Triggers](triggers/README.md)
 * [Cameras](cameras/README.md)
+* [Lights](lights/README.md)
 * [Colours and Materials](colours/README.md)
+* [Architecture](architecture/README.md)
+* [Properties](properties/README.md)
+* [BabylonObject](babylonobject/README.md)
 * [Testing](testing/README.md)
    * [HTTPAgent](testing/httpagent.md)
    * [Mocks](testing/mocks.md)
@@ -23,7 +29,4 @@
        * [Function](testing/function.md)
        * [Error](testing/error.md)
        * [Number](testing/number.md)
-* [Architecture](architecture/README.md)
-* [BabylonObject](babylonobject/README.md)
-* [Properties](properties/README.md)
 

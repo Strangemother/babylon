@@ -61,7 +61,41 @@ app._canvas
 
 The `app` is an instance of `Base` extending the `BablyonInterface` class. A few methods exist to assist with boierplate run.
 
+
 ## Basic App
+
+Use Garden to generate your babylon object. The `Box` class and `HemisphericLight` are `Garden` classes. `boxMesh` and `light` are BABYLON instances.
+
+```js
+let app = Garden.run(CONFIG);
+let [boxMesh, light] = app.children.addMany(Box, app.lights.HemisphericLight);
+let camera = new ArcRotateCamera(activate=true)
+```
+
+You don't need to some items, in this case the `camera` has a simple `activate` argument. There are other ways you can activate your camera. It's all designed to be as quick as possible.
+
+```js
+let otherCam = new app.lights.FreeCamera()
+otherCam.activate()
+// and switch!
+camera.activate()
+```
+
+Other shortcuts are built into `Garden` instances. Lets play with a Box.
+
+```js
+let app = Garden.run(CONFIG);
+// First we need a light.
+light = app.children.add(app.lights.HemisphericLight);
+
+let box = new Box()
+let mesh = box.addToScene()
+let material = box.color('red')
+```
+
+Notice when we use the Garden stuff; `Box`, `addToScene` and `color`, the return value is a BABYLON object.
+
+
 
 ### init
 
