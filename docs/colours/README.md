@@ -61,3 +61,15 @@ The `Light` class can accept a color:
 ```js
 let light = new Light({ color: 'white' });
 ```
+
+## Wireframe
+
+A BABYLON material has a `wireframe` property. A shortcut to `ball._babylon.material.wireframe`:
+
+```
+let ball = new Sphere({color: 'blue'})
+ball.addToScene()
+ball.wirefame = true
+```
+
+A new white material is applied to the BABYLON mesh if a material does not exist.

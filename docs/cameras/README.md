@@ -20,6 +20,7 @@ b.attachControl(canvas, false);
 
 The `ArcRotateCamera` class, generates and handles a real `Camera`, or in this case; `BABYLON.ArcRotateCamera`. The `arcCam.create()` returns the BABYLON camera, for us to play with naturally.
 
+
 ## Gettings started
 
 The API version has this built in. The `Camera().activate(scene)` can perform all the required attaching:
