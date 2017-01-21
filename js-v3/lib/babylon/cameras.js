@@ -4,7 +4,15 @@ class Camera extends BabylonObject {
 
     constructor({activate = false, scene=undefined, control=true, cache=true} = {}){
         super()
-        if(activate) {
+        /* A Camera is activated by:
+            Camera(true)
+            Camera({activate: true})
+            Camera(active=true)
+            */
+        if( activate
+            || ( arguments.length == 1
+                && arguments[0] == true )
+            ) {
             console.info('Activate camera', this.id)
             this.activate(scene, control, cache)
         }
@@ -14,7 +22,6 @@ class Camera extends BabylonObject {
         /* Camera classes are packaged into Garden.cameras */
         return 'cameras'
     }
-
 
     getOrCreate(cache=false) {
 
