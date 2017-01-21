@@ -2,6 +2,14 @@
 
 Bablyon JS is a great 3D framework for the web. Here are some tools to utilize the base application will help with basic development.
 
+Garden helps you write you babylon, performing all the boilerplate work:
+
+```js
+app = Garden.run({ canvasName: '#gameCanvas' })
+app.children.addMany(Box, app.lights.HemisphericLight)
+```
+
+
 Completely written in ES6, It's designed to be thin and easy to understand. This allows you to utilize the raw functionality of Bablyon without another library layer.
 
 The components provided allows quicker prototyping and removal of the boilerplate for any project.
@@ -10,19 +18,19 @@ Lets look at a basic scene:
 
 ```js
 var main = function(){
-    logger('Main')
-    let v = new Main(CONFIG);
-    window.app = v;
+    window.app = new Main(CONFIG);
 }
 
 class Main extends Garden {
 
     init(config){
         super.init(config)
-        log('Main.init')
         this.run({
             backgroundColor: [.2, .1, .1]
         })
+    }
+    start(){
+        this.box = new Box({size: 3})
     }
 }
 
@@ -31,10 +39,38 @@ class Main extends Garden {
 
 This will run an entire BablyonJS scene, complete with Camera and Scene. The Canvas, Engine and other default options are ready for use or override.
 
+## With Framework
+
+Garden can help run your scene. The same ball on ground example with Garden tools:
+
+```html
+<canvas id='garden' />
+```
+
+```js
+app = Garden.run({ size: [800, 600] })
+
+ball = new Sphere({ position: [0, 0.5, 0]})
+light = app.lights.HemisphericLight
+ground = new Ground({width:6, height:6})
+camera = new ArcRotateCamera(true)
+
+app.children.addMany(ball, light, ground)
+```
+
+
 ## No Framework
+
+Use Garden like a toolshed, calling for BABYLON parts and writing your own code.
+
+```js
+let boxMesh = app.children.add(Box, { position: [1,1,1]})
+boxMesh.position == BABYLON.Vector3
+```
 
 Copied from the BablyonJS tutorial, we can create a ground and sphere. Fetch BablyonJS `Scene` by calling `app.scene()`
 
+_Ignoring Garden, using BABYLON:_
 ```js
 scene = app.scene()
 var sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
