@@ -40,7 +40,7 @@ class BabylonObject extends ChildManager {
             }
         };
 
-        let args = this.setup(scene, options);
+        let args = this.setup(scene, options, cache);
         // Return babylon instance
         return this.babylonCall(...args);
     }
@@ -63,7 +63,13 @@ class BabylonObject extends ChildManager {
 
         // Cached by this.babylonCall
         let r = this._babylonParams;
-        let rd = r != undefined ? r[1]: {};
+        if( IT.g(r).is('object') ) {
+            r = r[1]
+        };
+        if(cache == false) {
+            r = undefined;
+        }
+        let rd = r != undefined ? r: {};
         let _opts = Object.assign({}, rd, this._options || {}, options);
 
         let props = this._app.properties
@@ -109,8 +115,10 @@ class BabylonObject extends ChildManager {
 
         let a = [name];
         let keys = this.keys();
+        let oKeys = Object.getOwnPropertyNames(options)
         for(let key of keys){
-            if(options[key]) {
+
+            if(oKeys.indexOf(key) > -1 ) {
                 a.push(options[key]);
             } else {
                 [allowSet, v] = this._babylonParamsMissingKey(key, keys, options, scene);
@@ -127,9 +135,21 @@ class BabylonObject extends ChildManager {
                 )
         };
 
-        a.push(scene);
+        let s = this.babylonSceneArg(scene);
+        if(s) {
+            a.push(scene);
+        }
 
         return a
+    }
+
+    babylonSceneArg(scene){
+        /* Given the scene, return an argument for the scen argument
+        If you BABYLON instance does not require a Scene object
+        as the last parameter, return false or undefined
+
+        */
+        return scene
     }
 
     _babylonParamsMissingKey(key, keys, options, scene) {
@@ -148,11 +168,11 @@ class BabylonObject extends ChildManager {
         all the internal and external attributes required. Provide an object
         for final key override.
         Returned is an object ready for babylon */
-        let o = {}, v, key;
+        let o = {}, v, key, defined;
 
         for(key of this.keys()) {
-            v = this.getOptionKey(key);
-            if(v !== undefined){
+            [defined, v] = this.getOptionKey(key);
+            if(defined){
                 o[key] = v;
             };
         };
@@ -189,9 +209,9 @@ class BabylonObject extends ChildManager {
         for the babylon instance*/
         let n = `${key}Key`;
         if(this[n] != undefined) {
-            return this[n]()
+            return [true, this[n]()]
         };
-
+        return [false, undefined]
     }
 
     generateName(){
@@ -253,7 +273,14 @@ class BabylonObject extends ChildManager {
 
         for (var i = 0; i < keys.length; i++) {
             prop = keys[i];
-            mesh[prop] = this[`${prop}Prop`]();
+            let pv =  this[`${prop}Prop`]();
+            let pvs =  this[`${prop}PropSetter`];
+            if(pvs != undefined) {
+                pvs.call(this, mesh, prop, ...args)
+            } else {
+                mesh[prop] = pv
+
+            }
         };
     }
 
@@ -294,6 +321,36 @@ class BabylonObject extends ChildManager {
         }
 
         return b.actionManager;
+    }
+
+    animate(gAnim, { start=0, end=undefined,  loop=true, config={}} = {}) {
+
+        let mesh = this._babylon
+        let bAnim = gAnim.create()
+        let scene = this._app.scene()
+        let speedRatio
+            , onAnimationEnd
+
+        if(end == undefined) {
+            // pick from highest frame in animation
+            end = Math.max.apply(Math, gAnim.frames().map(x => x.frame))
+
+        };
+
+        mesh.animations.push(bAnim);
+
+        let animatable = scene.beginAnimation(
+            mesh
+            , start
+            , end
+            , loop
+            , speedRatio
+            , onAnimationEnd
+            , gAnim.animatable
+            )
+
+        gAnim.animatable = animatable
+        return animatable;
     }
 }
 
