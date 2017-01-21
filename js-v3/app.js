@@ -164,6 +164,7 @@ class Animate extends Garden {
         this.animate2()
         this.animate3()
         this.animate4()
+        this.animate5()
     }
 
     baseScene(){
@@ -230,6 +231,29 @@ class Animate extends Garden {
         box.animate(this.animScaleY)
         box.animate(this.animScaleZ)
     }
+
+    animate5(){
+        let box = this.box5 = new Box({ color: 'saddleBrown', position: [-1, 0, 0]})
+        box.addToScene()
+
+        let anim = this.animRotX = new Animation({
+            targetProperty: 'rotation.x'
+            , setKeys: [ [0, 0] , [200, Math.radians(359)]]
+        })
+
+        box.animate(anim)
+
+    }
 }
 
 Garden.register(Simple, Main, App, Sandbox, Animate);
+
+// Converts from degrees to radians.
+Math.radians = function(degrees) {
+  return degrees * Math.PI / 180;
+};
+
+// Converts from radians to degrees.
+Math.degrees = function(radians) {
+  return radians * 180 / Math.PI;
+};
