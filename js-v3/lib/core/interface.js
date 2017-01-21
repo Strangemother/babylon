@@ -72,7 +72,7 @@ class BabylonInterface extends BabylonBase {
 
     canvas(name){
         let config = this.config()
-        name = name || config.canvasName
+        name = name || config.canvasName || this.canvasName()
         // Get the canvas element from our HTML below
         var canvas = document.querySelector(name);
 
@@ -89,6 +89,18 @@ class BabylonInterface extends BabylonBase {
         };
 
         return canvas;
+    }
+
+    canvasName(){
+        /* If the App specific named canvas exists
+        else default to '#garden' */
+
+        let n = this.constructor.name;
+        if( document.getElementById(n) ){
+            return `#${n}`
+        };
+
+        return '#garden'
     }
 
     engine(canvas){
