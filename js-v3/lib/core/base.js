@@ -30,7 +30,7 @@ class BaseClass {
     }
 
     init() {
-        console.log('init called')
+        //console.log('init called')
     }
 
     get _app() {
@@ -254,7 +254,9 @@ class BaseProperty extends BaseClass {
 
     setup(instance, scene, key, options) {
         let [_key, v] = this.instanceMethod(instance, scene, options)
-        if(this.getterSetter() && instance.gardenType == 'instance') {
+        if( this.getterSetter()
+            && instance.gardenType == 'instance'
+            && instance[_key] == undefined) {
             Object.defineProperty(instance, _key, {
                 get: v
                 , set: v
