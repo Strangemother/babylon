@@ -142,6 +142,58 @@ class ShapesTests {
         test.array(expected).match(result)
         e.dispose();
     }
+
+    test_position_overrides(){
+        let tube = new app.shapes.Cylinder( { position: [1,2,3] })
+        app.children.add(tube, { position: [0,1,2]})
+
+        // Vector3 {x: 0, y: 1, z: 2}
+        let p = tube.position()
+        test.value(p.x).is(0)
+        test.value(p.y).is(1)
+        test.value(p.z).is(2)
+
+        tube.destroy()
+    }
+
+    test_color_switching(){
+        /* Can switch a color on the mesh */
+
+        let b = new Box
+        // Box {_options: Object, _args: Array[0], id: "37qsa2b4g4"}
+        b.addToScene({color: 'red'})
+
+        let redColor = b.color()
+        // Color4 {r: 0, g: 1, b: 0, a: 1}
+        test.value(redColor.r).is(1)
+        test.value(redColor.g).is(0)
+        test.value(redColor.b).is(0)
+
+
+        // Mesh {state: "", metadata: null, doNotSerialize: false, animations: Array[0], _ranges: Object…}
+        let greenMat = b.color('green')
+        test.value(greenMat).isInstanceOf(BABYLON.StandardMaterial)
+        // StandardMaterial {checkReadyOnEveryCall: false, checkReadyOnlyOnce: false, state: "", alpha: 1, backFaceCulling: true…}
+        let r = b.color()
+        // Color4 {r: 0, g: 1, b: 0, a: 1}
+        test.value(r.r).is(0)
+        test.value(r.g).is(1)
+        test.value(r.b).is(0)
+
+        let blueMat = b.color('blue')
+        // StandardMaterial {checkReadyOnEveryCall: false, checkReadyOnlyOnce: false, state: "", alpha: 1, backFaceCulling: true…}
+        test.value(blueMat).isInstanceOf(BABYLON.StandardMaterial)
+        test.value(blueMat).isNot(greenMat)
+
+        let bc = b.color()
+        // Color4 {r: 0, g: 0, b: 1, a: 1}
+        // test.value(r.r).is(0)
+        test.value(bc.r).is(0)
+        test.value(bc.g).is(0)
+        test.value(bc.b).is(1)
+
+        b.destroy()
+    }
 }
 
 
@@ -153,6 +205,7 @@ class CreateMethodTest {
             mock.returns(new Box)
             b = Klass.create('box');
         });
+
         b.destroy()
     }
 }
@@ -206,7 +259,8 @@ class ColorsTests {
         test.value(r.g).is(0)
         test.value(r.b).is(0)
 
-        let mat = box.color('green');
+        box.color('green');
+        let mat = box._babylon.material
         let diffuseColor = mat.diffuseColor;
 
         test.value(mat).isInstanceOf(BABYLON.StandardMaterial)
@@ -269,6 +323,8 @@ class PropertyTests {
         test.value(mesh).match(_babylon)
 
         test.value(b.wireframe).isFalse()
+
+        b.destroy()
     }
 }
 
