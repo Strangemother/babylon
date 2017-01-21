@@ -87,6 +87,9 @@ class PositionProperty extends AutoProperty {
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
         if(!babylon) return undefined;
+        if(IT.g(value).is('array') && value.length == 1 && IT.g(value[0]).is('array')) {
+            value = value[0]
+        }
         let v = asVector(value);
         babylon[this.key()] = v;
         return v;
@@ -130,10 +133,12 @@ class WireframeProperty extends QuickProperty {
     }
 
     _get(instance, babylon, key, value) {
+        if(!babylon) return false;
         return babylon.material ? babylon.material.wireframe: false;
     }
 
     _set(instance, babylon, key, value) {
+        if(!babylon) return false;
         let mat = babylon.material || instance.color('white')
         mat.wireframe = value;
     }
