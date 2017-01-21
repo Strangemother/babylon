@@ -157,4 +157,79 @@ class Sandbox extends Garden {
 }
 
 
-Garden.register(Simple, Main, App, Sandbox);
+class Animate extends Garden {
+    start(){
+        this.baseScene()
+        this.animate1()
+        this.animate2()
+        this.animate3()
+        this.animate4()
+    }
+
+    baseScene(){
+        let skyLight = new app.lights.HemisphericLight;
+        this.light = app.children.add(skyLight)
+        skyLight.color('white')
+
+        this.camera = new app.cameras.ArcRotateCamera(true)
+    }
+
+
+    animate1(){
+        this.box = new Box({ color: 'red' })
+        let mesh = this.mesh = this.box.addToScene()
+        let anim = new Animation({ targetProperty: 'scaling.x' })
+        let babylonAnim = anim.create()
+        let keys = [{ frame: 0, value: 1}, { frame: 50, value: .2}, {frame: 100, value: 1}]
+        babylonAnim.setKeys(keys);
+        mesh.animations.push(babylonAnim);
+
+        this.bAnim = babylonAnim;
+        this.animScaleX = anim;
+        this.animation = app.scene().beginAnimation(mesh, 0, 100, true)
+    }
+
+    animate2() {
+        let box = this.box2 = new Box({ color: 'green', position: [1, 0, 0]})
+        box.addToScene()
+
+        let anim = new Animation({ targetProperty: 'scaling.y' })
+        anim.frame(0, 1).frame(50, .2).frame(100, 1)
+
+        this.animTwoAnim = box.animate(anim)
+
+        this.animScaleY = anim;
+        this.animTwo = anim;
+    }
+
+    animate3(){
+        let box = this.box3 = new Box({ color: 'dodgerBlue', position: [2, 0, 0]})
+        box.addToScene()
+
+        let anim = new Animation({ targetProperty: 'scaling.z' })
+        anim.frames([0, 1], [50, .2], [100, 1])
+        this.animScaleZ = anim
+
+        box.animate(anim)
+        // Share animations
+        box.animate(this.animTwo)
+    }
+
+    animate4(){
+        /*
+        Using all the previously made animations, stack all to the box.
+        The ScaleX animation keys were not applied to the Garden instance -
+        therefore we can create new ones */
+        let box = this.box4 = new Box({ color: 'gold', position: [3, 0, 0]})
+        box.addToScene()
+
+        this.animScaleX.frames([0, 1], [30, .8], [50, .6] , [80, .3], [100, 1])
+        this.animScaleZ.frames([0, 1], [23, .8], [70, .4] , [100, 1])
+
+        box.animate(this.animScaleX)
+        box.animate(this.animScaleY)
+        box.animate(this.animScaleZ)
+    }
+}
+
+Garden.register(Simple, Main, App, Sandbox, Animate);
