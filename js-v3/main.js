@@ -3,12 +3,11 @@ var main = function(){
     //let v = new App(CONFIG);
 
     $('#run_tests').click(runTests);
-    window.app = simpleExample()
+    // return window.app = simpleExample()
 
-    return
 
     Garden.config(CONFIG)
-    window.app = Garden.run('Simple')
+    window.app = Garden.run('Animate')
 
 }
 
