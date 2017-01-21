@@ -29,6 +29,7 @@ var assets = [
 
    , 'js-v3/lib/extras/animators.js'
    , 'js-v3/lib/extras/colors_extended.js'
+   , 'js-v3/lib/extras/scene_shapes.js'
    , 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'

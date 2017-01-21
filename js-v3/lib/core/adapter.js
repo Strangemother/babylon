@@ -63,6 +63,9 @@ class BabylonObject extends ChildManager {
 
         // Cached by this.babylonCall
         let r = this._babylonParams;
+
+        scene = this._app.scene();
+
         if( IT.g(r).is('object') ) {
             r = r[1]
         };
@@ -102,14 +105,14 @@ class BabylonObject extends ChildManager {
     addToScene(options) {
         /* Add the element to the child list of the default app scene.
         This function uses the addTo(app) */
-        return this.addTo(Garden.instance(), options)
+        return this.addTo(this._app, options)
     }
 
     babylonParams(scene, overrides) {
         /* Return the configured options in order for this.babylonCall arguments
         Returned is [name, options, scene] */
         let name = this.generateName()
-            , options = this.generateOptions(overrides)
+            , options = this.generateOptions(overrides, scene)
             , v, allowSet
             ;
 
@@ -163,7 +166,7 @@ class BabylonObject extends ChildManager {
         return [false, undefined]
     }
 
-    generateOptions(overrides){
+    generateOptions(overrides, scene){
         /* Return an options object for the babylon interface instance using
         all the internal and external attributes required. Provide an object
         for final key override.
@@ -171,7 +174,7 @@ class BabylonObject extends ChildManager {
         let o = {}, v, key, defined;
 
         for(key of this.keys()) {
-            [defined, v] = this.getOptionKey(key);
+            [defined, v] = this.getOptionKey(key, overrides, scene);
             if(defined){
                 o[key] = v;
             };
@@ -179,7 +182,7 @@ class BabylonObject extends ChildManager {
 
         let _props = {};
         for(key in overrides) {
-            v = this.getLiveProperty(key, o, overrides);
+            v = this.getLiveProperty(key, o, overrides, scene);
             if(v != undefined){
                 _props[v[0]] = v[1];
             }
@@ -190,7 +193,7 @@ class BabylonObject extends ChildManager {
         return o;
     }
 
-    getLiveProperty(key, o, overrides) {
+    getLiveProperty(key, o, overrides, scene) {
         /* Return a call to the Property.liveProperty if it
         exists, else default to the override[key] */
         let properties = this._app.properties
@@ -204,12 +207,12 @@ class BabylonObject extends ChildManager {
         };
     }
 
-    getOptionKey(key) {
+    getOptionKey(key, overrides, scene) {
         /* return the value for the given key, used when building the options
         for the babylon instance*/
         let n = `${key}Key`;
         if(this[n] != undefined) {
-            return [true, this[n]()]
+            return [true, this[n](overrides[key], overrides, scene)]
         };
         return [false, undefined]
     }
@@ -240,6 +243,10 @@ class BabylonObject extends ChildManager {
     }
 
     type(v){
+        /* REturn the type of class as string this class
+        represents.
+        Default; name constuctorName.
+        */
         if(v !== undefined) { this._type = v };
         return this._type || this.constructor.name;
     }
@@ -253,7 +260,11 @@ class BabylonObject extends ChildManager {
         let b = this.executeBabylon(this.babylonFunc(), n, ...args);
         this.assignProperties(b, ...args)
         this.assignLiveProperties(b, ...args)
-        return b;
+        return this.babylonExecuted(b, ...args)
+    }
+
+    babylonExecuted(babylon, ...args) {
+        return babylon;
     }
 
     propKeys(){
@@ -266,7 +277,17 @@ class BabylonObject extends ChildManager {
 
     assignProperties(mesh, ...args) {
         /* Call properties assigned through the propKeys()
-        assignement */
+        assignment
+
+        loop all propKeys(). If the [key]Prop() function
+        exists, the return replaces the input value.
+        The value returned is applied to mesh[key] = propValue;
+
+        If this.[key]PropSetter() function exists, this
+        function is called instead of mesh[key] = value - expecting
+        the function to apply the required value in another manner.
+        */
+
         let keys = this.propKeys()
             , prop
             ;
@@ -286,11 +307,15 @@ class BabylonObject extends ChildManager {
     }
 
     assignLiveProperties(mesh, ...args) {
+        /* Assign properties after the properties are defined.
+        the Live properties will exist on the
+        mesh. */
+        let p = this._app.properties
+            , _p = this._properties
+            ;
 
-        let properties = this._app.properties
-        let _properties = this._properties
-        for(let key in _properties) {
-            properties[key].afterProperty(mesh, this, key, _properties)
+        for(let key in _p) {
+            p[key].afterProperty(mesh, this, key, _p)
         }
     }
 
@@ -299,17 +324,10 @@ class BabylonObject extends ChildManager {
     }
 
     babylonFuncName(...args) {
-        /* Bablyon function builds XXXCamera. By default
-        this is FreeCamera */
-        /* Return the partial name of the object to create a full
-        babylon name Create[name]. Default: 'Mesh' */
-        return this.type();
-        // let n = this.babylonFuncNamePartial(...args);
-        // return n;
-        // return `${n}`;
-    }
+        /* Return the name of the function to execute on
+        BABYLON[babylonFuncName] */
 
-    babylonFuncNamePartial(...args) {
+        return this.type();
     }
 
     actionManager() {
