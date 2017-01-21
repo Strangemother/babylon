@@ -77,8 +77,12 @@ class ColorProperty extends AutoProperty {
 }
 
 
-class PositionProperty extends BaseProperty {
+class PositionProperty extends AutoProperty {
 
+    arrayProp(){
+        /* The position can accept on or more vars*/
+        return true;
+    }
 
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
