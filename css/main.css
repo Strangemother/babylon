@@ -8,8 +8,7 @@ html, body {
 
 #renderCanvas, #game_canvas {
     display: inline-block;
-    min-width: 800px;
-    min-height: 600px;
+
 }
 
 .game-canvas {
@@ -200,7 +199,7 @@ span.index[data-count].hidden {
 
 .view {
     display: flex;
-    height: 600px;
+    min-height: 600px;
 }
 
 #mocha.themed .test h2 {
