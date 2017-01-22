@@ -47,7 +47,8 @@ class ColorProperty extends AutoProperty {
         the instance is BABYLON created.
         setProperty applies the cached Color
         to the material. */
-        return [this.name, colors[options[this.name]]()]
+        let n = options[this.name]
+        return [this.name, colors.get(n)]
     }
 
 
