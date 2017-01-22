@@ -27,6 +27,7 @@ var assets = [
    , 'js-v3/lib/babylon/triggers.js'
    , 'js-v3/lib/babylon/actions.js'
 
+   , 'js-v3/lib/extras/textures.js'
    , 'js-v3/lib/extras/animators.js'
    , 'js-v3/lib/extras/colors_extended.js'
    , 'js-v3/lib/extras/scene_shapes.js'
