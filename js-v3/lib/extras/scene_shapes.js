@@ -37,7 +37,6 @@ class SkyBox extends Box {
         let skyLight = new app.lights.HemisphericLight({color: options.lightColor });
         this.light = skyLight;
         this.lightMesh = children.add(skyLight)
-        //skyLight.color()
 
         let sky = new SkyMaterial()
         let mat = sky.create(options, scene)
@@ -47,7 +46,6 @@ class SkyBox extends Box {
         mesh.material = mat
         mesh.renderingGroupId = 0
         mesh.infiniteDistance = true
-        console.log('Created sky', mesh.name, name)
         this._name = mesh.name;
 
         children.postModifiers.add('renderingGroupId', this.modifyRenderingGroupId.bind(this), true)
