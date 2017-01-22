@@ -66,6 +66,125 @@ babylonCall(...args) {
 }
 ```
 
+## API usage
+
+You'll start with any base class you'll extend with Garden.
+
+```js
+class AutoTexture extends BabylonObject {
+    static assignmentName(item) {
+        return 'textures'
+    }
+}
+
+Garden.register(AutoTexture)
+```
+
+This will stack your class and any extensions in `textures`. You can find it `Garden().instance().textures.AutoTexture`
+
+The extension manages a BABYLON entity - such as a mesh or material. Nearly all Babylon items accept `name`, `options`, `scene` as arguments.
+
+The `options` are inline arguments for your babylon call.
+
+```js
+new BABYLON[name](...args)
+```
+
+The name is default `"AutoTexture"` calling the `babylonFuncName()`
+
+```js
+class AutoTexture extends BabylonObject {
+    babylonFuncName(...args) {
+        /* Return the name of the function to execute on
+        BABYLON[babylonFuncName] */
+
+        return 'CubeTexture'
+        // return this.type();
+    }
+
+    babylonFunc(){
+        return BABYLON
+    }
+}
+```
+
+We've changed the `babylonFuncName` to `"CubeTexture"`, when we call `create()` function using these parameters
+
+```js
+let texture = new AutoTexture();
+let babylon = texture.create()
+```
+
+This will call
+
+```js
+let babylon = new BABYLON['CubeTexture'](name, options, scene)
+```
+
+You'll need to change the inline arguments from [`name`, `options`, `scene`] to your custom arguments.
+
+## Setting Keys
+
+To change the `...args`, Apply `keys()` to your class, They become inline properties for your BABYLON call.
+
+```js
+class AutoTexture extends BabylonObject {
+    keys(){
+        return [
+            'assetName'
+            , 'assetPath'
+        ]
+    }
+
+    assetPathKey(){
+        return './assets/textures/'
+    }
+}
+```
+
+When instansiating your class, the `assetPath` is optional, as the `assetPathKey` can fill the missing option. The `name` is not optional
+
+```js
+let texture = new AutoTexture({ assetName: 'foo' })
+let babylon = texture.create()
+```
+
+Using the above, we can generate a new Babylon item.
+
+```js
+new BABYLON["CubeTexture"](name, assetName, assetPath, scene)
+```
+
+You can add to `keys()`, applying more inline arguments to your BABYLON instance.
+
+You can change the Babylon execution, allowing additional options in your class `keys()` and not for the inline arguments
+
+### Change Babylon call
+
+The `executeBabylon(babylonfunc, name, ..args)` method performs the call to make the BABYLON entity.
+
+The `...args` are your `keys()` ordered inline. Change this call to perform your unique changes.
+
+```js
+class AutoTexture extends BabylonObject {
+    executeBabylon(babylonFunc, name, assetName, assetPath, scene, ...args) {
+        // new BABYLON["CubeTexture"](path, scene)
+        let p = this.makePath(assetName, assetPath)
+        return new babylonFunc[name](p, scene);
+    }
+
+    makePath(name, path){
+        return `${name}${path}`
+    }
+}
+```
+
+In this example we've added `assetName`, `assetPath` and `scene` to the argument list. This is for readability. The values would exist in `...args` - in this example our remaining `...args` would be zero.
+
+We've changed the babylon call to fix the complete path.
+
+---
+
 With a `Shape`, the `babylonFuncName()` call returns the `Shape.type()` - such as `Box`.
 
 It's simple to see how BABYLON is integrated.
