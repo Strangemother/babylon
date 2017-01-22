@@ -146,10 +146,42 @@ class WireframeProperty extends QuickProperty {
 
 }
 
+class EdgeRenderingProperty extends QuickProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+
+    getterSetter(){
+        return true
+    }
+
+    _get(instance, babylon, key, value) {
+        if(!babylon) return false;
+        return babylon.material ? babylon.material.wireframe: false;
+    }
+
+    _set(instance, babylon, key, value) {
+        if(!babylon) return false;
+        if(value === false || value == 0) {
+            babylon.disableEdgesRendering()
+            return value;
+        }
+
+        if(value === true) {
+            value = .2
+        }
+
+        babylon.enableEdgesRendering(value)
+        return value;
+    }
+}
+
 Garden.register(ColorProperty
     , PositionProperty
     , RotationProperty
     , ScalingProperty
     , TriggerProperty
     , WireframeProperty
+    , EdgeRenderingProperty
     )
