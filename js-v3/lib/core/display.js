@@ -68,6 +68,48 @@ class DisplayListManager {
     }
 }
 
+class SimpleIter {
+
+    constructor(d){
+        this._ = d || {}
+    }
+
+    add(name, func, iterExisting=false) {
+        if(this._[name] == undefined) {
+            this._[name] = []
+        }
+
+        this._[name].push(func);
+    }
+
+    call(...args) {
+        let v;
+        for(let k in this._) {
+            for(let f of this._[k]) {
+                v = f(...args)
+                if(v === null) console.warn('iterator', k, 'for', args[0], 'returned null')
+            }
+        }
+    }
+
+    remove(name, func) {
+        let removed = []
+        if(func != undefined) {
+            let n = this._[name];
+            if(n != undefined) {
+                let i = this._[name].indexOf(func);
+                if(i>-1){
+                    removed = this._[name].splice(i, 1)
+                }
+            }
+        } else if(this._[name] != undefined){
+            removed = this._[name]
+            delete this._[name]
+        }
+        return removed;
+    }
+}
+
 
 class ChildList {
     /* A ChildList maintains a connection to a the _displayList,
@@ -77,6 +119,28 @@ class ChildList {
         this.parent = parent;
         this.name = {};
         this.id = Math.random().toString(32).slice(2);
+        this.createIterators()
+    }
+
+    iterators(){
+        return [
+            'preModifiers'
+            , 'postModifiers'
+        ]
+    }
+
+    createIterators(d){
+        this._iterators = d || {}
+        for(let n of this.iterators()) {
+            this[n] = this._iterators[n] = new SimpleIter()
+        }
+    }
+
+    callIterator(name, items, ...args) {
+
+        for(let item of items) {
+            this._iterators[name].call(item, ...args)
+        }
     }
 
     get displayList() {
@@ -99,13 +163,18 @@ class ChildList {
         }
 
         let meshes=[], mesh;
-        let [scene, engine, canvas] = this.parent._app.babylonSet;
+        let bSet = this.parent._app.babylonSet
+        let [scene, engine, canvas] = bSet;
+
+        this.callIterator('preModifiers', items, options, ...bSet)
 
         for(let item of items) {
             mesh = item.create(options, scene);
             this.append(item, mesh, options);
             meshes.push(mesh);
         };
+
+        this.callIterator('postModifiers', meshes, options, ...bSet)
 
         // User did not pass an array, therefore return one mesh.
         if(!Array.isArray(children)) return mesh;
