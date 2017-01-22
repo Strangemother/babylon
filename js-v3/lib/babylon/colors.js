@@ -3,7 +3,7 @@ var materials = {};
 var modifiers = {};
 
 colors.DIFFUSE = 'diffuseColor'
-colors.EMISSIVE = 'emessiveColor'
+colors.EMISSIVE = 'emissiveColor'
 
 materials.white = function(scene) {
     var mat = materials.standard(scene, 'White')
@@ -18,6 +18,7 @@ materials.blue = function(scene) {
 }
 
 materials.standard = function(scene, name) {
+    scene = scene || Garden.instance().scene();
     var m = new BABYLON.StandardMaterial(name, scene);
     return m;
 }
