@@ -12,6 +12,7 @@ class SkyBox extends Box {
             'size'
             , 'assetName'
             , 'assetPath'
+            , 'lightColor'
         ]
     }
 
@@ -23,9 +24,21 @@ class SkyBox extends Box {
         return 100.0
     }
 
+    lightColorKey(optionValue){
+        return optionValue || colors.white()
+    }
+
     babylonExecuted(mesh, name, options, scene,...args) {
         /* Will build keys written by key() ordered params.
         name, size, material, scene */
+        let app = this._app;
+        let children = app.children;
+
+        let skyLight = new app.lights.HemisphericLight({color: options.lightColor });
+        this.light = skyLight;
+        this.lightMesh = children.add(skyLight)
+        //skyLight.color()
+
         let sky = new SkyMaterial()
         let mat = sky.create(options, scene)
         this._sky = sky
@@ -36,7 +49,8 @@ class SkyBox extends Box {
         mesh.infiniteDistance = true
         console.log('Created sky', mesh.name, name)
         this._name = mesh.name;
-        this._app.children.postModifiers.add('renderingGroupId', this.modifyRenderingGroupId.bind(this), true)
+
+        children.postModifiers.add('renderingGroupId', this.modifyRenderingGroupId.bind(this), true)
         return mesh
     }
 

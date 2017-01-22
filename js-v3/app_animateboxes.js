@@ -12,9 +12,6 @@ class AnimateBoxes extends Garden {
         this.skyBox = new SkyBox({assetName: 'mountains'});
         this.skyBoxMesh = this.skyBox.addToScene();
 
-        let skyLight = new app.lights.HemisphericLight;
-        this.light = app.children.add(skyLight)
-        skyLight.color('white')
 
         this.camera = new app.cameras.ArcRotateCamera(true)
     }
