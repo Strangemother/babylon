@@ -6,6 +6,7 @@ CONFIG = {
 
     /* Run one of many apps loaded*/
     , appName: 'AnimateBoxes'
+
     /* width height of the canvas */
-    // , size: [1000, 800]
+    , size: [1000, 800]
 }
