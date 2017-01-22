@@ -1,10 +1,17 @@
 class SkyBox extends Box {
+    /*
+        s = new SkyBox()
+        s.addToScene()
+
+        b = new SkyBox({assetName: 'mountains'})
+        mesh = b.addToScene();
+     */
 
     keys(){
         return [
             'size'
-            , 'material'
-            , 'textureName'
+            , 'assetName'
+            , 'assetPath'
         ]
     }
 
@@ -12,43 +19,35 @@ class SkyBox extends Box {
         return 'Box'
     }
 
-    propKeys(){
-        return [
-        ]
-    }
-
     sizeKey() {
         return 100.0
     }
 
-    textureNameKey(){
-        let name = "assets/textures/skybox/1"
-        return name;
-    }
-
-    materialKey(optionValue, options, scene) {
-        scene = scene || this._app.scene()
-        let mat = materials.standard(scene)
-        // Group Texture
-
-        let name = options.textureName || this.textureNameKey()
-        mat.backFaceCulling = false
-        mat.disableLighting = true
-        mat.diffuseColor = colors.black()
-        mat.specularColor = colors.black()
-        mat.reflectionTexture = new BABYLON.CubeTexture(name, scene)
-        mat.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE
-        return mat
-    }
-
     babylonExecuted(mesh, name, options, scene,...args) {
         /* Will build keys written by key() ordered params.
-            name, size, material, scene */
+        name, size, material, scene */
+        let sky = new SkyMaterial()
+        let mat = sky.create(options, scene)
+        this._sky = sky
+        this._skyMaterial = mat
 
+        mesh.material = mat
         mesh.renderingGroupId = 0
-        mesh.material = options.material
         mesh.infiniteDistance = true
+        console.log('Created sky', mesh.name, name)
+        this._name = mesh.name;
+        this._app.children.postModifiers.add('renderingGroupId', this.modifyRenderingGroupId.bind(this), true)
         return mesh
     }
-}
 
+    modifyRenderingGroupId(entity, options, ...args) {
+        if(entity.name == this._name) {
+            return null;
+        };
+
+        if(entity.renderingGroupId == 0) {
+            entity.renderingGroupId = 1
+        }
+    }
+
+}
