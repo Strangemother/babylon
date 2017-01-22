@@ -1,4 +1,4 @@
-# Colours and Materials
+# Colours, Materials, Texture
 
 The `colors` module provides a layer of abstraction for generation standard `Color3` BABYLON classes.
 
@@ -60,6 +60,44 @@ The `Light` class can accept a color:
 
 ```js
 let light = new Light({ color: 'white' });
+```
+
+## Texture
+
+The `Texture` class loads an image. You can apply this to your BABYLON mesh
+
+```js
+sphere = new Sphere;
+mesh = sphere.create({ position: [0, 1, 0]});
+texture = new Texture({ assetName: '1.jpg' });
+material = t.addToMesh(mesh)
+```
+
+### With Standard Materials
+
+A Sky Box:
+
+```js
+box = new Box({size: 100})
+mesh = box.addToScene();
+
+mat = materials.standard()
+mat.backFaceCulling = false
+mat.disableLighting = true
+mat.diffuseColor = colors.black()
+mat.specularColor = colors.black()
+p = './assets/textures/CubeTexture/mountains/'
+mat.reflectionTexture = new BABYLON.CubeTexture(p, app.scene())
+mat.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE
+
+mesh.material = mat
+```
+
+Interestingly you can perform the same with the `SkyBox` class
+
+```js
+b = new SkyBox({assetName: 'mountains'})
+mesh = b.addToScene();
 ```
 
 ## Wireframe
