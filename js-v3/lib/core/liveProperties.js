@@ -36,7 +36,8 @@ class ColorProperty extends AutoProperty {
 
     instanceTypes() {
         return [
-            Shape
+            ParametricShape
+            , Shape
             , Light
             , BabylonObject
             ]
@@ -54,6 +55,16 @@ class ColorProperty extends AutoProperty {
 
     setProperty(instance, key, value, babylon) {
         return this.Shape_setProperty(instance, key, value, babylon)
+    }
+
+    ParametricShape_setProperty(instance, key, value, babylon) {
+        let scene = instance._app.scene()
+        babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
+        let c = colors.get(value);
+        instance._properties[key] = c
+        return babylon.color = colors.get(c, 3)
     }
 
     Shape_setProperty(instance, key, value, babylon) {

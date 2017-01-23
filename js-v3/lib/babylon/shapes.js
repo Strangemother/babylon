@@ -43,6 +43,8 @@ class Shape extends BabylonObject {
     }
 }
 
+
+
 class Box extends Shape {
     /* A basic mesh object to help build BABYLON.Mesh components*/
 
