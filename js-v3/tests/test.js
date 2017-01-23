@@ -40,7 +40,7 @@ class BabylonBaseTests {
         /* constructor calls init*/
 
         let config = { foo: 1, bar: 2 }
-        let b = new BabylonBase(config)
+        let b = new Base(config)
         test.value(b._renderers).isArray()
         test.value(b.clearColor).isArray()
         test.value(b.clearColor.length).is(3)
@@ -52,7 +52,7 @@ class BabylonBaseTests {
     test_stop(){
         /* Ensure stop value stores and returns.*/
         let expected = 'foo'
-        let b = new BabylonBase()
+        let b = new Base()
         let value = b.stop();
 
         test.value(value).is(true);
@@ -144,8 +144,8 @@ class ShapesTests {
     }
 
     test_position_overrides(){
-        let tube = new app.shapes.Cylinder( { position: [1,2,3] })
-        app.children.add(tube, { position: [0,1,2]})
+        let tube = new Cylinder( { position: [1,2,3] })
+        Garden.instance().children.add(tube, { position: [0,1,2]})
 
         // Vector3 {x: 0, y: 1, z: 2}
         let p = tube.position()
