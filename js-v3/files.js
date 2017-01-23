@@ -22,6 +22,7 @@ var assets = [
    , 'js-v3/lib/mesh.js'
    , 'js-v3/lib/babylon/colors.js'
    , 'js-v3/lib/babylon/shapes.js'
+   , 'js-v3/lib/babylon/parametric-shapes.js'
    , 'js-v3/lib/babylon/lights.js'
    , 'js-v3/lib/babylon/cameras.js'
    , 'js-v3/lib/babylon/triggers.js'
