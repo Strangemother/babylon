@@ -164,10 +164,7 @@ class ShapesTests {
         b.addToScene({color: 'red'})
 
         let redColor = b.color()
-        // Color4 {r: 0, g: 1, b: 0, a: 1}
-        test.value(redColor.r).is(1)
-        test.value(redColor.g).is(0)
-        test.value(redColor.b).is(0)
+        this.instance.objRGB(redColor, 1, 0, 0)
 
 
         // Mesh {state: "", metadata: null, doNotSerialize: false, animations: Array[0], _ranges: Object…}
@@ -175,10 +172,7 @@ class ShapesTests {
         test.value(greenMat).isInstanceOf(BABYLON.StandardMaterial)
         // StandardMaterial {checkReadyOnEveryCall: false, checkReadyOnlyOnce: false, state: "", alpha: 1, backFaceCulling: true…}
         let r = b.color()
-        // Color4 {r: 0, g: 1, b: 0, a: 1}
-        test.value(r.r).is(0)
-        test.value(r.g).is(1)
-        test.value(r.b).is(0)
+        this.instance.objRGB(r, 0, 1, 0)
 
         let blueMat = b.color('blue')
         // StandardMaterial {checkReadyOnEveryCall: false, checkReadyOnlyOnce: false, state: "", alpha: 1, backFaceCulling: true…}
@@ -186,14 +180,17 @@ class ShapesTests {
         test.value(blueMat).isNot(greenMat)
 
         let bc = b.color()
-        // Color4 {r: 0, g: 0, b: 1, a: 1}
-        // test.value(r.r).is(0)
-        test.value(bc.r).is(0)
-        test.value(bc.g).is(0)
-        test.value(bc.b).is(1)
+        this.instance.objRGB(bc, 0, 0, 1)
 
         b.destroy()
     }
+
+    objRGB(o, r, g, b){
+        test.value(o.r).is(r)
+        test.value(o.g).is(g)
+        test.value(o.b).is(b)
+    }
+
 }
 
 
@@ -216,9 +213,8 @@ class ColorsTests {
     test_make_color(){
         /* Ensure the color.make function returns a BABYLON type */
         let c3 = colors.make(.5, .3, .1)
-        test.value(c3.r).is(.5)
-        test.value(c3.g).is(.3)
-        test.value(c3.b).is(.1)
+        this.instance.objRGB(c3, .5, .3, .1)
+
     }
 
     test_add_colors(){
@@ -232,22 +228,17 @@ class ColorsTests {
 
         test.value(colors.foo).isFunction()
         let r = colors.foo()
-        test.value(r.r).is(.4)
-        test.value(r.g).is(.3)
-        test.value(r.b).is(.2)
+        this.instance.objRGB(r, .4,.3,.2)
     }
 
     test_hex(){
         /* can convert hex to Color3 */
         let r = colors.hex('#FF0000')
-        test.value(r.r).is(1)
-        test.value(r.g).is(0)
-        test.value(r.b).is(0)
+        this.instance.objRGB(r, 1, 0, 0)
 
         r = colors.hex('#00FF00')
-        test.value(r.r).is(0)
-        test.value(r.g).is(1)
-        test.value(r.b).is(0)
+        this.instance.objRGB(r, 0, 1, 0)
+
     }
 
     test_mesh_apply() {
@@ -255,9 +246,7 @@ class ColorsTests {
         let box = new Box({color: 'red'});
         box.addToScene()
         let r = box.color();
-        test.value(r.r).is(1)
-        test.value(r.g).is(0)
-        test.value(r.b).is(0)
+        this.instance.objRGB(r, 1, 0, 0)
 
         box.color('green');
         let mat = box._babylon.material
@@ -265,16 +254,58 @@ class ColorsTests {
 
         test.value(mat).isInstanceOf(BABYLON.StandardMaterial)
         test.object(box._babylon.material).match(mat)
-        test.value(diffuseColor.r).is(0)
-        test.value(diffuseColor.g).is(1)
-        test.value(diffuseColor.b).is(0)
+        this.instance.objRGB(diffuseColor, 0, 1, 0)
 
         r = box.color()
-        test.value(r.r).is(0)
-        test.value(r.g).is(1)
-        test.value(r.b).is(0)
+        this.instance.objRGB(r, 0, 1, 0)
 
         box.destroy()
+    }
+
+    objRGB(o, r,g, b, a=null){
+        test.value(o.r).is(r)
+        test.value(o.g).is(g)
+        test.value(o.b).is(b)
+        if(a !==null) {
+            test.value(o.a).is(a)
+        }
+    }
+
+    test_colors_make(){
+        /* Make returns Color3 and Color4 */
+
+        let result, expected;
+
+        result = colors.make3(.4, .1, .7, .8)
+        test.value(result).isInstanceOf(BABYLON.Color3)
+        this.instance.objRGB(result, .4, .1, .7)
+
+        result = colors.make3(.4, .1, .7)
+        test.value(result).isInstanceOf(BABYLON.Color3)
+        this.instance.objRGB(result, .4, .1, .7)
+
+        result = colors.make4(.4, .1, .7, .8)
+        test.value(result).isInstanceOf(BABYLON.Color4)
+        this.instance.objRGB(result, .4, .1, .7, .8)
+
+        result = colors.make4(.4, .1, .7)
+        test.value(result).isInstanceOf(BABYLON.Color4)
+        this.instance.objRGB(result, .4, .1, .7, 1)
+
+    }
+
+    test_color_get(){
+        let result;
+
+        result = colors.get('green')
+        test.value(result).isInstanceOf(BABYLON.Color4)
+
+        this.instance.objRGB(result, 0, 1, 0, 1)
+
+
+        result = colors.get('green', 3)
+        test.value(result).isInstanceOf(BABYLON.Color3)
+        this.instance.objRGB(result, 0, 1, 0)
 
     }
 }
