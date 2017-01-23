@@ -17,6 +17,15 @@ class Simple extends Garden {
 }
 
 
+class Blank extends Garden {
+
+    start(scene) {
+        this.ball = new Sphere;
+        this.mesh = this.children.add(this.ball)
+    }
+}
+
+
 class Main extends Garden {
 
     init(config){
@@ -123,6 +132,8 @@ class Sandbox extends Garden {
         config.backgroundColor = config.backgroundColor || this._baseColor()
         super.init(config)
 
+        /* This is not required when using many apps Garden.run()
+        Therefore the second call will not occur automatically. */
         this.run()
     }
 
@@ -157,14 +168,26 @@ class Sandbox extends Garden {
 }
 
 
-Garden.register(Simple, Main, App, Sandbox);
+class ShapeColumn extends Garden {
+    start(){
+        this._light = new HemisphericLight();
+        this._camera = new ArcRotateCamera({activate:true});
+        this.children.add(this._light);
 
-// Converts from degrees to radians.
-Math.radians = function(degrees) {
-  return degrees * Math.PI / 180;
-};
+        let t = new app.shapes.TriangleLines({ color: 'green' });
+        let meshes = this.meshes = []
 
-// Converts from radians to degrees.
-Math.degrees = function(radians) {
-  return radians * 180 / Math.PI;
-};
+        let n = -Math.floor(colors.names.length/2), m;
+        for(let c of colors.names) {
+            m = t.create({
+                color: c
+                , position: [0, n++, 0]
+                , rotation: [0, (n++)*.01, 0]
+            })
+            meshes.push(m)
+        }
+
+    }
+}
+
+Garden.register(Simple, Blank, Main, App, Sandbox, ShapeColumn);
