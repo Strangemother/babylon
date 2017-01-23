@@ -1,6 +1,10 @@
 // http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#linesystem
 
-class Lines extends Shape {
+class ParametricShape extends Shape {
+
+}
+
+class Lines extends ParametricShape {
 
     keys(){
         return [
@@ -12,10 +16,11 @@ class Lines extends Shape {
             , 'instance'
         ]
     }
+
+
 }
 
-
-class DashedLines extends Shape {
+class DashedLines extends ParametricShape {
 
     keys() {
         return [
@@ -36,7 +41,7 @@ class DashedLines extends Shape {
 }
 
 
-class LineSystem extends Shape {
+class LineSystem extends ParametricShape {
 
     keys() {
         return [
@@ -52,8 +57,24 @@ class LineSystem extends Shape {
 }
 
 
+class TriangleLines extends Lines {
 
-class Ribbon extends Shape {
+    babylonFuncName(...args) {
+        return "CreateLines";
+    }
+
+    pointsKey(){
+        return [
+            new BABYLON.Vector3(-5, 0, 5)
+            , new BABYLON.Vector3(5, 0, 5)
+            , new BABYLON.Vector3(0, 0, -5)
+            , new BABYLON.Vector3(-5, 0, 5)
+        ]
+    }
+}
+
+
+class Ribbon extends ParametricShape {
 
     keys() {
         return [
@@ -82,7 +103,7 @@ class Ribbon extends Shape {
 }
 
 
-class Tube extends Shape {
+class Tube extends ParametricShape {
 
     keys() {
         return [
@@ -115,7 +136,7 @@ class Tube extends Shape {
 
 
 
-class ExtrudedShapes extends Shape {
+class ExtrudedShapes extends ParametricShape {
 
     keys() {
         return [
@@ -145,7 +166,7 @@ class ExtrudedShapes extends Shape {
 }
 
 
-class CustomExtrudedShapes extends Shape {
+class CustomExtrudedShapes extends ParametricShape {
 
     keys() {
         return [
@@ -177,7 +198,7 @@ class CustomExtrudedShapes extends Shape {
 }
 
 
-class Lathe extends Shape {
+class Lathe extends ParametricShape {
 
     keys() {
         return [
@@ -214,4 +235,5 @@ Garden.register(
     , ExtrudedShapes
     , CustomExtrudedShapes
     , Lathe
+    , TriangleLines
 )
