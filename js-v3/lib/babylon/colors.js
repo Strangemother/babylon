@@ -66,10 +66,47 @@ let _colors = {
 
 }
 
-colors.get = function(value){
-    if(typeof(value) == 'string')
-        return colors[value]()
-    return value;
+colors.get = function(value, count=-1){
+    // Cast the element as the given type.
+    let _t = IT.g(value)
+
+    let c = (count==-1)? 4: count;
+    if(_t.is('string')) {
+        return colors[value](c)
+    }
+
+    /* The given element was not a string.
+    Assume it was a BABYLON.Color# type and ensure
+    it's of the given count.*/
+    let n = `Color${c}`;
+    let cn = value.constructor.name;
+
+    if(cn == n) {
+        return value;
+    };
+
+    let mapName = {
+        Color3: ['r', 'g', 'b']
+        , Color4: ['r', 'g', 'b', 'a']
+    }
+
+    if(_t.is('object')) {
+        // Fetch info.
+        let mv = mapName[n];
+        if(mv != undefined) {
+            return colors.make(...mv.map(x => value[x]))
+        }
+    };
+
+    if(_t.is('array')) {
+        // Cast new
+        let func = count == -1? 'make': `make${count}`
+        return colors.make(...value)
+    };
+
+    let m = `Could not resolve color "${value}"`
+    console.error('Could not resolve color:', value)
+    return NotImplementedError.throw(m)
 }
 
 colors.white = function() {
@@ -113,20 +150,34 @@ colors.rgbToHex = function(...args) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 };
 
-colors.make = function(r, g, b, a) {
+colors.make = function(r, g, b, a=1) {
+    let l = arguments.length;
     if(r instanceof Array && g == undefined && b == undefined) {
         var v = r;
         r = v[0];
         g = v[1];
         b = v[2];
-        a = v[3] || 1;
+        a = v[3];
+        if(a==undefined) l = 3;
     };
 
-    if(arguments.length == 3){
+    if(l == 3){
         return new BABYLON.Color3(r,g,b);
     };
 
     return new BABYLON.Color4(r,g,b,a);
+}
+
+colors.make3 = function(...args){
+    return colors.make(args.slice(0, 3))
+}
+
+colors.make4 = function(...args){
+    if(args.length == 3) {
+        return colors.make(...args, 1)
+    };
+
+    return colors.make(...args)
 }
 
 colors.names = [];
@@ -153,8 +204,8 @@ colors.addColors = function(_colors, overwrite=true) {
         colors[name] = (function(){
             var name = this.name;
             var _colors = this._colors
-            return function(){
-                let c = colors.make(_colors[`_${name}`])
+            return function(count=4){
+                let c = colors[`make${count}`](..._colors[`_${name}`])
                 return c;
             }
 
