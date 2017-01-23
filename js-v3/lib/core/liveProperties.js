@@ -115,7 +115,10 @@ class PositionProperty extends AutoProperty {
     }
 }
 
+
 class RotationProperty extends PositionProperty {}
+
+
 class ScalingProperty extends PositionProperty {}
 
 
@@ -131,7 +134,6 @@ class TriggerProperty extends AutoProperty {
         }
     }
 }
-
 
 
 class WireframeProperty extends QuickProperty {
@@ -180,7 +182,7 @@ class EdgeRenderingProperty extends QuickProperty {
         }
 
         if(value === true) {
-            value = .2
+            value = .99574318
         }
 
         babylon.enableEdgesRendering(value)
