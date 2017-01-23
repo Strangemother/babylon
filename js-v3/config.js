@@ -5,7 +5,7 @@ CONFIG = {
     canvasName: '#renderCanvas'
 
     /* Run one of many apps loaded*/
-    , appName: 'AnimateBoxes'
+    , appName: 'Sandbox' //'AnimateBoxes'
 
     /* width height of the canvas */
     , size: [1000, 800]
