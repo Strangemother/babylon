@@ -42,23 +42,23 @@ b.destroy()
 b.addToScene()
 ```
 
-All basic BABYLON types are extended in this manner. checkout `shapes.js` for the classes. You can find class instances in you main app `app.shapes`:
+All basic BABYLON types are extended in this manner. checkout `shapes.js` for the classes. You can find class instances in you main app `app.shapes`.
 
-```
-Box
-Sphere
-Cylinder
-Plane
-Ground
-GroundFromHeightMap
-TiledGround
-Disc
-Torus
-TorusKnot
-Polyhedron
-IcoSphere
-Decals
-```
+
++ Box
++ Sphere
++ Cylinder
++ Plane
++ Ground
++ GroundFromHeightMap
++ TiledGround
++ Disc
++ Torus
++ TorusKnot
++ Polyhedron
++ IcoSphere
++ Decals
+
 
 ## Garden Instance
 

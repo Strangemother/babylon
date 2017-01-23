@@ -56,10 +56,12 @@ ball.color()
 // Color4 {r: 1, g: 1, b: 0, a: 1}
 ```
 
-The `Light` class can accept a color:
+Any Garden `BabylonObject` can accept a color:
 
 ```js
 let light = new Light({ color: 'white' });
+let triangle = new TriangleLines({ color: "green" })
+let box = new Box({ color: "red" })
 ```
 
 ## Texture
@@ -68,28 +70,34 @@ The `Texture` class loads an image. You can apply this to your BABYLON mesh
 
 ```js
 sphere = new Sphere;
-mesh = sphere.create({ position: [0, 1, 0]});
+mesh = sphere.create(/*{ position: [0, 1, 0]}*/);
 texture = new Texture({ assetName: '1.jpg' });
 material = t.addToMesh(mesh)
 ```
 
 ### With Standard Materials
 
-A Sky Box:
+Apply `BABYLON.StandardMaterial`
 
 ```js
 box = new Box({size: 100})
 mesh = box.addToScene();
 
+// Generate Standard Material
 mat = materials.standard()
 mat.backFaceCulling = false
 mat.disableLighting = true
+
+// Some Garden shortcuts
 mat.diffuseColor = colors.black()
 mat.specularColor = colors.black()
+
+// Use a BABYLON material
 p = './assets/textures/CubeTexture/mountains/'
-mat.reflectionTexture = new BABYLON.CubeTexture(p, app.scene())
+mat.reflectionTexture = new BABYLON.CubeTexture(p, Garden.instance().scene())
 mat.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE
 
+// Add Material
 mesh.material = mat
 ```
 

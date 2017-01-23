@@ -40,13 +40,18 @@ var app = new Garden()
 app.animates.Animation
 ```
 
-All classes extending `Animation` inherit `targetObjectAssignment()` therefore will exist within the same namespace `animates`. The same applies for everything in Garden
+All classes extending `Animation` inherit `targetObjectAssignment()` therefore will exist within the same namespace `animates`. The same applies for almost everything in Garden.
 
 The extension is nearly ready for BABYLON usage. All Garden generation starts with `BabylonObject.create()`
 
 ### Parameters
 
 All BABYLON objects accept values on the constructor. In all cases this starts with a `name` and ends with the target `scene`
+
+_BABYLON Call:_
+```js
+let boxMesh = BABYLON.
+```
 
 ```js
 a = new Animation
