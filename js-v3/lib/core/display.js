@@ -1,5 +1,3 @@
-
-
 class DisplayListManager {
 
     constructor(parent){
@@ -65,48 +63,6 @@ class DisplayListManager {
             children[key][0].destroy()
             delete children[key]
         }
-    }
-}
-
-class SimpleIter {
-
-    constructor(d){
-        this._ = d || {}
-    }
-
-    add(name, func, iterExisting=false) {
-        if(this._[name] == undefined) {
-            this._[name] = []
-        }
-
-        this._[name].push(func);
-    }
-
-    call(...args) {
-        let v;
-        for(let k in this._) {
-            for(let f of this._[k]) {
-                v = f(...args)
-                if(v === null) console.warn('iterator', k, 'for', args[0], 'returned null')
-            }
-        }
-    }
-
-    remove(name, func) {
-        let removed = []
-        if(func != undefined) {
-            let n = this._[name];
-            if(n != undefined) {
-                let i = this._[name].indexOf(func);
-                if(i>-1){
-                    removed = this._[name].splice(i, 1)
-                }
-            }
-        } else if(this._[name] != undefined){
-            removed = this._[name]
-            delete this._[name]
-        }
-        return removed;
     }
 }
 
@@ -252,4 +208,11 @@ class ChildManager extends BaseClass {
         displayList*/
         this._babylon_node = babylonItem
     }
+}
+
+class Children {
+    /*
+    A list given from children to append items to the
+    master display list.
+    */
 }
