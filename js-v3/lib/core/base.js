@@ -20,6 +20,17 @@ NotImplementedError.throw = function(m){
 }
 
 
+// Converts from degrees to radians.
+Math.radians = function(degrees) {
+  return degrees * Math.PI / 180;
+};
+
+// Converts from radians to degrees.
+Math.degrees = function(radians) {
+  return radians * 180 / Math.PI;
+};
+
+
 var _instance = {};
 
 
@@ -57,176 +68,7 @@ class BaseClass {
     get gardenType(){
         return 'instance'
     }
-
 }
-
-
-class TargetObjectAssignmentRegister extends BaseClass {
-
-
-    static make(type, options) {
-        /* Genetate an instance*/
-
-        if(arguments.length <= 1) {
-            options = type;
-            type = undefined;
-        };
-
-        // Options or default options
-        options = options || {};
-        // Given type or the options.type or DEFAULT
-        type = (type || options.type).toLowerCase()
-
-        if(options._type) {
-            delete options.type;
-        };
-
-        let named = this.assignmentName()
-        let location = Garden.instance()[named] || {};
-        let item = location[type].make(location[type], options);
-        Garden.instance()[named] = location
-        return item;
-    }
-
-    static create(type, options, scene) {
-        let item = this.make(type, options);
-        // The given scene or the options scene
-        scene = scene || (options != undefined? options.scene: undefined)
-
-        if(scene == undefined) {
-            let engine, canvas;
-            [scene, engine, canvas] = item._app.babylonSet;
-        };
-
-        // Create new mesh
-        let mesh = item.create(scene);
-        // Add to display list.
-        item._app.children.append(item, mesh, options)
-        return item;
-    }
-
-    static register(...items){
-        // let named = Garden.assignmentName();
-        let _instance = Garden.instance();
-        /* Register a component for later creation via MeshTool.make and .create*/
-        let location = {};
-        let name, camelName, aName, inst, instName
-
-        for(let item of items) {
-            inst = item.assignmentReference ? item.assignmentReference(item): item;
-            aName = item.assignmentName ? item.assignmentName(item): 'named';
-            location = _instance[aName] || location;
-            name = item.name.toLowerCase();
-            instName = inst.name || name;
-            camelName = `${name.slice(0,1).toLowerCase()}${name.slice(1)}`
-
-            if(location[instName] != undefined) {
-                console.warn('Overwriting', instName, 'on', location)
-            }
-
-            location[instName] = inst;
-
-            if(item.targetObjectAssignment) {
-                let n = item.targetObjectAssignment(inst, _instance)
-                if(n === undefined) {
-                    console.warn('targetObjectAssignment name was undefined for', inst);
-                }
-
-                if(_instance[n] == undefined) {
-                    _instance[n] = {}
-                };
-
-                _instance[n][instName] = inst;
-            }
-
-            _instance[aName] = location
-        };
-
-    }
-
-    static assignmentName(){
-        return 'named'
-    }
-}
-
-
-class BabylonBase extends TargetObjectAssignmentRegister {
-
-    init(config){
-        log('BabylonBase init')
-        this._renderers = []
-        this.initConfig = config;
-        this.clearColor = [.3, .3, .3]
-        this._ran = false;
-        this._stop = false;
-    }
-
-    stop(v){
-        v = v === undefined? true: v;
-
-        if(v != undefined){
-            this._stop = v;
-        }
-
-        return this._stop;
-    }
-
-    config(v){
-        if(v) return this.totalConfig[v];
-
-        if(this.totalConfig == undefined && this._ran == false) {
-            console.warn('run() method requires call');
-            return Object.assign({}, this.initConfig || {}, this.runConfig || {});
-        }
-        return this.totalConfig;
-    }
-
-    getRunConfig(runConfig){
-        return Object.assign({},this.initConfig || {}, runConfig);
-    }
-
-    run(engine, runConfig) {
-
-        if(arguments.length == 1) {
-            runConfig = engine;
-            engine = undefined;
-        };
-
-        this.runConfig = runConfig || {};
-        this.totalConfig = this.getRunConfig(this.runConfig);
-        this.clearColor = this.config('backgroundColor') || this.clearColor
-        return this.runLoop(this.runConfig, this._engine)
-    }
-
-    runLoop(config, engine) {
-        return this._loop(config, engine)
-    }
-
-    _loop(config, engine) {
-        engine = engine || this._engine;
-        var self = this;
-        this._ran = true;
-        if(engine) {
-            engine.runRenderLoop(function() {
-               self.renderLoop(config)
-            });
-        } else {
-            while(this._stop == false) {
-                this.renderLoop(config);
-            }
-        }
-
-        return true;
-    }
-
-    renderLoop(config) {
-
-        for (var i = 0; i < this._renderers.length; i++) {
-            this._renderers[i](config, i)
-        }
-    }
-}
-
 
 class BaseProperty extends BaseClass {
     /* Create a class loading into the base Garden or other target
@@ -241,14 +83,19 @@ class BaseProperty extends BaseClass {
     }
 
     get name(){
+        /* Return the name of the property.
+        As default this is this.key() */
         return this.key();
     }
 
     getterSetter(){
+        /* Return true to define this property as a getter setter. Rather than
+        a function, a property is applied to reference object. */
         return false;
     }
 
     key(){
+        /* Slice the word [property] from the end of the constructor name. */
         return this.constructor.name.slice(0, -'property'.length).toLowerCase();
     }
 
@@ -328,7 +175,7 @@ class BaseProperty extends BaseClass {
     }
 
     isTargetClass(item) {
-        /* REturns the first mathing class instance of*/
+        /* Returns the first mathing class instance of*/
         for(let _type of this.instanceTypes()) {
             if(item instanceof _type) return _type;
         };
@@ -376,3 +223,48 @@ class BaseProperty extends BaseClass {
         return instance._properties[key]
     }
 }
+
+
+
+class SimpleIter {
+
+    constructor(d){
+        this._ = d || {}
+    }
+
+    add(name, func, iterExisting=false) {
+        if(this._[name] == undefined) {
+            this._[name] = []
+        }
+
+        this._[name].push(func);
+    }
+
+    call(...args) {
+        let v;
+        for(let k in this._) {
+            for(let f of this._[k]) {
+                v = f(...args)
+                if(v === null) console.warn('iterator', k, 'for', args[0], 'returned null')
+            }
+        }
+    }
+
+    remove(name, func) {
+        let removed = []
+        if(func != undefined) {
+            let n = this._[name];
+            if(n != undefined) {
+                let i = this._[name].indexOf(func);
+                if(i>-1){
+                    removed = this._[name].splice(i, 1)
+                }
+            }
+        } else if(this._[name] != undefined){
+            removed = this._[name]
+            delete this._[name]
+        }
+        return removed;
+    }
+}
+
