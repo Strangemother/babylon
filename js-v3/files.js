@@ -17,6 +17,8 @@ var assets = [
    , 'js-v3/lib/core/display.js'
    , 'js-v3/lib/core/interface.js'
    , 'js-v3/lib/core/adapter.js'
+   , 'js-v3/lib/Garden.js'
+
    , 'js-v3/lib/core/liveProperties.js'
 
    , 'js-v3/lib/mesh.js'
@@ -32,6 +34,7 @@ var assets = [
    , 'js-v3/lib/extras/animators.js'
    , 'js-v3/lib/extras/colors_extended.js'
    , 'js-v3/lib/extras/scene_shapes.js'
+   , 'js-v3/lib/extras/fog.js'
    , 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'

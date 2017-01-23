@@ -12,7 +12,6 @@ class AnimateBoxes extends Garden {
         this.skyBox = new SkyBox({assetName: 'mountains'});
         this.skyBoxMesh = this.skyBox.addToScene();
 
-
         this.camera = new app.cameras.ArcRotateCamera(true)
     }
 
