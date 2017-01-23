@@ -1,4 +1,3 @@
-
 class BabylonObject extends ChildManager {
     /* Interface the babylon method caller with the defined shape parameters.
     It's encouraged to use the native BABYLON Mesh. */
@@ -45,6 +44,10 @@ class BabylonObject extends ChildManager {
         return this.babylonCall(...args);
     }
 
+    fetchProps(){
+        return true
+    }
+
     static create(options, scene, cache=false) {
 
         let c = new this;
@@ -69,13 +72,26 @@ class BabylonObject extends ChildManager {
         if( IT.g(r).is('object') ) {
             r = r[1]
         };
+
         if(cache == false) {
             r = undefined;
-        }
+        };
+
         let rd = r != undefined ? r: {};
         let _opts = Object.assign({}, rd, this._options || {}, options);
 
-        let props = this._app.properties
+        this._assignProperties(_opts, scene);
+
+        if(r === undefined || cache == false) {
+            return this.babylonParams(scene, _opts);
+        };
+
+        return r
+    }
+
+    _assignProperties(_opts, scene) {
+
+        let props = this._app.properties;
         for(let key in _opts) {
             if(props[key] != undefined) {
                 props[key].setup(this, scene, key, _opts);
@@ -85,13 +101,6 @@ class BabylonObject extends ChildManager {
         for(let key in this._app.autoProperties) {
             props[key].setup(this, scene, key, _opts);
         };
-
-
-        if(r === undefined || cache == false) {
-            return this.babylonParams(scene, _opts)
-        };
-
-        return r
     }
 
     addTo(childBase, options) {
@@ -113,9 +122,21 @@ class BabylonObject extends ChildManager {
         Returned is [name, options, scene] */
         let name = this.generateName()
             , options = this.generateOptions(overrides, scene)
-            , v, allowSet
-            ;
 
+        if(this.babylonArrayArgs()) {
+            return this.babylonConvertOptions(name, options, scene)
+        }
+
+        return [name, options, scene];
+    }
+
+    babylonArrayArgs() {
+        return true
+    }
+
+    babylonConvertOptions(name, options, scene){
+
+        let v, allowSet;
         let a = [name];
         let keys = this.keys();
         let oKeys = Object.getOwnPropertyNames(options)
@@ -219,8 +240,10 @@ class BabylonObject extends ChildManager {
 
     generateName(){
         /*Create a name for the babylon instance*/
-        let r = Math.random().toString(32).slice(-5);
         let n = this.type().toLowerCase();
+        return simpleID(n)
+
+        let r = Math.random().toString(32).slice(-5);
         return `${n}_${r}`;
     }
 
@@ -330,6 +353,18 @@ class BabylonObject extends ChildManager {
         return this.type();
     }
 
+    get children(){
+        /* A Child of an object defines in a list.
+        All children exist in the parent children of the app
+        each child is for BABYLON */
+        return this._app.children
+    }
+
+    set children(v){
+        // this._app.children = v;
+        return false;
+    }
+
     actionManager() {
         /* Return an action manager. If undefined a new one is created.*/
         let b = this._babylon;
@@ -370,58 +405,6 @@ class BabylonObject extends ChildManager {
 
         gAnim.animatable = animatable
         return animatable;
-    }
-}
-
-
-class Garden extends Base {
-
-    static assignmentName(){
-        return 'appClasses'
-    }
-
-    static instance(){
-        return _instance;
-    }
-
-
-    version(){
-        return 0.2
-    }
-
-    static config(v) {
-        if(v != undefined) {
-            _instance._config = v;
-            return this;
-        };
-
-        return _instance._config;
-    }
-
-    static run(name, config, runConfig){
-        if(config == undefined && IT.g(name).is('object')) {
-            config = name;
-            name = undefined;
-        };
-
-        config = config || Garden.config()
-
-        name = name || config.appName;
-        let klass = name;
-        if( IT.g(name).is('string') ) {
-            klass = _instance.appClasses[name]
-        }
-
-
-        let C = (klass || Garden);
-        let app = new C(config);
-
-        app.run(runConfig)
-        return app;
-    }
-
-    switch(name, destroy=true) {
-
     }
 }
 
