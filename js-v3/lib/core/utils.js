@@ -86,11 +86,11 @@ var isClass = function (e){
 }
 
 var isFunction = function (e) {
-    return it(e).is(Function)
+    return IT.g(e).is(Function)
 }
 
 var isObject = function (e){
-    return it(e).is(Object);
+    return IT.g(e).is(Object);
 }
 
 var isBlank = function(stringly) {
@@ -218,8 +218,9 @@ var mergeOnKey = function(key, ...arrays) {
     return res;
 }
 
+var simple_id_counter = 0
 var simpleID = function(optional=''){
-    let id = Math.random().toString(32).slice(2);
+    let id = simple_id_counter++; // Math.random().toString(32).slice(2);
     let insert = optional != ''? '_': '';
     return `${optional}${insert}${id}`
 }
@@ -415,6 +416,4 @@ var asBabylon = function(item) {
 
         return ClassForwardingProxy;
     }
-
-
 })(window);
