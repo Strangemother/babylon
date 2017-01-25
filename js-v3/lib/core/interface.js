@@ -1,97 +1,9 @@
-class TargetObjectAssignmentRegister extends BaseClass {
-
-    static make(type, options) {
-        /* Genetate an instance*/
-
-        if(arguments.length <= 1) {
-            options = type;
-            type = undefined;
-        };
-
-        // Options or default options
-        options = options || {};
-        // Given type or the options.type or DEFAULT
-        type = (type || options.type).toLowerCase()
-
-        if(options._type) {
-            delete options.type;
-        };
-
-        let named = this.assignmentName()
-        let location = Garden.instance()[named] || {};
-        let item = location[type].make(location[type], options);
-        Garden.instance()[named] = location
-        return item;
-    }
-
-    static create(type, options, scene) {
-        let item = this.make(type, options);
-        // The given scene or the options scene
-        scene = scene || (options != undefined? options.scene: undefined)
-
-        if(scene == undefined) {
-            let engine, canvas;
-            [scene, engine, canvas] = item._app.babylonSet;
-        };
-
-        // Create new mesh
-        let mesh = item.create(scene);
-        // Add to display list.
-        item._app.children.append(item, mesh, options)
-        return item;
-    }
-
-    static register(...items){
-        // let named = Garden.assignmentName();
-        let _instance = Garden.instance();
-        /* Register a component for later creation via MeshTool.make and .create*/
-        let location = {};
-        let name, camelName, aName, inst, instName
-
-        for(let item of items) {
-            inst = item.assignmentReference ? item.assignmentReference(item): item;
-            aName = item.assignmentName ? item.assignmentName(item): 'named';
-            location = _instance[aName] || location;
-            name = item.name.toLowerCase();
-            instName = inst.name || name;
-            camelName = `${name.slice(0,1).toLowerCase()}${name.slice(1)}`
-
-            if(location[instName] != undefined) {
-                console.warn('Overwriting', instName, 'on', location)
-            }
-
-            location[instName] = inst;
-
-            if(item.targetObjectAssignment) {
-                let n = item.targetObjectAssignment(inst, _instance)
-                if(n === undefined) {
-                    console.warn('targetObjectAssignment name was undefined for', inst);
-                }
-
-                if(_instance[n] == undefined) {
-                    _instance[n] = {}
-                };
-
-                _instance[n][instName] = inst;
-            }
-
-            _instance[aName] = location
-        };
-    }
-
-    static assignmentName(){
-        return 'named'
-    }
-}
-
-
-
 class BabylonInterface extends TargetObjectAssignmentRegister {
 
     init(config){
         log('BabylonBase init')
         this._renderers = []
-        this.initConfig = config;
+        this.initConfig = config || this.initConfig;
         this.clearColor = [.3, .3, .3]
         this._ran = false;
         this._stop = false;
@@ -103,6 +15,10 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
 
     runLoop(gameConfig, engine){
         /*Start the run loop initializing the basic scene and camera.*/
+        if(this._destroyed == true) {
+            console.info('Detected rerun')
+        }
+
         this._scene = this.scene(gameConfig.name);
         this._camera = this.camera(this._scene, this._canvas);
         engine = engine || this._engine ||  this.engine(this._canvas);
@@ -116,6 +32,7 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
         engine = engine || this._engine;
         var self = this;
         this._ran = true;
+
         if(engine) {
             engine.runRenderLoop(function() {
                self.renderLoop(config)
@@ -267,7 +184,16 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
         this.runConfig = runConfig || {};
         this.totalConfig = this.getRunConfig(this.runConfig);
         this.clearColor = this.config('backgroundColor') || this.clearColor
+
+        this._makeGlobal(this.totalConfig)
         return this.runLoop(this.runConfig, this._engine)
+    }
+
+    _makeGlobal(conf) {
+        if(conf.globalName) {
+            console.info('Creating global reference', conf.globalName)
+            window[conf.globalName] = this
+        }
     }
 
     static handleWarning(errorId, message) {
@@ -281,97 +207,3 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
         throw new Error(n)
     }
 }
-
-
-class Base extends BabylonInterface {
-
-    init(config){
-        super.init(config)
-        this._setupDisplayManager()
-        this._inheritInstanceKeys(_instance)
-        this._renderers.push(this.startCaller.bind(this))
-    }
-
-    _inheritInstanceKeys(_i) {
-        _i = _i || _instance
-        if(_i != undefined) {
-            let keys = Object.keys(_i);
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                this[key] = _i[key]
-            }
-            this._inheritedKeys = keys;
-        };
-
-        _instance = this;
-    }
-
-    _setupDisplayManager(){
-        this.displayListManager = new DisplayListManager(this)
-        this.children = this.displayListManager.childList() // new ChildList(this)
-        this._childID = this.constructor.name
-    }
-
-    destroy(){
-
-        this._destroyFlagged()
-
-        this.displayListManager.destroy();
-        delete this.children
-        delete this.displayListManager
-
-    }
-
-    _destroyFlagged() {
-        let ref, names;
-        let _d = this.destroyable()
-        for(let item in _d) {
-            if(_d.destroy != undefined) {
-                _d.destroy();
-                continue;
-            }
-
-            if(IT.g(_d).is('array')) {
-                let [parent, name] = _d;
-                if(parent[name] != undefined) {
-                    if(parent[name].destroy != undefined) {
-                        parent[name].destroy();
-                        continue
-                    }
-                }
-            }
-        }
-    }
-
-    get babylonSet(){
-        /* Return the triplet of babylon tools
-        Scene, engine, canvas */
-        return [this.scene(), this._engine, this._canvas]
-    }
-
-    startCaller(scene, index) {
-        /* Call the `start` function and remove the function from the _render
-        list. */
-        let r = this.start(scene, index);
-        this._renderers.splice(index, 1)
-        return r;
-    }
-
-    start(scene, index) {
-        /* Perform any first render operations*/
-        log('Start run once.')
-    }
-
-    get backgroundColor(){
-        /* return the clearColor from the main scene */
-        return this.scene().clearColor
-    }
-
-    set backgroundColor(v){
-        /* return the clearColor from the main scene */
-        this.scene().clearColor = v;
-        return true;
-    }
-
-}
-
