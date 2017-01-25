@@ -14,6 +14,7 @@ var assets = [
    , 'js-v3/lib/extras/PrintLogger.js'
 
    , 'js-v3/lib/core/base.js'
+   , 'js-v3/lib/core/children.js'
    , 'js-v3/lib/core/display.js'
    , 'js-v3/lib/core/interface.js'
    , 'js-v3/lib/core/adapter.js'
