@@ -47,7 +47,7 @@ class DisplayListManager {
     }
 
     childList() {
-        let r = new ChildList(this.parent);
+        let r = new ChildList(this.parent, this);
         this._displaySets[r.id] = [r, []];
         return r;
     }
@@ -71,7 +71,7 @@ class ChildList {
     /* A ChildList maintains a connection to a the _displayList,
     managing lists of display entities. */
 
-    constructor(parent){
+    constructor(parent, owner){
         this.parent = parent;
         this.name = {};
         this.id = Math.random().toString(32).slice(2);
@@ -165,6 +165,7 @@ class ChildList {
             ;
 
         for(let child of children) {
+            if(child == undefined) continue;
             if(child[0].destroy){
                 item = child[0].destroy();
             } else {
