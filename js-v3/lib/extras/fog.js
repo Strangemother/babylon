@@ -9,24 +9,24 @@ class Fog extends BabylonObject {
         ]
     }
 
-    modeKey(){
-        return Fog.EXP2
+    modeKey(v, opts, s){
+        return v || Fog.EXP2
     }
 
-    colorKey(){
-        return new BABYLON.Color3(0.9, 0.9, 0.85);
+    colorKey(v, opts, s){
+        return v ? colors.get(v): undefined
     }
 
-    densityKey(){
-        return 0.02
+    densityKey(v, opts, s){
+        return v || 0.02
     }
 
-    startKey(){
-        return 20.0
+    startKey(v, opts, s){
+        return v || 20.0
     }
 
-    endKey(){
-        return 60;
+    endKey(v, opts, s){
+        return v || 60;
     }
 
     off(scene){
@@ -50,6 +50,7 @@ class Fog extends BabylonObject {
             , density: this._density || this.densityKey()
             , start: this._start || this.startKey()
             , end: this._end || this.endKey()
+            , color: this._color || this.colorKey()
         }
 
         let mode = options.mode
@@ -61,15 +62,17 @@ class Fog extends BabylonObject {
             , [Fog.EXP]: fdf
             , [Fog.EXP2]: fdf
             , [Fog.LINEAR]: function(o, s){
-                s.fogStart = o.fogStart
-                s.fogEnd = o.fogEnd
+                s.fogStart = o.start
+                s.fogEnd = o.end
             }
         };
 
         map[mode](options, scene)
 
         scene.fogMode = mode
-
+        if(options.color) {
+            scene.fogColor = colors.get(options.color)
+        }
         return this;
     }
 
