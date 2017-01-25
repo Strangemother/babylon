@@ -210,9 +210,3 @@ class ChildManager extends BaseClass {
     }
 }
 
-class Children {
-    /*
-    A list given from children to append items to the
-    master display list.
-    */
-}
