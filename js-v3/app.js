@@ -66,6 +66,14 @@ class Main extends Garden {
         this.light.addToScene()
     }
 
+    destroyable() {
+
+        return [
+            this.sphere
+            , this.ground
+        ]
+    }
+
     makeBox(){
         /* A simple make box example */
         let b = new Box
@@ -124,7 +132,22 @@ class App extends Garden {
         this.children.addMany(this.sphere, this.light);
         this._camera.activate();
     }
+
+    destroyable(){
+        return [
+            this.balls
+            , this.children
+            , this._camera
+            , this.light
+            , this.sphere
+            , this.children
+            , this.sphere
+            , this.light
+            , this._camera
+        ]
+    }
 }
+
 
 class Sandbox extends Garden {
     init(config){
@@ -149,6 +172,18 @@ class Sandbox extends Garden {
         this.children.addMany(this._sphere, this._light);
 
         this._camera.activate()
+    }
+
+    destroyable(){
+        return [
+            this._sphere
+            , this._camera
+            , this._light
+            , this._shapes
+            , this._sphere
+            , this._light
+            , this._camera
+        ]
     }
 
     _shapes(){
@@ -186,8 +221,46 @@ class ShapeColumn extends Garden {
             })
             meshes.push(m)
         }
+    }
+
+    destroyable(){
+        return [
+            this._camera
+            , this._light
+            , this.meshes
+        ]
+    }
+}
+
+class ChildrenApp extends Garden {
+    start(){
+        this._light = new HemisphericLight({ color: 'white'});
+        this._camera = new ArcRotateCamera({activate:true});
+        this.children.add(this._light);
+
+        this.box = new Box({ color:'green', position:[0,-2,0]})
+        console.log('>  Add box to scene')
+        this.box.addToScene()
+
+        this.box2 = new Box({color: 'red', position:[0,-1,0]})
+        console.log('>  Add box to scene')
+        this.box2.addToScene()
+
+        console.log('---------------')
+
+        this.box3 = new Box({color: 'lightBlue', position:[0,0,0]})
+        console.log('>  Add box3 to scene')
+        this.box3.addToScene()
+
+        this.box4 = new Box({color: 'orange', position:[0,1,0]})
+        console.log('\n>  box4.addTo(box3): Add box3 to box4')
+        this.box4.addTo(this.box3)
+
+        this.box5 = new Box({color: 'white', position:[0,2,0]})
+        console.log('\n>  box4.children.add(box5): Add box5 to box4')
+        this.box4.children.add(this.box5)
 
     }
 }
 
-Garden.register(Simple, Blank, Main, App, Sandbox, ShapeColumn);
+Garden.register(Simple, Blank, Main, App, Sandbox, ChildrenApp, ShapeColumn);
