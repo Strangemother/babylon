@@ -7,6 +7,8 @@
    * [Examples](garden/examples.md)
    * [Config](garden/the_canvas.md)
    * [Many Apps](garden/many_apps.md)
+   * [Destroy](garden/destroy.md)
+       * [Reset](garden/reset.md)
    * [SkyBox](garden/skybox.md)
 * [Objects](mesh/README.md)
    * [Actions](actions/README.md)
