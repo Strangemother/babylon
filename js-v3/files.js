@@ -13,6 +13,9 @@ var assets = [
    , 'js-v3/lib/tests.js'
    , 'js-v3/lib/extras/PrintLogger.js'
 
+   , 'js-v3/lib/core/core.js'
+   , 'js-v3/lib/core/targetAssignment.js'
+   , 'js-v3/lib/core/interface.js'
    , 'js-v3/lib/core/base.js'
    , 'js-v3/lib/core/children.js'
    , 'js-v3/lib/core/display.js'
