@@ -18,6 +18,7 @@ class BabylonObject extends ChildManager {
         /* API hook to start your component. Such as an add to view.*/
         this._options = options || {};
         this._args = args;
+        [this._childID, this._refChildren] = new Children(this)
     }
 
     keys(){
@@ -107,7 +108,10 @@ class BabylonObject extends ChildManager {
         /* Add this element to the child list of the given parent.
         of childBase.children does not exist an error is thrown */
         if(childBase.children) {
+            // this._refChildren.add(this, childBase, options)
             return childBase.children.add(this, options)
+        } else {
+            console.warn('children did not exist in', childBase)
         }
     }
 

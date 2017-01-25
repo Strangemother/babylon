@@ -267,4 +267,3 @@ class SimpleIter {
         return removed;
     }
 }
-
