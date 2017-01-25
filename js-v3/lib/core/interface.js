@@ -309,13 +309,38 @@ class Base extends BabylonInterface {
     _setupDisplayManager(){
         this.displayListManager = new DisplayListManager(this)
         this.children = this.displayListManager.childList() // new ChildList(this)
+        this._childID = this.constructor.name
     }
 
     destroy(){
+
+        this._destroyFlagged()
+
         this.displayListManager.destroy();
         delete this.children
         delete this.displayListManager
 
+    }
+
+    _destroyFlagged() {
+        let ref, names;
+        let _d = this.destroyable()
+        for(let item in _d) {
+            if(_d.destroy != undefined) {
+                _d.destroy();
+                continue;
+            }
+
+            if(IT.g(_d).is('array')) {
+                let [parent, name] = _d;
+                if(parent[name] != undefined) {
+                    if(parent[name].destroy != undefined) {
+                        parent[name].destroy();
+                        continue
+                    }
+                }
+            }
+        }
     }
 
     get babylonSet(){
