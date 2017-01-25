@@ -7,7 +7,7 @@ var main = function(){
 
 
     Garden.config(CONFIG)
-    window.app = Garden.run()
+    window._app = Garden.run()
 
 }
 
