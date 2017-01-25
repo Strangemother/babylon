@@ -23,6 +23,28 @@ class Garden extends Base {
         return _instance._config;
     }
 
+    static reset(){
+        simple_id_counter = 0
+        complex_ids_counter = {
+            defCounter: 0
+        }
+    }
+
+    reset(){
+        /* Restart all config as if new; exluding babylon. */
+        this.destroy()
+        return Garden.run()
+    }
+
+    destroy(){
+        super.destroy()
+        this._ran = false;
+        this._renderers = []
+        Garden.reset()
+    }
+
+
+
     static run(name, config, runConfig){
         if(config == undefined && IT.g(name).is('object')) {
             config = name;
@@ -44,11 +66,14 @@ class Garden extends Base {
         if(!app._ran) {
             app.run(runConfig)
         }
+
         return app;
     }
 
     switch(name, destroy=true) {
-
+        debugger;
     }
+
+
 }
 
