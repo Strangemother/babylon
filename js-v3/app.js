@@ -133,7 +133,7 @@ class App extends Garden {
         this._camera.activate();
     }
 
-    destroyable(){
+    _destroyable(){
         return [
             this.balls
             , this.children
@@ -174,7 +174,7 @@ class Sandbox extends Garden {
         this._camera.activate()
     }
 
-    destroyable(){
+    _destroyable(){
         return [
             this._sphere
             , this._camera
@@ -223,7 +223,7 @@ class ShapeColumn extends Garden {
         }
     }
 
-    destroyable(){
+    _destroyable(){
         return [
             this._camera
             , this._light
@@ -238,28 +238,35 @@ class ChildrenApp extends Garden {
         this._camera = new ArcRotateCamera({activate:true});
         this.children.add(this._light);
 
-        this.box = new Box({ color:'green', position:[0,-2,0]})
-        console.log('>  Add box to scene')
+        this.box = new Box({ color: 'green', position:[0,-2,0]})
         this.box.addToScene()
 
         this.box2 = new Box({color: 'red', position:[0,-1,0]})
-        console.log('>  Add box to scene')
         this.box2.addToScene()
 
-        console.log('---------------')
 
         this.box3 = new Box({color: 'lightBlue', position:[0,0,0]})
-        console.log('>  Add box3 to scene')
         this.box3.addToScene()
 
         this.box4 = new Box({color: 'orange', position:[0,1,0]})
-        console.log('\n>  box4.addTo(box3): Add box3 to box4')
         this.box4.addTo(this.box3)
 
         this.box5 = new Box({color: 'white', position:[0,2,0]})
-        console.log('\n>  box4.children.add(box5): Add box5 to box4')
-        this.box4.children.add(this.box5)
 
+        this.box4.children.add(this.box5)
+    }
+
+    _destroyable(){
+        return [
+            this._light
+            , this._camera
+            , this.children
+            , this.box
+            , this.box2
+            , this.box3
+            , this.box4
+            , this.box5
+        ]
     }
 }
 
