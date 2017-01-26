@@ -1,13 +1,4 @@
 
-var loadConfig = function(name) {
-    return JSON.parse(localstorage[name])
-}
-
-var saveConfig = function(name, data) {
-    return localstorage[name] = JSON.stringify(data)
-}
-
-
 class CoreClass {
     /*
      Every component should load from this class for all basic usage.
