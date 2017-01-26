@@ -40,12 +40,6 @@ class Main extends Garden {
         $('#run_tests').click(this.runTests.bind(this));
     }
 
-    runTests() {
-        Test.run()
-    }
-
-    start(scene) {}
-
     runGame() {
         this.makeLights()
         this.makeBox()
@@ -66,31 +60,10 @@ class Main extends Garden {
         this.light.addToScene()
     }
 
-    _destroyable() {
-
-        return [
-            this.sphere
-            , this.ground
-        ]
-    }
-
     makeBox(){
         /* A simple make box example */
         let b = new Box
         this.children.add(b)
-    }
-
-    _runGame(){
-        var scene = this.scene();
-
-        // create a built-in "sphere" shape; its constructor takes 5 params: name, width, depth, subdivisions, scene
-        this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
-
-        // move the sphere upward 1/2 of its height
-        this.sphere.position.y = 1;
-
-        // create a built-in "ground" shape; its constructor takes the same 5 params as the sphere's one
-        this.ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
     }
 }
 
@@ -132,20 +105,6 @@ class App extends Garden {
         this.children.addMany(this.sphere, this.light);
         this._camera.activate();
     }
-
-    _destroyable(){
-        return [
-            this.balls
-            , this.children
-            , this._camera
-            , this.light
-            , this.sphere
-            , this.children
-            , this.sphere
-            , this.light
-            , this._camera
-        ]
-    }
 }
 
 
@@ -172,18 +131,6 @@ class Sandbox extends Garden {
         this.children.addMany(this._sphere, this._light);
 
         this._camera.activate()
-    }
-
-    _destroyable(){
-        return [
-            this._sphere
-            , this._camera
-            , this._light
-            , this._shapes
-            , this._sphere
-            , this._light
-            , this._camera
-        ]
     }
 
     _shapes(){
@@ -271,4 +218,84 @@ class ChildrenApp extends Garden {
 }
 
 
-Garden.register(Simple, Blank, Main, App, Sandbox, ChildrenApp, ShapeColumn);
+class Particles extends Garden {
+    start(){
+        this._light = new PointLight({ color: 'white', intensity: 1});
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , position: [0, 10, -50]
+        });
+
+        this.fact = 30;
+        this.children.add(this._light);
+
+        this.createParticleSystem(10000)
+    }
+
+    createParticleSystem(count=5000){
+        let model = this.modelParticle()
+        let scene = this.scene()
+        let sps = this.particleSystem(model, count, scene)
+        sps.initParticles = function(){
+            for (var i = 0; i < sps.nbParticles; i++) {
+                this.particleFunction(sps.particles[i])
+            }
+        }.bind(this);
+
+        var c = 0
+        sps.updateParticle = function (particle) {
+            particle.rotation.x += particle.position.z / 100;
+            particle.rotation.z += particle.position.x / 100;
+            //let fact = 30
+            if(c > colors.names.length-1) { c = 0}
+
+            //particle.color = colors.get(colors.names[c++])
+        }
+
+
+        sps.initParticles()
+        sps.setParticles()
+        //sps.computeParticleColor = false
+        sps.computeParticleTexture = false
+        scene.registerBeforeRender(function() {
+            app._light.position = app._camera.position;
+            app.fact += .01
+            sps.mesh.rotation.y += 0.01;
+            sps.setParticles();
+        });
+    }
+
+    particleFunction(particle, index, s){
+        let fact = this.fact;
+
+        particle.position.x = (Math.random() - 0.5) * fact;
+        particle.position.y = (Math.random() - 0.5) * fact;
+        particle.position.z = (Math.random() - 0.5) * fact;
+
+        particle.rotation.x = Math.random() * 3.15;
+        particle.rotation.y = Math.random() * 3.15;
+        particle.rotation.z = Math.random() * 1.5;
+        particle.color = colors.make(
+            particle.position.x / fact + 0.5
+            , particle.position.y / fact + 0.5
+            , particle.position.z / fact + 0.5
+            )
+    }
+
+    modelParticle() {
+        let d = new Disc({ tessellation: 3 })
+        return d.create();
+    }
+
+    particleSystem(shape, count=10000, scene){
+        let sps = new BABYLON.SolidParticleSystem('SPS', scene);
+        sps.addShape(shape, count)
+
+        let mesh = sps.buildMesh();
+        shape.dispose()
+        return sps
+    }
+
+}
+
+Garden.register(Simple, Blank, Main, App, Sandbox, ChildrenApp, ShapeColumn, Particles);
