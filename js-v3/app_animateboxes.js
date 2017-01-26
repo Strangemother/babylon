@@ -15,27 +15,6 @@ class AnimateBoxes extends Garden {
         this.camera = new app.cameras.ArcRotateCamera(true)
     }
 
-    destroyable(){
-        return [
-            this.skyBox
-            , this.skyBoxMesh
-            , this.camera
-            , this.box
-            , this.box2
-            , this.box3
-            , this.box4
-            , this.box5
-            , this.bAnim
-            , this.a2Anim
-            , this.a1Anim
-            , this.a4Anim
-            , this.animScaleY
-            , this.animScaleZ
-            , this.animScaleY
-            , this.animScaleX
-        ]
-    }
-
     animate1(){
 
         // Make a box and add it to the scene
