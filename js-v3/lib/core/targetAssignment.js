@@ -64,15 +64,18 @@ class TargetObjectAssignmentRegister extends BaseClass {
 
             if(item.targetObjectAssignment) {
                 let n = item.targetObjectAssignment(inst, _instance)
-                if(n === undefined) {
-                    console.warn('targetObjectAssignment name was undefined for', inst);
+                if(n != null) {
+
+                    if(n === undefined) {
+                        console.warn('targetObjectAssignment name was undefined for', inst);
+                    }
+
+                    if(_instance[n] == undefined) {
+                        _instance[n] = {}
+                    };
+
+                    _instance[n][instName] = inst;
                 }
-
-                if(_instance[n] == undefined) {
-                    _instance[n] = {}
-                };
-
-                _instance[n][instName] = inst;
             }
 
             _instance[aName] = location

@@ -66,7 +66,7 @@ class Main extends Garden {
         this.light.addToScene()
     }
 
-    destroyable() {
+    _destroyable() {
 
         return [
             this.sphere
@@ -269,5 +269,6 @@ class ChildrenApp extends Garden {
         ]
     }
 }
+
 
 Garden.register(Simple, Blank, Main, App, Sandbox, ChildrenApp, ShapeColumn);

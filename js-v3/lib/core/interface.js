@@ -7,11 +7,13 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
         this.clearColor = [.3, .3, .3]
         this._ran = false;
         this._stop = false;
+        this._init = true;
     }
 
     shouldAttachCamera(){
         return true
     }
+
 
     runLoop(gameConfig, engine){
         /*Start the run loop initializing the basic scene and camera.*/
@@ -176,6 +178,11 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
 
     run(engine, runConfig) {
 
+        if(this._destroyed == true && !this._init) {
+            console.info('run detect rerun. Running init')
+            this.init(this.initConfig)
+        }
+
         if(arguments.length == 1) {
             runConfig = engine;
             engine = undefined;
@@ -194,6 +201,11 @@ class BabylonInterface extends TargetObjectAssignmentRegister {
             console.info('Creating global reference', conf.globalName)
             window[conf.globalName] = this
         }
+    }
+
+    destroy(...args){
+        this._init = false;
+        super.destroy(...args)
     }
 
     static handleWarning(errorId, message) {

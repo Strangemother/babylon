@@ -31,6 +31,45 @@ var app = new Garden(CONFIG)
 app.run('Sandbox')
 ```
 
+## Finding and Switching Apps
+
+When creating more than one application, you can gain access to the class through a range of styles. First you will have created more then one class extending `Garden`. Each class is registered with `Garden.register`:
+
+```js
+class Main extends Garden {};
+class Sandbox extends Main {};
+
+Garden.register(Main, Sandbox);
+```
+
+Once registered, you can switch and run each
+
+```js
+Garden.apps
+["Main", "Sandbox"]
+```
+
+Pick and run an app
+
+```js
+Garden.Main()
+```
+
+Using the `switch` method, you can change the app on the fly.
+
+```js
+Garden.Main()
+Garden.Sandbox()
+```
+
+This does rely upon usage of the `destroy` routine. An app is _switched_, performing a `reset(name)`
+
+```js
+Garden.switch('Sandbox')
+```
+
+
+
 ## Choosing an App
 
 You can provide the initial choice using a few options.

@@ -5,6 +5,14 @@ class Garden extends Base {
         return 'appClasses'
     }
 
+    static targetObjectAssignment(kls, _instance){
+        let n = kls.name;
+        Garden[n] = Garden.switchFunc(n);
+        Garden.apps = Garden.apps || [];
+        Garden.apps.push(n)
+        return null
+    }
+
     static instance(){
         return _instance;
     }
@@ -30,10 +38,10 @@ class Garden extends Base {
         }
     }
 
-    reset(){
+    reset(name){
         /* Restart all config as if new; exluding babylon. */
         this.destroy()
-        return Garden.run()
+        return Garden.run(name)
     }
 
     destroy(){
@@ -70,8 +78,23 @@ class Garden extends Base {
         return app;
     }
 
-    switch(name, destroy=true) {
-        debugger;
+
+
+    static switch(name, destroy=true) {
+        let gi = Garden.instance();
+        return gi.reset(name);
+    }
+
+    switch(name, destroy) {
+        return Garden.switch(name, destroy)
+    }
+
+    static switchFunc(n) {
+        return (function(n){
+            return function(){
+                return Garden.switch(n)
+            }
+        })(n)
     }
 
 

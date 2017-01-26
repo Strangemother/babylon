@@ -23,6 +23,15 @@ class Destroyable extends BabylonInterface {
             delete this.displayListManager
         }
 
+        let scene = this.scene()
+        if(scene != undefined) {
+            if(scene.meshes) {
+                for (var i = scene.meshes.length - 1; i >= 0; i--) {
+                    scene.meshes[i].dispose()
+                }
+            }
+        }
+
         this._destroyed = true
 
         return _destroyed;
