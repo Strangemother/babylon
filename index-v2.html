@@ -10,66 +10,96 @@
 
 <body>
 
+
 <div class="view">
-   <canvas id="renderCanvas" class="main-canvas"></canvas>
-   <div id="mocha" class=themed></div>
+
+   <div class="main-panel">
+      <canvas id="renderCanvas" class="main-canvas"></canvas>
+   </div>
+
+   <div class="main-panel addons">
+      <div class="vert-panel">
+         <h2>Application</h2>
+         <div class='panel apps'>
+            <select v-model='selected'>
+               <option v-for='item in apps'
+                  v-bind:selected="item == selected"
+                  :value="item">{{ item }}</option>
+            </select>
+         </div>
+      </div>
+      <div class="vert-panel">
+         <h2>Create</h2>
+         <div class='shapes'>
+            <select v-model='selected'>
+               <option v-for='(key, item) in items'
+                  v-bind:selected="key == selected"
+                  :value="key">{{ key }}</option>
+            </select>
+         </div>
+      </div>
+
+      <div class="vert-panel tests">
+
+         <div class="inline">
+            <h2>Tests</h2>
+            <button id='run_tests'>Run Tests</button>
+         </div>
+
+         <div id="mocha" class=themed></div>
+      </div>
+
+
+      <div class="vert-panel colors">
+
+         <div class="inline">
+            <h2>Color</h2>
+            <button  v-on:click='toggleIsOpen'>Toggle</button>
+         </div>
+
+         <div class="controls" v-bind:class="{ open: isOpen }">
+            <div class="cs">
+               <label>
+                  <span class="text">{{ lightContrastValue }}</span>
+                  <input type="range" v-model='lightContrastValue' min="0" max="200" step='10' />
+               </label>
+            </div>
+            <div class="cs">
+               <label>
+                  <span class="text">{{ redMultiplier }}</span>
+                  <input type="range" v-model='redMultiplier' min="0" max="500" step='10' />
+               </label>
+            </div>
+            <div class="cs">
+               <label>
+                  <span class="text">{{ greenMultiplier }}</span>
+                  <input type="range" v-model='greenMultiplier' min="0" max="500" step='10' />
+               </label>
+            </div>
+            <div class="cs">
+               <label>
+                  <span class="text">{{ blueMultiplier }}</span>
+                  <input type="range" v-model='blueMultiplier' min="0" max="500" step='10' />
+               </label>
+            </div>
+         </div>
+
+         <div class="colors-container"  v-bind:class="{ open: isOpen }">
+            <div class="color-item"
+               v-for='color in colors'
+               v-on:click='selectColor(color)'
+               v-bind:class="{ bright: lightContrast(color) }"
+               v-bind:style='{ backgroundColor: hexColor(color) }'>
+               <!-- <span>{{ contrastValue(color)}} {{ lightContrast(color)}}</span> -->
+               <span class="color">{{ color }}</span>
+               <span class="hex">{{ hexColor(color) }}</span>
+            </div>
+         </div>
+      </div>
+   </div>
 </div>
 
 <div class="tools">
-   <button id='run'>Run</button>
-   <button id='run_tests'>Run Tests</button>
-</div>
-
-<div class='panel'>
-   <select gd-each-shape='shapes' id="shapes">
-      <option value="{ %shape% }">{ shape.name }</option>
-   </select>
-</div>
-
-<div class="panel colors">
-
-   <div class="inline">
-      <h1>Color</h1>
-      <button  v-on:click='toggleIsOpen'>Toggle</button>
-   </div>
-
-   <div class="controls" v-bind:class="{ open: isOpen }">
-      <div class="cs">
-         <label>
-            <span class="text">{{ lightContrastValue }}</span>
-            <input type="range" v-model='lightContrastValue' min="0" max="200" step='10' />
-         </label>
-      </div>
-      <div class="cs">
-         <label>
-            <span class="text">{{ redMultiplier }}</span>
-            <input type="range" v-model='redMultiplier' min="0" max="500" step='10' />
-         </label>
-      </div>
-      <div class="cs">
-         <label>
-            <span class="text">{{ greenMultiplier }}</span>
-            <input type="range" v-model='greenMultiplier' min="0" max="500" step='10' />
-         </label>
-      </div>
-      <div class="cs">
-         <label>
-            <span class="text">{{ blueMultiplier }}</span>
-            <input type="range" v-model='blueMultiplier' min="0" max="500" step='10' />
-         </label>
-      </div>
-   </div>
-
-   <div class="colors-container"  v-bind:class="{ open: isOpen }">
-      <div class="color-item"
-         v-for='color in colors'
-         v-bind:class="{ bright: lightContrast(color) }"
-         v-bind:style='{ backgroundColor: hexColor(color) }'>
-         <!-- <span>{{ contrastValue(color)}} {{ lightContrast(color)}}</span> -->
-         <span class="color">{{ color }}</span>
-         <span class="hex">{{ hexColor(color) }}</span>
-      </div>
-   </div>
 </div>
 
 
