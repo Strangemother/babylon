@@ -61,13 +61,20 @@ class Destroyable extends BabylonInterface {
         let ref, names;
         let _d = this.destroyable()
         for(let name of _d) {
-            this._destroyItem(this[name], name, this)
+            if(this[name] != undefined) {
+                this._destroyItem(this[name], name, this)
+            } else if(IT.g(name).is('object')) {
+                this._destroyItem(this[name], name, this)
+            }
         };
 
         return _d;
     }
 
     _destroyItem(_d, name, scope){
+        if(!_d) {
+            console.log('Item to destroy was undefined:', name)
+        }
         if(_d.destroy != undefined) {
             _d.destroy();
             if(scope[name]) {
