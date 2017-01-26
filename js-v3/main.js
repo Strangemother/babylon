@@ -1,3 +1,5 @@
+var appViewStorageName = 'Garden::view::app::selected';
+
 var main = function(){
 
     //let v = new App(CONFIG);
@@ -7,7 +9,7 @@ var main = function(){
 
 
     Garden.config(CONFIG)
-    window._app = Garden.run()
+    window._app = Garden.run(localStorage[appViewStorageName])
 
 }
 

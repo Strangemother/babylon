@@ -1,6 +1,6 @@
 
-window.colorView = new Vue({
-    el: '.panel.colors'
+var colorView = new Vue({
+    el: '.colors'
     , data: {
         colors: colors.names
         , colorStyle: {
@@ -42,7 +42,41 @@ window.colorView = new Vue({
             let v = event.currentTarget.value;
             this[k] = v;
             console.log('sliderchange', event, v)
+        }
+        , selectColor: function(color){
+            console.log('selected color', color)
 
         }
     }
 })
+
+var appsView = new Vue({
+    el: '.panel.apps'
+    , data: {
+        apps: Garden.apps.splice(0)
+        , storageName: appViewStorageName
+        , selected: (function(){
+            let l = localStorage[appViewStorageName]
+            let v = l || Garden.config().appName
+            return v;
+        })()
+    }
+    , watch: {
+        selected(){
+            //console.log('change Garden to', this.selected)
+            localStorage[this.storageName] = this.selected;
+            Garden.switch(this.selected)
+        }
+    }
+})
+
+var shapesView = (function(){
+    let v = ['Shapes'].concat(Object.keys(Garden.instance().shapes))
+    return new Vue({
+        el: '.shapes'
+        , data: {
+            items: v
+            , selected: 'Shapes'
+        }
+    })
+})()

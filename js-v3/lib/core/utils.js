@@ -293,6 +293,16 @@ var asBabylon = function(item) {
     return item;
 }
 
+
+var loadConfig = function(name) {
+    return JSON.parse(localstorage[name])
+}
+
+var saveConfig = function(name, data) {
+    return localstorage[name] = JSON.stringify(data)
+}
+
+
 ;(function(global){
 
     var log = global.log = log = function() {
