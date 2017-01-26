@@ -68,12 +68,13 @@ let _colors = {
 
 colors.get = function(value, count=-1){
     // Cast the element as the given type.
-    let _t = IT.g(value)
 
     let c = (count==-1)? 4: count;
-    if(_t.is('string')) {
+    if(typeof(value) == 'string' ) {
         return colors[value](c)
     }
+
+    let _t = IT.g(value)
 
     /* The given element was not a string.
     Assume it was a BABYLON.Color# type and ensure
@@ -203,13 +204,12 @@ colors.addColors = function(_colors, overwrite=true) {
 
         colors[name] = (function(){
             var name = this.name;
-            var _colors = this._colors
             return function(count=4){
-                let c = colors[`make${count}`](..._colors[`_${name}`])
+                let c = colors['make'+String(count)].call(colors, _colors['_'+name])
                 return c;
             }
 
-        }).apply({ name, _colors })
+        }).apply({ name })
     }
 }
 
