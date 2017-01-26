@@ -30,6 +30,10 @@ class PointLight extends Light {
             'position'
         ]
     }
+
+    positionKey(){
+        return asVector(1, 2, 1.5)
+    }
 }
 
 class DirectionalLight extends Light {
