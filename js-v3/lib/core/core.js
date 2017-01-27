@@ -102,16 +102,18 @@ class BaseProperty extends BaseClass {
 
     setup(instance, scene, key, options) {
         let [_key, v] = this.instanceMethod(instance, scene, options)
-        if( this.getterSetter()
-            && instance.gardenType == 'instance'
-            && instance[_key] == undefined) {
-            Object.defineProperty(instance, _key, {
-                get: v
-                , set: v
-            })
+        if( this.getterSetter() ) {
+
+            if( instance.gardenType == 'instance'
+                && instance[_key] == undefined) {
+                Object.defineProperty(instance, _key, {
+                    get: v
+                    , set: v
+                })
+            }
+
         } else {
             instance[_key] = v;
-
         }
     }
 
@@ -136,14 +138,15 @@ class BaseProperty extends BaseClass {
 
         f = (function(propInst, key){
 
-            return function(...v){
+            return function propCaller(...v){
                 if(!propInst.arrayProp()){
                     v = v[0]
                 };
-                return propInst.propCall(this, key, v)
+
+                return propInst.propCall(this, key, v);
             };
 
-        })(this, key)
+        })(this, key);
 
         if(toSet) {
             return [key, f]
