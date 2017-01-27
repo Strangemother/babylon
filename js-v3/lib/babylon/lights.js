@@ -9,15 +9,16 @@ class Light extends BabylonObject {
         return [
             'diffuse'
             , 'specular'
+            , 'intensity'
         ]
     }
 
-    diffuseProp(){
-        return new BABYLON.Color3(.7,.7,.7);
+    diffuseProp(ov){
+        return ov == undefined ? new BABYLON.Color3(.7,.7,.7): colors.get(ov);
     }
 
-    specularProp(){
-        return new BABYLON.Color3(1, 1, 1);
+    specularProp(ov){
+        return colors.get(ov || 'white');
     }
 }
 
