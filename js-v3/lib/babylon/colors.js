@@ -200,7 +200,7 @@ colors.addColors = function(_colors, overwrite=true) {
 
         colors.names.push(name)
 
-        _colors[`_${name}`] = _colors[name];
+        _colors['_' + name] = _colors[name];
 
         colors[name] = (function(){
             var name = this.name;

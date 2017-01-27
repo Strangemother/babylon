@@ -3,7 +3,7 @@
 class Camera extends BabylonObject {
 
     constructor({activate = false, scene=undefined, control=true, cache=true} = {}){
-        super()
+        super(...arguments)
         /* A Camera is activated by:
             Camera(true)
             Camera({activate: true})
@@ -101,20 +101,30 @@ class ArcRotateCamera extends Camera {
         ]
     }
 
-    alphaKey(){
-        return -0.3;
+    propKeys(){
+        return [
+            'position'
+        ]
     }
 
-    betaKey(){
-        return 0.9;
+    positionProp(ov){
+        return asVector(ov || [0,0,0])
     }
 
-    radiusKey() {
-        return 7
+    alphaKey(ov){
+        return ov == undefined ? -0.3: ov;
     }
 
-    targetKey() {
-        return new BABYLON.Vector3.Zero()
+    betaKey(ov){
+        return ov == undefined ? 9: ov
+    }
+
+    radiusKey(ov) {
+        return ov == undefined ? 7: ov
+    }
+
+    targetKey(ov) {
+        return ov || new BABYLON.Vector3.Zero()
     }
 
     _example(scene) {
