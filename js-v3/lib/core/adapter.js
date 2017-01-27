@@ -175,7 +175,6 @@ class BabylonObject extends ChildManager {
         /* Given the scene, return an argument for the scen argument
         If you BABYLON instance does not require a Scene object
         as the last parameter, return false or undefined
-
         */
         return scene
     }
@@ -326,7 +325,7 @@ class BabylonObject extends ChildManager {
             if(f == undefined && optionValue != undefined) {
                 f = function(x){ return x }
             }
-            let pv =  f(optionValue);
+            let pv =  f.call(this, optionValue, this._options, mesh);
             let pvs =  this[`${prop}PropSetter`];
             if(pvs != undefined) {
                 pvs.call(this, mesh, prop, pv || optionValue, ...args)
