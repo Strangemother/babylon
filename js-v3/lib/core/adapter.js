@@ -68,7 +68,7 @@ class BabylonObject extends ChildManager {
         // Cached by this.babylonCall
         let r = this._babylonParams;
 
-        scene = this._app.scene();
+        scene = scene || this._app.scene();
 
         if( IT.g(r).is('object') ) {
             r = r[1]
@@ -322,7 +322,11 @@ class BabylonObject extends ChildManager {
         for (var i = 0; i < keys.length; i++) {
             prop = keys[i];
             let optionValue = this._options[prop];
-            let pv =  this[`${prop}Prop`](optionValue);
+            let f = this[`${prop}Prop`];
+            if(f == undefined && optionValue != undefined) {
+                f = function(x){ return x }
+            }
+            let pv =  f(optionValue);
             let pvs =  this[`${prop}PropSetter`];
             if(pvs != undefined) {
                 pvs.call(this, mesh, prop, pv || optionValue, ...args)
