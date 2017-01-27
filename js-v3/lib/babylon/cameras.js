@@ -77,8 +77,19 @@ class FreeCamera extends Camera {
         ]
     }
 
-    positionKey(options, scene) {
-        return new BABYLON.Vector3(0, 0, -5)
+    propKeys(){
+        return [
+            'target'
+        ]
+    }
+
+    positionKey(ov, options, scene) {
+        return ov != undefined ? asVector(ov): new BABYLON.Vector3(0, 0, -5)
+    }
+
+    targetProp(ov, options, mesh) {
+        let v = ov != undefined ? asVector(ov): new BABYLON.Vector3(0, 0, 0)
+        return mesh.setTarget(v)
     }
 
     _example(scene) {
