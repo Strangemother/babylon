@@ -74,6 +74,14 @@ class ChildList {
     constructor(parent, owner){
         this.parent = parent;
         this.name = {};
+        this._onAdd = {}
+        this._onBefore = {}
+
+        // Items removed from the _onAdd and _onBefore chains
+        // are flagged for deletion during iteration, then
+        // cleared after all are done.
+        this._deletions = [];
+
         this.id = Math.random().toString(32).slice(2);
         this.createIterators()
     }
@@ -122,6 +130,8 @@ class ChildList {
         let bSet = this.parent._app.babylonSet
         let [scene, engine, canvas] = bSet;
 
+        this._addBefore(items, options, scene, engine, canvas)
+
         this.callIterator('preModifiers', items, options, ...bSet)
 
         for(let item of items) {
@@ -131,11 +141,83 @@ class ChildList {
         };
 
         this.callIterator('postModifiers', meshes, options, ...bSet)
-
+        this._addAfter(items, meshes, options, scene, engine, canvas)
+        this._deleteFlagged()
         // User did not pass an array, therefore return one mesh.
         if(!Array.isArray(children)) return mesh;
 
         return meshes;
+    }
+
+    _addBefore(items, options, scene, engine, canvas) {
+        /* Called before an item .add() is modified or created*/
+        let _cbs, id;
+        let item;
+
+        for (var i = 0; i < items.length; i++) {
+            item = items[i]
+            id = item.id
+            _cbs = this._onBefore[id] || [];
+            for (var j = 0; j < _cbs.length; j++) {
+                let [func, once, scope] = _cbs[j]
+                func.call(scope || this, item, meshes[i], options, scene, engine, canvas)
+                if(once == true) {
+                    this._flagDelete('_onBefore', id, j)
+                }
+            }
+        }
+    }
+
+    _addAfter(items, meshes, options, scene, engine, canvas) {
+        /* Called after an item .add() is modified or created*/
+        let _cbs, id;
+        let item;
+
+        for (var i = 0; i < items.length; i++) {
+            item = items[i]
+            id = item.id
+            _cbs = this._onAdd[id] || [];
+            for (var j = 0; j < _cbs.length; j++) {
+                let [func, once, scope] = _cbs[j]
+                func.call(scope || this, item, meshes[i], options, scene, engine, canvas)
+                if(once == true) {
+                    this._flagDelete('_onAdd', id, j)
+                }
+            }
+        }
+    }
+
+    _flagDelete(name, id, index) {
+        this._deletions.push(arguments)
+    }
+
+    _deleteFlagged() {
+        for(let [name, id, index] of this._deletions) {
+            this[name][id].splice(index, 1)
+            if(this[name][id].length == 0) {
+                delete this[name][id]
+            }
+        }
+
+        this._deletions = [];
+    }
+
+    onAdd(id, callback, once=false, scope) {
+        /* Call a function when the element of ID is given.
+        If once=true, the callback will delete once called */
+        let l = this._onAdd[id] || [];
+        l.push([callback, once, scope])
+
+        this._onAdd[id] = l
+    }
+
+    onBeforeAdd(id, callback, once=false, scope) {
+        /* Call a function when the element of ID is given.
+        If once=true, the callback will delete once called */
+        let l = this._onBefore[id] || [];
+        l.push([callback, once, scope])
+
+        this._onBefore[id] = l
     }
 
     addMany(...children) {
@@ -201,6 +283,7 @@ class ChildManager extends BaseClass {
         if(dl != undefined) {
             return dl[1]
         }
+
         return undefined;
     }
 
