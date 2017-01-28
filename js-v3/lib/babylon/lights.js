@@ -5,12 +5,28 @@ class Light extends BabylonObject {
         return 'lights'
     }
 
+
+
+    init(config){
+        this._earlyShadow = []
+        this._earlyReceiver = []
+        this.shadowGenerators = []
+        super.init(config)
+    }
+
     propKeys(){
         return [
             'diffuse'
             , 'specular'
             , 'intensity'
+            , 'darkness'
         ]
+    }
+
+    darknessPropSetter(babylon, key, value, name, ...args){
+        if(value != undefined){
+            babylon.setDarkness(value)
+        }
     }
 
     diffuseProp(ov){
@@ -20,6 +36,114 @@ class Light extends BabylonObject {
     specularProp(ov){
         return colors.get(ov || 'white');
     }
+
+    intensityProp(ov){
+        return ov == undefined ? 1: ov
+    }
+
+    shadow(item, light) {
+        let sg = this.getShadowGenerator(light);
+        let m = item;
+
+        if(sg == undefined) {
+            if(this._earlyShadow.indexOf(item) == -1) {
+                this._earlyShadow.push(item);
+                return this;
+            }
+        }
+
+        if(item) {
+
+            if(item.gardenType) {
+                m = item._babylon
+            };
+
+            if(m == undefined && item !== undefined) {
+                if(this._earlyShadow.indexOf(item) == -1) {
+                    this._earlyShadow.push(item)
+                };
+
+                this._app.children.onAdd(item.id, this._observeAddShadow.bind(this), true)
+                console.log('_earlyShadow: no item', item)
+                return this
+            };
+
+            this.getShadowList(light).push(m);
+        }
+
+
+        return this;
+    }
+
+    getShadowList(light){
+        let g = this.getShadowGenerator(light)
+        return g.getShadowMap().renderList
+    }
+
+    getShadowGenerator(light, index=-1) {
+        let sg;
+        let _b = light;
+        if(this.shadowGenerators.length == 0){
+
+            _b = (_b != undefined && _b.gardenType != undefined) ? _b._babylon: _b;
+            if(_b == undefined) {
+                return
+            };
+
+            sg = new BABYLON.ShadowGenerator(1024, _b)
+            this.shadowGenerators.push(sg);
+        }
+
+        sg = this.shadowGenerators[index == -1? (this.shadowGenerators.length-1): index]
+        return sg;
+    }
+
+    _observeAddShadow(item, mesh, options, scene, engine, canvas) {
+        console.log('Adding', item)
+        this.getShadowList().push(mesh);
+    }
+
+    _observeAddReceiver(item, mesh, options, scene, engine, canvas) {
+        console.log('Receiver', item)
+        mesh.receiveShadows = true
+    }
+
+
+    babylonExecuted(light) {
+        console.log('light execute')
+        for (var i = 0; i < this._earlyShadow.length; i++) {
+            this.shadow(this._earlyShadow[i], light)
+        }
+
+        for (var i = 0; i < this._earlyReceiver.length; i++) {
+            this.receiver(this._earlyReceiver[i])
+        }
+
+        return light;
+    }
+
+    receiver(item) {
+        let m = item;
+        if(item.gardenType) {
+            m = item._babylon
+        };
+
+        if(m == undefined) {
+            console.log('_earlyReceiver', item)
+            if(this._earlyReceiver.indexOf(item) == -1) {
+                this._earlyReceiver.push(item)
+            } else {
+                console.log('Another early.')
+                this._app.children.onAdd(item.id, this._observeAddReceiver.bind(this), true)
+            }
+
+            return this
+        }
+
+        m.receiveShadows = true;
+        return this
+    }
+
 }
 
 class PointLight extends Light {
@@ -32,12 +156,12 @@ class PointLight extends Light {
         ]
     }
 
-    positionKey(){
-        return asVector(1, 2, 1.5)
+    positionKey(ov){
+        return asVector(ov || [1, 2, 1.5])
     }
 }
 
-class DirectionalLight extends Light {
+class DirectionalLight extends PointLight {
     // var light0 = new BABYLON.DirectionalLight("Dir0", new BABYLON.Vector3(0, -1, 0), scene);
     // light0.diffuse = new BABYLON.Color3(1, 0, 0);
     // light0.specular = new BABYLON.Color3(1, 1, 1);
@@ -48,7 +172,7 @@ class DirectionalLight extends Light {
     }
 }
 
-class SpotLight extends Light {
+class SpotLight extends DirectionalLight {
     // A spot light is defined by
     // a position (2nd arg),
     // a direction (3rd arg),
@@ -72,10 +196,6 @@ class SpotLight extends Light {
         let keys = super.propKeys();
         keys.push('intensity')
         return keys;
-    }
-
-    intensityProp(){
-        return .9
     }
 }
 
@@ -102,8 +222,8 @@ class HemisphericLight extends Light {
         return keys;
     }
 
-    directionKey(){
-        return new BABYLON.Vector3(0,1,0)
+    directionKey(ov, obj, scene){
+        return ov || new BABYLON.Vector3(0,1,0)
     }
 
     groundColorProp(){
