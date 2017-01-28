@@ -17,6 +17,7 @@
    * [Cameras](cameras/README.md)
    * [Lights](lights/README.md)
    * [Fog](mesh/fog.md)
+   * [Scene](mesh/scene.md)
 * [Colours and Materials](colours/README.md)
    * [Colors](colours/colors.md)
 * [Developing](developing/README.md)
