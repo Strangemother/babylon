@@ -128,11 +128,12 @@ class SpotlightApp extends Garden {
             , direction: asVector(0, -1, 0)
             , diffuse: 'white'
             , angle: 1
-            , exponent: 3
+            , exponent: 40
         })
 
+
         this.ground = new Ground({
-            color: 'lightBlue'
+            color: 'mediumSeaGreen'
             , width: 20
             , height: 20
             , position: [0, 0, 0]
@@ -140,14 +141,24 @@ class SpotlightApp extends Garden {
 
         this.box = new Box({
             position: [0, 3, 0]
-            , color: 'yellow'
+            , color: 'red'
         });
 
         this.spotLight.shadow(this.box).receiver(this.ground)
         this.children.addMany(this.spotLight, this.hemiLight, this.ground, this.box)
 
+        let c = colors.emissive('white');
+        console.log('C', c)
+        this.cone = new Cylinder({
+            position: this.spotLight.position()
+            , color: c
+        })
+
+        this.cone.addToScene()
+
         let anim = new Animation({ targetProperty: 'rotation.y' })
-        anim.frame(0, 1).frame(300, Math.PI * 1.99)
+        anim.frame(0, 0).frame(600, Math.PI*2)
+
         this.box.animate(anim)
 
     }
@@ -178,18 +189,6 @@ class ChildrenApp extends Garden {
         this.box4.children.add(this.box5)
     }
 
-    _destroyable(){
-        return [
-            this._light
-            , this._camera
-            , this.children
-            , this.box
-            , this.box2
-            , this.box3
-            , this.box4
-            , this.box5
-        ]
-    }
 }
 
 

@@ -72,9 +72,10 @@ class ColorProperty extends AutoProperty {
         babylon = babylon == undefined? instance._babylon: babylon;
         if(!babylon) return undefined;
 
+
         let c = colors.get(value);
         instance._properties[key] = c
-        return babylon.material = materials.color(scene, c)
+        return babylon.material = materials.color(scene, c, value._gardenType)
     }
 
     Light_setProperty(instance, key, value, babylon) {

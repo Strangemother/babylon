@@ -26,14 +26,21 @@ materials.standard = function(scene, name) {
 materials.color = function(scene, name, type=colors.DIFFUSE){
     let item = name;
     if(typeof(name) == 'string') {
-        item = colors[name]()
+        item = colors[name](undefined, type)
     } else {
         name = simpleID(item.name)
     }
 
     let m = materials.standard(scene, name);
+    console.log('making', item, type)
     m[type] = item;
     return m
+}
+
+colors.emissive = function() {
+    let v= colors.get.apply(colors, arguments)
+    v._gardenType = colors.EMISSIVE
+    return v;
 }
 
 modifiers.fog = function(scene) {
@@ -66,12 +73,12 @@ let _colors = {
 
 }
 
-colors.get = function(value, count=-1){
+colors.get = function(value, count=-1, type=colors.DIFFUSE){
     // Cast the element as the given type.
 
     let c = (count==-1)? 4: count;
     if(typeof(value) == 'string' ) {
-        return colors[value](c)
+        return colors[value](c, type)
     }
 
     let _t = IT.g(value)
@@ -95,7 +102,9 @@ colors.get = function(value, count=-1){
         // Fetch info.
         let mv = mapName[n];
         if(mv != undefined) {
-            return colors.make(...mv.map(x => value[x]))
+            let nc = colors.make(...mv.map(x => value[x]))
+            nc._gardenType = value._gardenType || type
+            return nc
         }
     };
 
@@ -108,10 +117,6 @@ colors.get = function(value, count=-1){
     let m = `Could not resolve color "${value}"`
     console.error('Could not resolve color:', value)
     return NotImplementedError.throw(m)
-}
-
-colors.white = function() {
-    return colors.make(1, 1, 1);
 }
 
 colors.color3 = function(num) {
@@ -151,35 +156,43 @@ colors.rgbToHex = function(...args) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 };
 
-colors.make = function(r, g, b, a=1) {
+colors.make = function(r, g, b, a=1, type) {
     let l = arguments.length;
-    if(r instanceof Array && g == undefined && b == undefined) {
+    let secondArg = type;
+    let result;
+
+    if(r instanceof Array) {
         var v = r;
         r = v[0];
+        if( g != undefined ) {
+            secondArg = g;
+        };
         g = v[1];
         b = v[2];
         a = v[3];
         if(a==undefined) l = 3;
     };
 
-    if(l == 3){
-        return new BABYLON.Color3(r,g,b);
+    let funcName = l==3? 'Color3': 'Color4'
+    result = new BABYLON[funcName](r,g,b,a);
+    result._gardenType = secondArg;
+
+    return result;
+}
+
+colors.make3 = function(r, g, b, type){
+    return colors.make(r, g, b, type)
+}
+
+colors.make4 = function(r, g, b, a, type){
+    if(a == undefined) {
+        return colors.make(r,g,b,1, type)
     };
 
-    return new BABYLON.Color4(r,g,b,a);
+    return colors.make(r,g,b, a, type)
 }
 
-colors.make3 = function(...args){
-    return colors.make(args.slice(0, 3))
-}
 
-colors.make4 = function(...args){
-    if(args.length == 3) {
-        return colors.make(...args, 1)
-    };
-
-    return colors.make(...args)
-}
 
 colors.names = [];
 
@@ -204,8 +217,8 @@ colors.addColors = function(_colors, overwrite=true) {
 
         colors[name] = (function(){
             var name = this.name;
-            return function(count=4){
-                let c = colors['make'+String(count)].call(colors, _colors['_'+name])
+            return function(count=4, type=undefined){
+                let c = colors['make'+String(count)].call(colors, _colors['_'+name], type)
                 return c;
             }
 
