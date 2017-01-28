@@ -282,6 +282,18 @@ var asVector = function(...args){
     return v;
 }
 
+var asXYZ = function(item, x, y, z){
+    if( y == undefined
+        && z == undefined
+        && x != undefined) {
+        [x, y, z] = [x[0], x[1], x[2]]
+    }
+
+    item.x = x;
+    item.y = y;
+    item.z = z;
+
+}
 
 var asBabylon = function(item) {
     /* Return a bablyon item from the given reference. */
