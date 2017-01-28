@@ -43,7 +43,7 @@ class Camera extends BabylonObject {
         let camera = this.getOrCreate(cache)
 
         scene = scene || app.scene()
-        scene.activeCamera = camera;
+        scene.activeCameras.push(camera);
 
         if(control == true) {
             return this.attach(app, cache,camera);
@@ -127,7 +127,7 @@ class ArcRotateCamera extends Camera {
     }
 
     betaKey(ov){
-        return ov == undefined ? 9: ov
+        return ov == undefined ? .7: ov
     }
 
     radiusKey(ov) {
