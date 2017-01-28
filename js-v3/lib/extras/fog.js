@@ -1,11 +1,9 @@
-class Fog extends BabylonObject {
+class ShadowMap extends BabylonObject {
     keys(){
         return [
-            'mode'
-            , 'color'
-            , 'density'
-            , 'start'
-            , 'end'
+            'resolution'
+            , 'receivers'
+
         ]
     }
 
@@ -13,21 +11,6 @@ class Fog extends BabylonObject {
         return v || Fog.EXP2
     }
 
-    colorKey(v, opts, s){
-        return v ? colors.get(v): undefined
-    }
-
-    densityKey(v, opts, s){
-        return v || 0.02
-    }
-
-    startKey(v, opts, s){
-        return v || 20.0
-    }
-
-    endKey(v, opts, s){
-        return v || 60;
-    }
 
     off(scene){
         scene = scene || this._app.scene()
@@ -86,7 +69,34 @@ class Fog extends BabylonObject {
     }
 }
 
-Fog.NONE = BABYLON.Scene.FOGMODE_NONE
-Fog.EXP = BABYLON.Scene.FOGMODE_EXP
-Fog.EXP2 = BABYLON.Scene.FOGMODE_EXP2
-Fog.LINEAR = BABYLON.Scene.FOGMODE_LINEAR
+
+class LensEffect extends BabylonObject {
+    keys(){
+        return [
+            //: number: from 0 to x (1 for realism)
+            "chromatic_aberration"
+            //: number: from 0 to x (1 for realism)
+            , "edge_blur"
+            //: number: from 0 to x (1 for realism)
+            , "distortion"
+            //: number: from 0 to 1
+            , "grain_amount"
+            //: BABYLON.Texture: texture to use for grain effect; if unset, use random B&W noise
+            , "grain_texture"
+            //: number: depth-of-field: focus distance; unset to disable (disabled by default)
+            , "dof_focus_distance"
+            //: number: depth-of-field: focus blur bias (default: 1)
+            , "dof_aperture"
+            //: number: depth-of-field: darken that which is out of focus (from 0 to 1, disabled by default)
+            , "dof_darken"
+            //: boolean: depth-of-field: makes a pentagon-like "bokeh" effect
+            , "dof_pentagon"
+            //: number: depth-of-field: highlights gain; unset to disable (disabled by default)
+            , "dof_gain"
+            //: number: depth-of-field: highlights threshold (default: 1)
+            , "dof_threshold"
+            //: boolean: add a little bit of noise to the blur (default: true)
+            , "blur_noise"
+        ]
+    }
+}
