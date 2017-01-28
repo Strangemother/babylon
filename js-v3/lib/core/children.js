@@ -4,6 +4,20 @@ class Children {
     master display list.
     */
 
+    constructor(parent, dataRoot){
+
+        let self, instance, id
+
+        [id, instance] = this.instance(parent, dataRoot);
+        // console.log('Children', id, 'for:', instance.id)
+        if(this.globalRef() == undefined) {
+            this.id = id;
+            // console.log('new Child:', id)
+        };
+
+        return [id, instance];
+    }
+
     _getSimpleId(parent) {
         if(IT.g(parent).is('string')) {
             return parent;
@@ -21,19 +35,6 @@ class Children {
        return '_childID'
     }
 
-    constructor(parent, dataRoot){
-
-        let self, instance, id
-
-        [id, instance] = this.instance(parent, dataRoot);
-        console.log('Children', id, 'for:', instance.id)
-        if(this.globalRef() == undefined) {
-            this.id = id;
-            console.log('new Child:', id)
-        };
-
-        return [id, instance];
-    }
 
     instance(parent, dataRoot){
 
@@ -47,7 +48,6 @@ class Children {
         dataRoot = dataRoot || parentReference.getDataRoot()
 
         dataRoot[id] = []
-        console.log("Children parentReference:", id)
         parentReference._childID = id
         return [id, parentReference]
     }
@@ -63,13 +63,12 @@ class Children {
         return {};
     }
 
-
     add(item, childBase, options) {
         let obj = item._childID || this._getSimpleId(item)
         let p = childBase._childID
         console.log('Add To', childBase)
         let parent = p || "ROOT"
-        console.log(`>  add to this "${this.id}": (item): "${obj}" to parent: "${parent}" of children "${p}"`)
+        // console.log(`>  add to this "${this.id}": (item): "${obj}" to parent: "${parent}" of children "${p}"`)
     }
 
     get children(){
