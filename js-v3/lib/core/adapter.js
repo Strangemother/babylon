@@ -325,7 +325,13 @@ class BabylonObject extends ChildManager {
             if(f == undefined && optionValue != undefined) {
                 f = function(x){ return x }
             }
-            let pv =  f.call(this, optionValue, this._options, mesh);
+
+            let pv = optionValue;
+
+            if(f != undefined){
+                pv =  f.call(this, optionValue, this._options, mesh);
+            }
+
             let pvs =  this[`${prop}PropSetter`];
             if(pvs != undefined) {
                 pvs.call(this, mesh, prop, pv || optionValue, ...args)
