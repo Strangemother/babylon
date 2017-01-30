@@ -91,8 +91,126 @@ class ActionProperty extends BaseProperty {
 }
 ```
 
+### Creating an auto Propery
+
+Let's build a `MaterialProperty`, Allowing the following:
+
+```js
+let box = new Box({ material: './assets/grid.jpg' })
+box.addToScene()
+box.material()
+// Standard Material
+box.material(new Texture)
+box.material(new StandardTexture)
+```
+
+The material property should accept a `string`, `Garden.Texture` and `BABYLON.StandardTexture`. The `material` object property and the instance `.material()` function will call the AutoProperty we make.
+
+#### Basic Structure
+
+Define a class and register with Garden. Three core methods allow the creation:
+
+```js
+class MaterialProperty extends AutoProperty {
+    key(){
+        return 'material'
+    }
+
+    initProperty(item, obj, options){
+        /* Init the property will generate the Color type before
+        the instance is BABYLON created.
+        setProperty applies the cached Color
+        to the material. */
+        let n = options[this.name]
+        return [this.name, n]
+    }
+
+    getProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+
+        if(!babylon) return undefined;
+        return babylon[this.key()]
+    }
+
+
+    setProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
+        let m = value;
+        if( IT.g(value).is('string') ){
+            var mat = new Texture({ assetPath: value });
+            let m = mat.asMaterial()
+        };
+
+        babylon[this.key()] = m
+        return false;
+
+    }
+}
+```
+
+
 This example ensures the `action` property exists on evey Garden object.
 
+
+#### Key
+
+The key property names the value on the Garden instance. In this case we return the string `"material"`, creating `box.material()`
+
+#### initProperty(item, obj, options)
+
+The `initProperty` function calls immediately providing the Garden instance `item`, `obj`; a current set of generated values for the new BABYLON instance, and `options` given by the user.
+
+Return the key you wish to use for the Garden instance and the initial value for your property.
+
+```js
+// ...snip initProperty
+return ['material', 'myasset.jpg']
+```
+
+You'll change this to accept the users option (if any).
+
+```js
+class MaterialProperty extends AutoProperty {
+    initProperty(item, obj, options){
+        let n = options[this.name]
+        return [this.name, n]
+    }
+}
+```
+
+The options may contain the "material" key
+
+```js
+new Box({}) // no material
+new Box({ material: 'asset.jpg' }) // material
+```
+
+This will call before `setProperty` or `getProperty`. The BABYLON instance will not exist. Any value returned will override the user value (if any).
+
+If you provide a value for the second argument; "./myAsset.jpg", your `setProperty` method will call.
+
+If the second argument is `undefined`, the `setProperty` will not be called.
+
+#### getProperty(instance, key, value, babylon)
+
+The `getProperty` calls when a user accesses your AutoProperty instance. In the example `.material()`. If no value is given to the `material()` function `getProperty` is called.
+
+Return any value for the user API, in most Garden cases, the true BABYLON reference is returned; for speed and ease.
+
+For our example `MaterialProperty`, we can return the BABYLON instance `material` key
+
+```js
+class MaterialProperty extends AutoProperty {
+    getProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
+        return babylon.material
+    }
+}
+```
 
 ## Getter Setter Properties
 
