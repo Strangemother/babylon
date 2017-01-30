@@ -2,12 +2,20 @@
 
 class ParticlesApp extends Garden {
     start(){
-        this._light = new HemisphericLight({ color: 'white'});
-        this._camera = new ArcRotateCamera({ activate:true });
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
 
+        this._light = new HemisphericLight({ color: 'white'});
         this.children.add(this._light);
 
-        this.ps = new SprayParticles({ items: [new Box({size: 1})] })
+        this.ground = new Ground({ width: 50, height: 50, color: 'dodgerBlue' })
+        this.children.add(this.ground);
+
+        this.ps = new SprayParticles({ items: [new Box({size: 2})] })
         this.spsMesh = this.ps.create()
 
         this.box = new Box
@@ -22,6 +30,26 @@ class ParticlesApp extends Garden {
     }
 }
 
+class AsteroidsApp extends Garden {
+    start(){
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this.children.add(this._light);
+        this.af = new AsteriodField({
+            count: 2000
+            , items: [new Sphere({ segments: 8, diameter: 1 })]
+        })
+
+        this.afm = this.af.addToScene()
+    }
+}
+
 class Particles extends Garden {
     start(){
         this._light = new PointLight({ color: 'white', intensity: 1});
@@ -33,11 +61,7 @@ class Particles extends Garden {
         this.fact = 30;
         this.children.add(this._light);
 
-        this.generate(this.options())
-    }
-
-    options(){
-        return {};
+        this.generate({})
     }
 
     generate(options){
@@ -48,6 +72,7 @@ class Particles extends Garden {
         let model = this.modelParticle()
         let scene = this.scene()
         let sps = this.particleSystem(model, count, scene, options)
+
         sps.initParticles = function(){
             for (var i = 0; i < sps.nbParticles; i++) {
                 this.particleFunction(sps.particles[i])
@@ -69,14 +94,17 @@ class Particles extends Garden {
         sps.setParticles()
         //sps.computeParticleColor = false
         sps.computeParticleTexture = false
-        let cp = app._camera._babylon.position
-        scene.registerBeforeRender(function() {
-            app._light.position = cp;
+        this._ov = scene.registerBeforeRender(this._beforeRender.bind(this));
+        this.sps = sps;
+    }
 
-            sps.mesh.rotation.y = -(cp.z/15) || 0
-            sps.mesh.rotation.z = -(cp.y/15) || 0
-            sps.setParticles();
-        });
+    _beforeRender() {
+        //let cp = app._camera._babylon.position
+        // app._light.position = cp;
+
+        this.sps.mesh.rotation.y += .001;// -(cp.z/15) || 0
+        this.sps.mesh.rotation.z += .001;// -(cp.y/15) || 0
+        this.sps.setParticles();
     }
 
     particleFunction(particle, index, s){
@@ -89,11 +117,13 @@ class Particles extends Garden {
         particle.rotation.x = Math.random() * 3.15;
         particle.rotation.y = Math.random() * 3.15;
         particle.rotation.z = Math.random() * 1.5;
+
         particle.color = colors.make(
             particle.position.x / fact + 0.5
             , particle.position.y / fact + 0.5
             , particle.position.z / fact + 0.5
             )
+
     }
 
     modelParticle() {
@@ -152,14 +182,23 @@ class ImmutableParticles extends Garden {
         sps.setParticles()
         //sps.computeParticleColor = false
         sps.computeParticleTexture = false
-        let cp =
-        scene.registerBeforeRender(function() {
-            app._light._babylon.position = app._camera._babylon.position;
+        this.sps = sps;
+        this._addObserve = this._app._scene.onBeforeRenderObservable.add(this._beforeRenderfunction.bind(this))
+    }
+    destroy(){
+        if(this._addObserve){
+            this._app._scene.onBeforeRenderObservable.remove(this._addObserve)
+        }
 
-            sps.mesh.rotation.x -= .0001
-            sps.mesh.rotation.y += .0004
-            sps.mesh.rotation.z += .0001
-        });
+        super.destroy()
+    }
+
+    _beforeRenderfunction() {
+        app._light._babylon.position = app._camera._babylon.position;
+
+        this.sps.mesh.rotation.x -= .0001
+        this.sps.mesh.rotation.y += .0004
+        this.sps.mesh.rotation.z += .0001
     }
 
     particleFunction(particle, index, s){
@@ -200,5 +239,6 @@ class ImmutableParticles extends Garden {
 Garden.register(
                 Particles
                 , ParticlesApp
+                , AsteroidsApp
                 , ImmutableParticles
                 );
