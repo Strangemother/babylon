@@ -37,12 +37,6 @@ materials.color = function(scene, name, type=colors.DIFFUSE){
     return m
 }
 
-colors.emissive = function() {
-    let v= colors.get.apply(colors, arguments)
-    v._gardenType = colors.EMISSIVE
-    return v;
-}
-
 modifiers.fog = function(scene) {
     scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
     scene.fogDensity = 0.04;
@@ -73,11 +67,19 @@ let _colors = {
 
 }
 
+
+colors.emissive = function() {
+    let v= colors.get.apply(colors, arguments)
+    v._gardenType = colors.EMISSIVE
+    return v;
+}
+
 colors.get = function(value, count=-1, type=colors.DIFFUSE){
     // Cast the element as the given type.
 
     let c = (count==-1)? 4: count;
     if(typeof(value) == 'string' ) {
+        // if(count==-1) c = 3
         return colors[value](c, type)
     }
 
@@ -156,8 +158,8 @@ colors.rgbToHex = function(...args) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 };
 
-colors.make = function(r, g, b, a=1, type) {
-    let l = arguments.length;
+colors.make = function(r, g, b, a=1, type, count) {
+    let l = count || arguments.length;
     let secondArg = type;
     let result;
 
@@ -169,8 +171,8 @@ colors.make = function(r, g, b, a=1, type) {
         };
         g = v[1];
         b = v[2];
-        a = v[3];
-        if(a==undefined) l = 3;
+        a = v[3] || a;
+        if(a==undefined) l = count || 3;
     };
 
     let funcName = l==3? 'Color3': 'Color4'
@@ -181,15 +183,15 @@ colors.make = function(r, g, b, a=1, type) {
 }
 
 colors.make3 = function(r, g, b, type){
-    return colors.make(r, g, b, type)
+    return colors.make(r, g, b, undefined, type, 3)
 }
 
 colors.make4 = function(r, g, b, a, type){
     if(a == undefined) {
-        return colors.make(r,g,b,1, type)
+        return colors.make(r,g,b,1, type, 4)
     };
 
-    return colors.make(r,g,b, a, type)
+    return colors.make(r,g,b, a, type, 4)
 }
 
 
