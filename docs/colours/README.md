@@ -2,6 +2,8 @@
 
 The `colors` module provides a layer of abstraction for generation standard `Color3` BABYLON classes.
 
+## Colors
+
 ```js
 let green = colors.green()
 // Color3(0, 1, 0)
@@ -14,6 +16,7 @@ let ball = new Sphere({ color: 'green' });
 ball.color('white')
 ```
 
+## Materials
 
 You can generate your own colors using `color.make`. Materials exist in the same format, allowing the generation of `StandardMaterial` types. To apply a color, you'll need a material:
 
@@ -29,6 +32,18 @@ box = new Box;
 mesh = app.children.add(box)
 mesh.material = materials.color(app.scene(), 'red')
 ```
+
+Using the object:
+
+```js
+var b = new Box({
+    material: './assets/textures/glassbuilding.jpg'
+});
+b.material('./assets/textures/grid.jpg')
+```
+
+## Babylon
+
 Applying the `mesh.material` is the BABYLON way. The Same is achieved using the object definition value:
 
 ```js
@@ -64,7 +79,7 @@ let triangle = new TriangleLines({ color: "green" })
 let box = new Box({ color: "red" })
 ```
 
-## Texture
+### Texture
 
 The `Texture` class loads an image. You can apply this to your BABYLON mesh
 
@@ -72,10 +87,10 @@ The `Texture` class loads an image. You can apply this to your BABYLON mesh
 sphere = new Sphere;
 mesh = sphere.create(/*{ position: [0, 1, 0]}*/);
 texture = new Texture({ assetName: '1.jpg' });
-material = t.addToMesh(mesh)
+material = texture.addToMesh(mesh)
 ```
 
-### With Standard Materials
+#### With Standard Materials
 
 Apply `BABYLON.StandardMaterial`
 

@@ -418,3 +418,192 @@ body div#mocha.themed {
 .themed #mocha-stats em {
     color: white;
 }
+
+
+.animator .controls.open {
+    min-width: 500px;
+    font-family: 'Courier New';
+    padding: 0.3em;
+    overflow: initial;
+}
+
+
+.timeline {
+    /* border: solid 1px; */
+    display: flex;
+    /* align-items: center; */
+    /* justify-content: center; */
+    margin: .1em 0;
+}
+
+.animator .rows .item h3 {
+    margin: 0;
+}
+
+.animator .rows .item .animation {
+    margin-left: 0.5em;
+    /* display: flex; */
+}
+
+.animator .animation .renderline {
+    width: 100%;
+    /* border: solid 1px; */
+}
+
+.animation span.label.name {
+    color: #DDD;
+    /* border: solid 1px; */
+}
+.animation span.pointer {
+    background: #000000;
+    /* border-radius: 50%; */
+    width: 1em;
+    display: block;
+    text-align: center;
+    height: 100%;
+    margin: 0 -.5em;
+}
+
+
+.timeline span.tiny.label.max {align-self: flex-end;}
+
+.timeline span.tiny.label.min {
+    align-self: flex-start;
+}
+
+.timeline .scrubber {
+    display: block;
+    min-width: 1em;
+    background: #333;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    /* border-radius: 4px; */
+    cursor: e-resize;
+    padding: 0 0.3em;
+    text-align: center;
+    font-size: 0.8em;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}
+
+.scrubber-container {
+    width: 100%;
+    position: relative;
+    padding: 0;
+    cursor: crosshair;
+    margin: 0 0.1em;
+}
+
+input.scrubber-max {
+    display: inline-block;
+    min-width: 1em;
+    width: inherit;
+}
+
+
+.scrubber.selected {
+    background: #c9c9c9;
+}
+
+.timeline label {
+    white-space: nowrap;
+    font-size: 0.8em;
+    padding: 0 0.2em 0 0;
+}
+
+
+.pointers .pointer {
+    position: absolute;
+    left: 20px;
+    /* top: 0; */
+}
+
+.renderline .pointers {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 99%;
+}
+
+
+.pointers .pointer.static {
+    position: initial;
+    background: inherit;
+    color: #000;
+}
+
+.secondary-low {
+    background: rgba(72, 72, 72, 0.54);
+}
+
+
+.primary.scrubber.selected {
+    background: #858585;
+}
+
+.pointer-keys {
+    /* border: solid 1px #880000; */
+}
+
+
+span.pointer.red {
+    background: #a14061;
+}
+
+span.pointer.spot {
+    height: 10px;
+    width: 10px;
+    text-indent: -2em;
+    overflow: hidden;
+    border-radius: 50%;
+    /* top: -5px; */
+    margin: 5px -5px;
+    /* border: solid; */
+}
+
+.scrubber-row {
+    margin: 0.1em 0px;
+    border-top: solid 1px #000;
+    padding: 0.1em 0;
+}
+
+span.pointer.spot:hover {
+    overflow: inherit;
+    text-indent: initial;
+    background: #c56868;
+}
+
+
+.pointer-tip {
+    width: 100px;
+    background: #333;
+    top: -2.7em;
+    position: absolute;
+    padding: 0.3em 0.4em;
+}
+
+.pointer-content {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.hover .pointer-visible {
+    display: none;
+}
+
+.pointer-tip .row {
+    display: flex;
+    font-size: .8em;
+}
+
+.pointer-tip .row span.value {
+    margin-left: auto;
+}
+
+
+select option {
+    background: #333;
+}

@@ -10,6 +10,7 @@ colors.blueViolet()
 // All standard web colors.
 ```
 
+
 ### colors.get(name)
 
 You can use the `colors.get()` function, providing a color string:
@@ -63,6 +64,59 @@ let lightBlue = colors.lightSteelBlue()
 let blue = colors.lightBlue(3)
 // Color3 {r: 0.678, g: 0.847, b: 0.901}
 ```
+
+### colors.emissive()
+
+An emissive color produces a color without being lit, much like a LED. applying the color `white` to an element will present as a white object, when a light hits it or _diffuses_. An _emissive_ white element will be as bright as light-bulb, emitting its color. An emissive color or material does not require a light to be seen.
+
+The `emissive()` function returns a colors flagged for the material `emissiveColor`, rather than the standard `diffuseColor`.
+
+In some cases you'll use the `colors.get` and `colors.make` to shortcuts a material
+
+```js
+materials.color('red')
+```
+
+The `materials.color` function uses `colors.get` to generate a `BABYLON.StandardMaterial` with the correct color. the `material.diffuseColor` property receives the new color.
+
+To change this to the `material.emissiveColor`, you can provide a color, flagged for _emissive_.
+
+```
+red = color.emissive('red')
+mat = materials.color(red)
+```
+
+the `red` variable is a `BABYLON.Color4` type, with the `_gardenType` flag set to `"emissiveColor"`
+
+#### Roll your own
+
+You can hack a color to achieve a property set of your choosing - on the target material.
+
+```js
+let v= colors.get.apply(colors, arguments)
+v._gardenType = colors.EMISSIVE
+return v;
+```
+
+This will translate to
+
+```js
+color = colors.red()
+mat = materials.standard()
+mat[colors.EMISSIVE] = color
+```
+
+Providing your own arguments
+
+```
+color = colors.get('lightBlue', 4, 'foo')
+color._gardenType == 'foo'
+```
+
+When used in a material, the `material['foo']` would receive the `color` variable. The second argument `"4"` denotes the `BABYLON.Color[4]` or `Color4` class type. The _count_ argument can be `"3"` for `Color3` type.
+
+Proving `undefined` to the _count_ argument would produce a `BABYLON.Color4` type.
+
 
 ### colors.make(r, g, b, a)
 

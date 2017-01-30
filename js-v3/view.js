@@ -11,6 +11,7 @@ var colorView = new Vue({
         , greenMultiplier: 587
         , blueMultiplier: 144
         , isOpen: false
+        , isOpenControls: false
     }
     , methods: {
         toggleIsOpen() {
@@ -45,7 +46,11 @@ var colorView = new Vue({
         }
         , selectColor: function(color){
             console.log('selected color', color)
-
+            if(developer
+                && developer.selected
+                && developer.selected.color) {
+                developer.selected.color(color)
+            }
         }
     }
 })
@@ -80,3 +85,81 @@ var shapesView = (function(){
         }
     })
 })()
+
+var animatorView = new Vue({
+    el: '.animator'
+    , data: {
+        value: 0
+        , selectedId: undefined
+        , animations: []
+        , selectedData: {
+            name: 'item Name'
+            , type: 'type'
+        }
+    }
+
+    , methods: {
+
+        loadSelected: function(e){
+            if(developer
+                && developer.selected
+                && developer.selected.color) {
+                this.selected = developer.selected
+                this.selectedId = this.selected.name || this.selected.id
+            }
+
+            console.log('selected', this.selectedId)
+            if(this.selectedId) {
+                this.renderItem(this.selected)
+            }
+        }
+
+        , renderItem(item) {
+
+            this.selectedData.name = item.id
+            this.selectedData.type = item.constructor.name
+
+            while(this.animations.length > 0) {
+                this.animations.pop()
+            }
+
+            let anims = item._babylon.animations;
+            let r = []
+            for(let anim of anims) {
+                this.animations.push(this.renderAnim(anim))
+            }
+
+            return r;
+        }
+
+        , renderAnim(anim) {
+
+            return {
+                name: anim.name
+                , property: anim.targetProperty
+                , keys: this.renderAnimKeys(anim.getKeys())
+                , fps: anim.framePerSecond
+                , highestFrame: anim.getHighestFrame()
+                , easingFunction: anim.getEasingFunction()
+            }
+        }
+
+        , renderAnimKeys(keys) {
+            let r =[]
+
+            for(let k of keys) {
+                r.push({frame: k.frame, value: k.value})
+            };
+
+            return r;
+        }
+        , animStyle(key, anim) {
+            let l = (100 / anim.highestFrame) * key.frame;
+            return {
+                percent: 1
+                , left: `${l}%`
+            }
+        }
+    }
+
+})

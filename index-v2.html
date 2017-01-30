@@ -49,7 +49,45 @@
          <div id="mocha" class=themed></div>
       </div>
 
+      <div class="vert-panel animator">
 
+         <div class="inline">
+            <h2>Animator</h2>
+            <button>Toggle</button>
+         </div>
+
+
+         <div class="controls open">
+            <div class="tools">
+               <button v-on:click='loadSelected'>Load</button>
+               <h3>{{ selectedData.type }} - {{ selectedData.name }}</h3>
+
+            </div>
+
+            <div class="keyframe-scrubber">
+               <scrubber v-bind:value=100>
+                  <label>Frames</label>
+               </scrubber>
+            </div>
+
+            <div class="rows">
+               <div class="item" v-model='selectedData'>
+                  <div class="animation" v-for='anim in animations'>
+
+                     <div class="scrubber-row">
+                        <scrubber v-bind:anim='anim'>
+                           <label>{{ anim.property }}</label>
+                        </scrubber>
+
+                        <pointer-keys v-bind:anim='anim'></pointer-keys>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+      </div>
       <div class="vert-panel colors">
 
          <div class="inline">
@@ -57,7 +95,7 @@
             <button  v-on:click='toggleIsOpen'>Toggle</button>
          </div>
 
-         <div class="controls" v-bind:class="{ open: isOpen }">
+         <div class="controls" v-bind:class="{ open: isOpenControls }">
             <div class="cs">
                <label>
                   <span class="text">{{ lightContrastValue }}</span>
@@ -101,6 +139,8 @@
 
 <div class="tools">
 </div>
+
+
 
 
 <div class="log-parent">
