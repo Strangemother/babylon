@@ -32,6 +32,10 @@ class Destroyable extends BabylonInterface {
             }
         }
 
+        for(let c of scene.cameras) {
+            c.dispose()
+        }
+        scene.cameras = []
         this._destroyed = true
 
         return _destroyed;
@@ -121,11 +125,14 @@ class Base extends Destroyable {
 
     _inheritInstanceKeys(_i) {
         _i = _i || _instance
+        let ignore=['_ran']
         if(_i != undefined) {
             let keys = Object.keys(_i);
             for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                this[key] = _i[key]
+                if(ignore.indexOf(key) == -1) {
+                    this[key] = _i[key]
+                }
             }
             this._inheritedKeys = keys;
         };
