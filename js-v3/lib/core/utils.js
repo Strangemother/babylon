@@ -56,7 +56,7 @@ var funcChain = function(def){
     var _caller = function(...args){
         var res = _f.def;
         for (var i = 0; i < _f.functions.length; i++) {
-            d = p.functions[i](res);
+            d = _f.functions[i](...args);
             if(d !== undefined) {
                 res = d;
             }
