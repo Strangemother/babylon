@@ -40,17 +40,20 @@ var assets = [
    , 'js-v3/lib/extras/scene_shapes.js'
    , 'js-v3/lib/extras/fog.js'
    , 'js-v3/lib/extras/particles.js'
+   , 'js-v3/lib/extras/dev.js'
+
    , 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'
-   , 'js-v3/app.js'
+   , 'js-v3/apps/app.js'
    , 'js-v3/apps/basic-scene.js'
    , 'js-v3/apps/basic-elements.js'
    , 'js-v3/apps/basic-app.js'
    , 'js-v3/apps/shape-columns.js'
    , 'js-v3/apps/particles.js'
-   , 'js-v3/app_animateboxes.js'
+   , 'js-v3/apps/animate-boxes.js'
    , 'js-v3/main.js'
+   , 'js-v3/vue-components/scrubber.js'
    , 'js-v3/view.js'
 ];
 
