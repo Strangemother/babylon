@@ -10,6 +10,7 @@ var main = function(){
 
     Garden.config(CONFIG)
     window._app = Garden.run(localStorage[appViewStorageName])
+    window.developer = new Developer(_app)
 
 }
 
