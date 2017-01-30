@@ -30,11 +30,11 @@ class Light extends BabylonObject {
     }
 
     diffuseProp(ov){
-        return ov == undefined ? new BABYLON.Color3(.7,.7,.7): colors.get(ov);
+        return ov == undefined ? new BABYLON.Color3(.7,.7,.7): colors.get(ov, 3);
     }
 
     specularProp(ov){
-        return colors.get(ov || 'white');
+        return colors.get(ov || 'white', 3);
     }
 
     intensityProp(ov){
@@ -71,6 +71,14 @@ class Light extends BabylonObject {
             this.getShadowList(light).push(m);
         }
 
+
+        return this;
+    }
+
+    shadows(...items) {
+        for(let item of items) {
+            this.shadow(item)
+        }
 
         return this;
     }
