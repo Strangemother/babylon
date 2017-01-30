@@ -74,6 +74,8 @@ class ChildList {
     constructor(parent, owner){
         this.parent = parent;
         this.name = {};
+        this.meshNameMap = {};
+        this.itemNameMap = {};
         this._onAdd = {}
         this._onBefore = {}
 
@@ -139,6 +141,7 @@ class ChildList {
             this.append(item, mesh, options);
             meshes.push(mesh);
         };
+
 
         this.callIterator('postModifiers', meshes, options, ...bSet)
         this._addAfter(items, meshes, options, scene, engine, canvas)
@@ -225,6 +228,33 @@ class ChildList {
         return this.add(children)
     }
 
+    getItemNameByMesh(idOrMesh, i=0) {
+        return this.meshNameMap[idOrMesh.id || idOrMesh][1]
+    }
+
+    getMeshNameByItem(idOrMesh, i=0) {
+        return this.meshNameMap[idOrMesh.id || idOrMesh][1]
+    }
+
+    getBy(idOrMesh, choice=-1) {
+        let index = this.getMeshNameByItem(idOrMesh, 1);
+        if(!index) index = this.getItemNameByMesh(idOrMesh, 1);
+
+        let l = this.displayList[index]
+        if(choice != -1) {
+            return l[choice]
+        }
+        return l
+    }
+
+    getItem(item){
+        return this.getBy(item, 0)
+    }
+
+    getMesh(item){
+        return this.getBy(item, 1)
+    }
+
     append(item, mesh, options) {
 
         let v = [item, mesh, options];
@@ -233,6 +263,8 @@ class ChildList {
 
         item._displayListIndex = index;
         item._displayListName = this.id;
+        this.meshNameMap[mesh.id] = [item.id, index]
+        this.itemNameMap[item.id] = [mesh.id, index]
 
         // Add to master list
         // _displayList[item.id] = v
@@ -254,6 +286,8 @@ class ChildList {
                 child[1].dispose()
             }
         }
+
+        this.meshNameMap = {};
     }
 }
 
