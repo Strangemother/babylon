@@ -19,7 +19,12 @@ class Texture extends BabylonObject {
         return "./assets/textures/"
     }
 
+    assetNameKey(ov){
+        return ov || undefined
+    }
+
     makePath(n, p){
+        if(n == undefined) return p;
         return `${p}${n}`
     }
 
@@ -28,7 +33,7 @@ class Texture extends BabylonObject {
         return new babylonFunc[funcName](p, scene);
     }
 
-    asMaterial(options, scene, type=textures.EMISSIVE){
+    asMaterial(options, scene, type){
         /*
         s = new Sphere;
         m = s.create({ position: [0, 1, 0]});
@@ -38,6 +43,7 @@ class Texture extends BabylonObject {
          */
         options = options || this._options || {}
         scene = scene || options.scene || this._app.scene();
+        type = type == undefined? textures.DIFFUSE: type;
 
         let mat = this.makeMaterial(options, scene, type);
 
