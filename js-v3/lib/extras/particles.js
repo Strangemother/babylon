@@ -15,9 +15,8 @@ class ParticleSystem extends BabylonObject {
             // Array of shapes to appply
             'items'
             , 'count'
-            , 'positionFunction'
-            , 'vertexFunction'
             , 'updatable'
+            , 'step'
         ]
     }
 
@@ -31,10 +30,13 @@ class ParticleSystem extends BabylonObject {
             , 'computeParticleColor'
             // false: prevents from calling the custom updateParticleVertex() function
             , 'computeParticleVertex'
+
+            , 'positionFunction'
+            , 'vertexFunction'
         ]
     }
 
-    positionFunctionKey(o){
+    positionFunctionProp(o){
         return o === undefined? this.positionFunction.bind(this): o
     }
 
@@ -83,8 +85,10 @@ class ParticleSystem extends BabylonObject {
 
     executeBabylon(babylonFunc, name, _name, options, scene) {
         this.sps = new babylonFunc[name](_name, scene, options);
-        this._addEarly(this.sps, options)
+        // this._addEarly(this.sps, options)
+        this.meshes = []
 
+        var mat;
         for (var i = 0; i < options.items.length; i++) {
             let v = options.items[i];
             if(IT.g(v).is('array')) {
@@ -92,25 +96,35 @@ class ParticleSystem extends BabylonObject {
                 continue
             }
 
-            this.add(v
+            let instanceMesh = this.add(v
                     , this.countProp(options.count, options)
                     , {
                         vertexFunction: options.vertexFunction
                         , positionFunction: options.positionFunction
                     }
                 )
+
+            let m = this.sps.buildMesh()
+            this.meshes.push(m)
+            if(instanceMesh.material) {
+                m.material = instanceMesh.material;
+            }
+
+            instanceMesh.dispose()
         }
 
         this._addEarly(this.sps, options)
-        this.mesh = this.sps.buildMesh()
+
         return this.sps
     }
 
     positionFunction(particle, spsIndex, shapeSetIndex) {
         /* Calls on update of every particle the initParticles */
+        //return this._options.positionFunction && this._options.positionFunction(particle, vertex, index)
     }
 
     vertexFunction(particle, vertex, index) {
+        //return this._options.vertexFunction && this._options.vertexFunction(particle, vertex, index)
     }
 
     babylonExecuted(babylon, ...args) {
@@ -129,7 +143,11 @@ class ParticleSystem extends BabylonObject {
     }
 
     step(){
-        this.sps.setParticles()
+        if(this._options.step) {
+            this._options.step(this.sps)
+        } else {
+            this.sps.setParticles()
+        }
     }
 
     add(item, count=1, options) {
@@ -137,7 +155,7 @@ class ParticleSystem extends BabylonObject {
         if(this.sps == undefined) {
             this._items.push([item, count, options])
         } else {
-            this._addShape(this.sps, item, count, options)
+            return this._addShape(this.sps, item, count, options)
         }
     }
 
@@ -158,12 +176,13 @@ class ParticleSystem extends BabylonObject {
 
     _addShape(sps, item, count, options) {
         let mesh = item;
+
         if(item.gardenType) {
             mesh = item.create()
         };
 
         sps.addShape(mesh, count, options)
-        mesh.dispose()
+        return mesh
     }
 
     initParticles(sps) {
@@ -207,6 +226,7 @@ class ParticleSystem extends BabylonObject {
         // The usage of this function is not mandatory.
     }
 }
+
 
 class SprayParticles extends ParticleSystem {
     initParticles(sps) {
@@ -256,6 +276,7 @@ class SprayParticles extends ParticleSystem {
         particle.rotation.y += 0.008 * sign;
     }
 }
+
 
 class AsteriodField extends ParticleSystem {
     positionFunction(particle, i, s) {
