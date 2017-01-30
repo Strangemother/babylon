@@ -90,6 +90,47 @@ class ColorProperty extends AutoProperty {
 }
 
 
+class MaterialProperty extends AutoProperty {
+    key(){
+        return 'material'
+    }
+
+    initProperty(item, obj, options){
+        /* Init the property will generate the Color type before
+        the instance is BABYLON created.
+        setProperty applies the cached Color
+        to the material. */
+        let n = options[this.name]
+        return [this.name, n]
+    }
+
+
+    getProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+
+        if(!babylon) return undefined;
+        return babylon[this.key()]
+    }
+
+
+    setProperty(instance, key, value, babylon) {
+        babylon = babylon == undefined? instance._babylon: babylon;
+        if(!babylon) return undefined;
+
+        let m = value;
+
+        if( IT.g(value).is('string') ){
+            var mat = new Texture({ assetPath: value });
+            m = mat.asMaterial()
+        };
+
+        babylon[this.key()] = m
+        return false;
+
+    }
+}
+
+
 class PositionProperty extends AutoProperty {
 
     arrayProp(){
@@ -100,9 +141,12 @@ class PositionProperty extends AutoProperty {
     setProperty(instance, key, value, babylon) {
         babylon = babylon == undefined? instance._babylon: babylon;
         if(!babylon) return undefined;
-        if(IT.g(value).is('array') && value.length == 1 && IT.g(value[0]).is('array')) {
+        if( IT.g(value).is('array')
+            && value.length == 1
+            && IT.g(value[0]).is('array')) {
             value = value[0]
-        }
+        };
+
         let v = asVector(value);
         babylon[this.key()] = v;
         return v;
@@ -160,6 +204,27 @@ class WireframeProperty extends QuickProperty {
 
 }
 
+class RenderOutlineProperty extends QuickProperty {
+
+    static targetObjectAssignment(classInstance, gInstance) {
+        return 'autoProperties'
+    }
+
+    getterSetter(){
+        return true
+    }
+
+    _get(instance, babylon, key, value) {
+        if(!babylon) return false;
+        return babylon.renderOutline
+    }
+
+    _set(instance, babylon, key, value) {
+        if(!babylon) return false;
+        babylon.renderOutline = value;
+    }
+}
+
 class EdgeRenderingProperty extends QuickProperty {
 
     static targetObjectAssignment(classInstance, gInstance) {
@@ -193,9 +258,11 @@ class EdgeRenderingProperty extends QuickProperty {
 
 Garden.register(ColorProperty
     , PositionProperty
+    , MaterialProperty
     , RotationProperty
     , ScalingProperty
     , TriggerProperty
     , WireframeProperty
     , EdgeRenderingProperty
+    , RenderOutlineProperty
     )
