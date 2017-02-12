@@ -96,7 +96,4 @@ class Garden extends Base {
             }
         })(n)
     }
-
-
 }
-

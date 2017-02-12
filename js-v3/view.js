@@ -70,7 +70,8 @@ var appsView = new Vue({
         selected(){
             //console.log('change Garden to', this.selected)
             localStorage[this.storageName] = this.selected;
-            Garden.switch(this.selected)
+            window.location.reload()
+            //Garden.switch(this.selected)
         }
     }
 })
@@ -85,6 +86,86 @@ var shapesView = (function(){
         }
     })
 })()
+
+var shapesView = (function(){
+    let v = ['Shapes'].concat(Object.keys(Garden.instance().shapes))
+    return new Vue({
+        el: '.shapes'
+        , data: {
+            items: v
+            , selected: 'Shapes'
+        }
+    })
+})()
+
+
+var classSelectView = (function(){
+    let v = Object.keys(Garden.instance().named)
+    return new Vue({
+        el: '#garden-class-list'
+        , data: {
+            items: v
+        }
+
+        , methods: {
+            submit(e){
+                debugger
+            }
+        }
+    })
+})()
+
+var classInputView = (function(){
+    let v = Object.keys(Garden.instance().named)
+    return new Vue({
+        el: '#garden-class-input'
+        , data: {
+            items: v
+        }
+
+        , methods: {
+            submit(e){
+                let v = this.$el.value;
+                if( this.items.indexOf(v) > -1 ) {
+                    classView.itemName = v;
+                }
+            }
+        }
+    })
+})()
+
+var classView = (function(){
+
+    return new Vue({
+        el: '.class-content'
+        , data: {
+            //items: v
+        }
+
+        , watch: {
+            itemName: {
+
+                get: function(){
+                    console.log('get itemName')
+                }
+
+                , set: function(){
+                    console.log('set itemName')
+                }
+            }
+        }
+
+        , methods: {
+            submit(e){
+                let v = this.$el.value;
+                if( this.items.indexOf(v) > -1 ) {
+                    console.log('Show', v)
+                }
+            }
+        }
+    })
+})()
+
 
 var animatorView = new Vue({
     el: '.animator'
