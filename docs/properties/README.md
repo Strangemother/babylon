@@ -238,7 +238,7 @@ class WireframeProperty extends BaseProperty {
     }
 }
 
-box - new Box();
+box = new Box();
 box.wireframe
 // false
 box.wireframe = true

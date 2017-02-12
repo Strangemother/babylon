@@ -24,7 +24,7 @@
    * [Architecture](architecture/README.md)
    * [BabylonObject](babylonobject/README.md)
    * [Properties](properties/README.md)
-   * [API](developing/api)
+   * [API](developing/api.md)
 * [Testing](testing/README.md)
    * [HTTPAgent](testing/httpagent.md)
    * [Mocks](testing/mocks.md)

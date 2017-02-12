@@ -86,8 +86,8 @@
                </div>
             </div>
          </div>
-
       </div>
+
       <div class="vert-panel colors">
 
          <div class="inline">
@@ -132,6 +132,23 @@
                <span class="color">{{ color }}</span>
                <span class="hex">{{ hexColor(color) }}</span>
             </div>
+         </div>
+      </div>
+
+      <div class="vert-panel garden-class">
+         <input type="text"
+            id='garden-class-input'
+            list='garden-class-list'
+            v-on:keyup.enter="submit">
+
+         <datalist id='garden-class-list'>
+            <template v-for="item in items">
+               <option>{{ item }}</option>
+            </template>
+         </datalist>
+
+         <div class="class-content">
+            {{ name }}
          </div>
       </div>
    </div>
