@@ -109,7 +109,22 @@ class BabylonObject extends ChildManager {
         of childBase.children does not exist an error is thrown */
         if(childBase.children) {
             // this._refChildren.add(this, childBase, options)
-            return childBase.children.add(this, options)
+
+            let mesh = childBase.children.add(this, options)
+            let pid = childBase.id
+            let cid = this.id;
+            if( pid != undefined
+                && cid != undefined
+                && pid != cid){
+
+                if(childBase._babylon != undefined) {
+                    mesh.parent = childBase._babylon
+                } else {
+                    let s = `Could not set parent of "${cid}" because "${pid}" has no babylon instance`
+                    console.warn(s)
+                }
+            }
+            return mesh
         } else {
             console.warn('children did not exist in', childBase)
         }

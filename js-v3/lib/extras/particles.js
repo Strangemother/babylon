@@ -1,12 +1,3 @@
-
-
-  var fact = 600;   // density
-  var scaleX = 0.0;
-  var scaleY = 0.0;
-  var scaleZ = 0.0;
-  var grey = 0.0;
-
-
 class ParticleSystem extends BabylonObject {
 
     keys(){
@@ -33,14 +24,36 @@ class ParticleSystem extends BabylonObject {
 
             , 'positionFunction'
             , 'vertexFunction'
+            , 'updators'
         ]
+    }
+
+    itemsKey(v, o, s){
+        if(v !== undefined){
+            return v;
+        }
+
+        if(o.item) {
+            return [o.item]
+        }
+
+        return this.items()
+    }
+
+    items(v){
+
+        if(v!= undefined){
+            this._items = v;
+        };
+
+        return this._items || [];
     }
 
     positionFunctionProp(o){
         return o === undefined? this.positionFunction.bind(this): o
     }
 
-    vertexFunctionKey(o){
+    vertexFunctionProp(o){
         return o === undefined? this.vertexFunction.bind(this): o
     }
 
@@ -64,12 +77,13 @@ class ParticleSystem extends BabylonObject {
         return o == undefined ? true: o;
     }
 
-    updateKey(o) {
+    updatableKey(o) {
         return o == undefined? true: o
     }
 
     init(){
         this._items = []
+        this.updators = []
         super.init.apply(this, arguments)
     }
 
@@ -87,7 +101,9 @@ class ParticleSystem extends BabylonObject {
         this.sps = new babylonFunc[name](_name, scene, options);
         // this._addEarly(this.sps, options)
         this.meshes = []
-
+        if(options.updators){
+            this.addUpdator(...options.updators)
+        };
         var mat;
         for (var i = 0; i < options.items.length; i++) {
             let v = options.items[i];
@@ -99,8 +115,28 @@ class ParticleSystem extends BabylonObject {
             let instanceMesh = this.add(v
                     , this.countProp(options.count, options)
                     , {
-                        vertexFunction: options.vertexFunction
-                        , positionFunction: options.positionFunction
+                        vertexFunction: (function(options, self){
+
+                            return function(){
+                                self.callUpdators('vertex', arguments)
+                                if(options.vertexFunction != undefined) {
+                                    options.vertexFunction.apply(self, arguments)
+
+                                }
+                            };
+
+                        })(options, this)
+                        , positionFunction: (function(options, self){
+
+                            return function(){
+                                self.callUpdators('position', arguments)
+                                if(options.positionFunction != undefined) {
+                                    options.positionFunction.apply(self, arguments)
+
+                                }
+                            };
+
+                        })(options, this)
                     }
                 )
 
@@ -118,6 +154,14 @@ class ParticleSystem extends BabylonObject {
         return this.sps
     }
 
+    instanceMeshVertexFunction(){
+
+    }
+
+    instanceMeshPositionFunction(){
+
+    }
+
     positionFunction(particle, spsIndex, shapeSetIndex) {
         /* Calls on update of every particle the initParticles */
         //return this._options.positionFunction && this._options.positionFunction(particle, vertex, index)
@@ -130,11 +174,24 @@ class ParticleSystem extends BabylonObject {
     babylonExecuted(babylon, ...args) {
         this._babylon = babylon;
 
-        babylon.initParticles = this.initParticles
-        babylon.recycleParticle = this.recycleParticle
-        babylon.updateParticle = this.updateParticle
-        babylon.beforeUpdateParticles = this.beforeUpdateParticles
-        babylon.afterUpdateParticles = this.afterUpdateParticles
+        var self = this;
+
+        babylon.initParticles = function(){
+            self._initParticles.apply(self, arguments)
+        }
+
+        babylon.recycleParticle = function(){
+            self._recycleParticle.apply(self, arguments)
+        }
+        babylon.updateParticle = function(){
+            self._updateParticle.apply(self, arguments)
+        }
+        babylon.beforeUpdateParticles = function(){
+            self._beforeUpdateParticles.apply(self, arguments)
+        }
+        babylon.afterUpdateParticles = function(){
+            self._afterUpdateParticles.apply(self, arguments)
+        }
 
         babylon.initParticles(babylon)
         // babylon.setParticles()
@@ -143,10 +200,26 @@ class ParticleSystem extends BabylonObject {
     }
 
     step(){
+        this.callUpdators('step', [this.sps])
         if(this._options.step) {
             this._options.step(this.sps)
-        } else {
+        }
+
+        this.spsSetParticles(this.sps)
+    }
+
+    spsSetParticles(sps) {
+
+        // Ignore if false is passed;
+        if(this._options.setParticles === false) return;
+        this.callUpdators('setParticles', [this.sps])
+
+        // Ensure call if true
+        if( this._options.setParticles === true
+            || this._initSetPartclesCalled == false
+            ) {
             this.sps.setParticles()
+            this._initSetPartclesCalled = true
         }
     }
 
@@ -164,6 +237,7 @@ class ParticleSystem extends BabylonObject {
             this._app._scene.onBeforeRenderObservable.remove(this._addObserve)
         }
 
+        this.clearUpdators()
         super.destroy()
     }
 
@@ -183,6 +257,65 @@ class ParticleSystem extends BabylonObject {
 
         sps.addShape(mesh, count, options)
         return mesh
+    }
+
+    _initParticles(){
+        this.callUpdators('create', arguments)
+        this.initParticles.apply(this, arguments)
+    }
+    _recycleParticle(){
+        this.callUpdators('recycle', arguments)
+        this.recycleParticle.apply(this, arguments)
+    }
+    _updateParticle(){
+        this.callUpdators('update', arguments)
+        this.updateParticle.apply(this, arguments)
+    }
+    _beforeUpdateParticles(){
+        this.callUpdators('beforeUpdate', arguments)
+        this.beforeUpdateParticles.apply(this, arguments)
+    }
+    _afterUpdateParticles(){
+        this.callUpdators('afterUpdate', arguments)
+        this.afterUpdateParticles.apply(this, arguments)
+    }
+
+    callUpdators(name, args) {
+        let updators = this.updators;
+        //console.log('call', name)
+        for (var i = 0; i < updators.length; i++) {
+            updators[i].callfunction(name, args)
+        }
+    }
+
+    addUpdator(...updators) {
+        let us = updators.map(x => (x.gardenType == 'class'? new x: x))
+        this.updators = this.updators.concat(us)
+    }
+
+    removeUpdator(...updators) {
+        for (var i = 0; i < updators.length; i++) {
+            let ind = this.updators.indexOf(updators[i]);
+            updators[i].destroy()
+            if(ind > -1) {
+                this.updators.splice(ind, 1)
+            }
+        }
+    }
+
+    clearUpdators(){
+        let updators = this.updators;
+        let updator;
+
+        while(updators.length > 0){
+            updator = updators.pop();
+        // for (var i = 0; i < this.updators.length; i++) {
+            let ind = this.updators.indexOf(updator);
+            updator.callfunction('clear')
+            if(ind > -1) {
+                this.updators.splice(ind, 1)
+            }
+        }
     }
 
     initParticles(sps) {
@@ -228,56 +361,6 @@ class ParticleSystem extends BabylonObject {
 }
 
 
-class SprayParticles extends ParticleSystem {
-    initParticles(sps) {
-        // : lets you set all the initial particle properties. You must iterate
-        // over all the particles by using the SPS.nbParticles property. The
-        // usage of this function is not mandatory.
-        let particles = sps.particles, pt
-        for (var p = 0; p < sps.nbParticles; p++) {
-            pt = particles[p]
-            // pt.age = Math.random() * 20;
-            this.recycleParticle(pt)
-        }
-    }
-
-    positionFunction(particle, spsIndex, s) {
-        /* Calls on update of every particle the initParticles */
-        particle.rotation.y = s / 150;
-        particle.position.x = s - 150;
-        //particle.uvs = new BABYLON.Vector4(0, 0, 0.33, 0.33); // first image from an atlas
-        //particle.scaling.y -= .01
-    }
-
-    recycleParticle(particle){
-        // : lets you set a particle to be recycled. It is called per particle.
-        //  The usage of this function is not mandatory.
-        particle.position.x = 0;
-        particle.position.y = 0;
-        particle.position.z = 0;
-        particle.velocity.x = (Math.random() - 0.5) * 1.5;
-        particle.velocity.y = Math.random() * 1.5;
-        particle.velocity.z = (Math.random() - 0.5) * 1.5;
-        particle.color = colors.make([Math.random(), Math.random(), Math.random()])
-    }
-
-    updateParticle(particle) {
-        if (particle.position.y < 0) {
-            this.recycleParticle(particle);
-        }
-
-        particle.velocity.y += -0.01;                         // apply gravity to y
-        (particle.position).addInPlace(particle.velocity);      // update particle new position
-        particle.position.y += 1.5 / 2;
-
-        var sign = (particle.idx % 2 == 0) ? 1 : -1;            // rotation sign and new value
-        particle.rotation.z += 0.1 * sign;
-        particle.rotation.x += 0.05 * sign;
-        particle.rotation.y += 0.008 * sign;
-    }
-}
-
-
 class AsteriodField extends ParticleSystem {
     positionFunction(particle, i, s) {
         asXYZ(
@@ -315,7 +398,110 @@ class AsteriodField extends ParticleSystem {
         this.sps.mesh.position.y = Math.sin( (k - Date.now())/10000 )
          k += 0.0002
     }
-
 }
 
 var k = Date.now();
+
+class ParticlePosition extends BaseClass {
+
+    options(){
+        return {};
+    }
+
+    on(v){
+        this.stop = v == undefined ? false: v;
+        return !this.stop;
+    }
+
+    off(v) {
+        this.stop = v == undefined ? true: v;
+        return this.stop;
+    }
+
+    init(config) {
+        this.data = {};
+        this.config = config
+        this._createOptions(config || {})
+    }
+
+    create(config){
+        console.log('Create ParticlePosition')
+        this.config = config
+        this.updateOptions(config)
+    }
+
+    _createOptions(config) {
+        /* create the options for data access.
+        Given initial config*/
+        let opts = this.options();
+        for(let key in opts) {
+            this._createKeyOption(key, opts[key], opts, config)
+        }
+    }
+
+    updateOptions(config) {
+        /* create the options for data access.
+        Given initial config*/
+        let opts = this.options();
+        for(let key in opts) {
+            this.data[key] = opts[key];
+        }
+    }
+
+    _createKeyOption(key, value, options, config){
+        let v =  config[key]
+        this.data[key] = v !== undefined? v: value;
+        return this._createKeyFunction(key, value, options, config)
+    }
+
+    _createKeyFunction(key, value, options, config){
+
+        (function(key){
+            Object.defineProperty(this, key, {
+                get: function(){ return this.data[key] }
+                , set: function(v){ this.data[key] = v; return true; }
+            })
+        }).call(this, key);
+    }
+
+    callfunction(name, args){
+        return (this[name] && !this.stop) && this[name].apply(this, args)
+    }
+
+    clear(){
+        console.log('ParticlePosition clear')
+        return this.destroy()
+    }
+
+    destroy(){
+        console.log('ParticlePosition destroy')
+    }
+
+    // setParticles(sps){
+    //     sps.setParticles()
+    // }
+    // create(){
+    //     console.log('ParticlePosition create')
+    // }
+    // position(particle){
+    //     console.log('ParticlePosition position')
+    // }
+    // vertex(){
+    //     console.log('ParticlePosition vertex')
+    // }
+    // step(){
+    //     console.log('ParticlePosition step')
+    // }
+    // recycle(){
+    //     console.log('ParticlePosition recycle')
+    // }
+    // update(particle){
+    //     console.log('ParticlePosition update')
+    // }
+    // beforeUpdate(){
+    //     console.log('ParticlePosition beforeUpdate')
+    // }
+    // afterUpdate(){
+    //     console.log('ParticlePosition afterUpdate')
+    // }
+}

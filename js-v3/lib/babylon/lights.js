@@ -237,6 +237,10 @@ class HemisphericLight extends Light {
     groundColorProp(){
         return new BABYLON.Color3(0, 0, 0);
     }
+
+    shadow(){
+        NotImplementedError.throw('HemisphericLight does not support shadows')
+    }
 }
 
 
