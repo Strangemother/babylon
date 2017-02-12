@@ -40,6 +40,8 @@ var assets = [
    , 'js-v3/lib/extras/scene_shapes.js'
    , 'js-v3/lib/extras/fog.js'
    , 'js-v3/lib/extras/particles.js'
+   , 'js-v3/lib/extras/particle-positions.js'
+   , 'js-v3/lib/extras/axis.js'
    , 'js-v3/lib/extras/dev.js'
 
    , 'js-v3/tests/test.js'

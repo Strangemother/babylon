@@ -1,6 +1,6 @@
 
 
-class ParticlesApp extends Garden {
+class SprayParticlesApp extends Garden {
     start(){
         this._camera = new ArcRotateCamera({
             activate:true
@@ -12,23 +12,18 @@ class ParticlesApp extends Garden {
         this._light = new HemisphericLight({ color: 'white'});
         this.children.add(this._light);
 
-        this.ground = new Ground({ width: 50, height: 50, color: 'dodgerBlue' })
+        this.ground = new Ground({ width: 200, height: 200, color: 'royalBlue' })
         this.children.add(this.ground);
 
-        this.ps = new SprayParticles({ items: [new Box({size: 2})] })
+        this.ps = new ParticleSystem({ items: [new Box({size: 2})] })
+        this.spp = new SprayParticlePositions;
+        this.srp = SlowRotateParticlePositions
+        this.ps.addUpdator(this.spp, this.srp)
         this.spsMesh = this.ps.create()
 
-        this.box = new Box
-        this.children.add(this.box)
-    }
-
-    asteroids(){
-        this.ps = new AsteriodField({
-            count: 2000
-            , items: [new Sphere({ segments: 8, diameter: 1 })]
-        })
     }
 }
+
 
 class AsteroidsApp extends Garden {
     start(){
@@ -49,6 +44,7 @@ class AsteroidsApp extends Garden {
         this.afm = this.af.addToScene()
     }
 }
+
 
 class Particles extends Garden {
     start(){
@@ -140,6 +136,7 @@ class Particles extends Garden {
         return sps
     }
 }
+
 
 class ImmutableParticles extends Garden {
     start(){
@@ -236,9 +233,216 @@ class ImmutableParticles extends Garden {
 }
 
 
+class SprayParticlesApp2 extends Garden {
+    start(){
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this.children.add(this._light);
+
+        this.ground = new Ground({ width: 100, height: 100, color: 'lightBlue' })
+        this.children.add(this.ground);
+
+        this.ps = new ParticleSystem({
+            count: 200
+            , items: [new Sphere({diameter: 1, segments: 1, color: 'royalBlue'})]
+            , updatable: false
+        })
+        this.spp = new SprayParticlePositions();
+        this.srp = SlowRotateParticlePositions
+        this.ps.addUpdator(this.spp, this.srp)
+        this.spsMesh = this.ps.create()
+
+    }
+}
+
+
+class PositionsParticlesApp extends Garden {
+
+    start(){
+
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        let item = this.s = new Box({
+            diameter: 1
+            , segments: 1
+            , color: colors.emissive('white')
+        })
+
+        this.ps = new ParticleSystem({
+            count: 10000
+            , items: [item]
+            , updatable: false
+        })
+
+        this.spp = new FlatRandomParticlePositions;
+        this.srp = new SlowRotateParticlePositions;
+        this.ps.addUpdator(this.spp, this.srp)
+        this.spsMesh = this.ps.addToScene()
+    }
+}
+
+class ExampleParticlesApp extends Garden {
+
+    start(){
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this._light.addToScene()
+
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        let item = this.s = new Box({
+            diameter: 1
+            , segments: 1
+            , color: 'green' // colors.emissive('white')
+        })
+
+        this.ps = new ParticleSystem({
+            count: 100
+            , items: [item]
+            , updatable: true
+            //, setParticles: true
+        })
+
+        this.spp = new MatrixParticlePositions;
+        this.ps.addUpdator(this.spp)
+        this.spsMesh = this.ps.addToScene()
+    }
+}
+
+
+class SpaceParticlesApp extends Garden {
+
+    start(){
+        this.backgroundColor = 'black';
+
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        let item = this.item = new Sphere({
+            diameter: 1
+            , segments: 1
+            , color: colors.emissive('white')
+        })
+
+        this.ps = new ParticleSystem({
+            count: 80000
+            , items: [item]
+            , updatable: false
+        })
+
+        this.spp = new RandomParticlePositions({ size: 3000 });
+        this.srp = new SlowRotateParticlePositions;
+
+        this.ps.addUpdator(this.spp, this.srp)
+        this.spsMesh = this.ps.addToScene()
+
+        this.sphere = new Sphere({
+            color: colors.emissive('yellow')
+            , diameter: 10
+        })
+        this.sphere.addToScene()
+    }
+}
+
+
+class AxisExample extends Garden {
+
+    start(){
+
+        this.basicScene()
+
+        this.box = new Box({
+            color: 'green'
+            , size: 7
+            , position: [0, 5, 0]})
+
+        this.box.addToScene()
+
+        this.axis = new Axis();
+        // Okay. I didn't know this worked.
+        this.axisM = this.axis.addTo(this.box)
+
+        this.finaliseScene()
+    }
+
+    finaliseScene(){
+        this.spotLight.shadows(this.box).receiver(this.ground)
+        this.animations()
+    }
+
+    animations(){
+        let anim1 = new Animation({ targetProperty: 'position.y' })
+        let y = this.box.position().y;
+        anim1.frame(0, y).frame(150, y * 4).frame(300, y)
+        this.box.animate(anim1)
+
+        let anim = new Animation({ targetProperty: 'rotation.y' })
+        anim.frame(0, 0).frame(300, Math.PI*2)
+        this.box.animate(anim)
+    }
+
+    basicScene() {
+
+        this._camera = new ArcRotateCamera({
+            activate: true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 100
+        });
+
+        this.spotLight = new SpotLight({
+            position: asVector(0, 30, 0)
+            , direction: asVector(0, -1, 0)
+            , diffuse: 'white'
+            , angle: 4
+            , exponent: 12
+            , intensity: .4
+        })
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this._light.addToScene()
+
+        this.ground = new Ground({
+            color: 'steelBlue'
+            , width: 50
+            , height: 50
+            , position: [0, 0, 0]
+        })
+
+        this.children.addMany(this.spotLight, this.ground)
+    }
+
+}
+
+
 Garden.register(
                 Particles
-                , ParticlesApp
+                , SprayParticlesApp
+                , SprayParticlesApp2
                 , AsteroidsApp
                 , ImmutableParticles
+                , PositionsParticlesApp
+                , SpaceParticlesApp
+                , ExampleParticlesApp
+                , AxisExample
                 );
