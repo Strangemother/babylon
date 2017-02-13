@@ -98,8 +98,6 @@ class SceneClick {
             }
             sceneClickers.setScene = true
         }
-
-
     }
 
     down(e, item){
@@ -172,10 +170,14 @@ class SceneClick {
 
 class SceneClickHighlight extends SceneClick {
 
-    init(...args) {
-        super.init(...args)
-        this.selected = undefined;
-        this.on()
+    on(scene) {
+        super.on(scene)
+
+        if(!this.axis) {
+            this.axis = new Axis()
+            this.axisM = this.axis.addToScene()
+            this.axisM.visibility = 0
+        }
     }
 
     off(scene) {
@@ -193,6 +195,7 @@ class SceneClickHighlight extends SceneClick {
 
         if(this.lastClicked == gInst && gInst.renderoutline == true) {
             gInst.renderoutline = false
+            this.axisM.visibility = 0
             this.lastClicked = undefined;
             developer.selected = undefined
             return
@@ -208,5 +211,11 @@ class SceneClickHighlight extends SceneClick {
 
         this.lastClicked = gInst;
         developer.selected = this.lastClicked;
+        this.axisM.visibility = gInst.renderoutline == true
+        this.axisM.parent = gInst._babylon
+
+
     }
+
+
 }

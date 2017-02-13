@@ -8,36 +8,38 @@ class Axis extends Lines {
     }
 
     pointsKey(){
+        let size = 1
+        let tipSize = size * .10
         return [
 
             new BABYLON.Vector3(0, 0, 0)
-            , new BABYLON.Vector3(5, 0, 0)
+            , new BABYLON.Vector3(size, 0, 0)
 
-            , new BABYLON.Vector3(5, 0, 0)
-            , new BABYLON.Vector3(4.5,0, -.5)
-            , new BABYLON.Vector3(5, 0, 0)
+            , new BABYLON.Vector3(size, 0, 0)
+            , new BABYLON.Vector3(size - tipSize,0, -tipSize)
+            , new BABYLON.Vector3(size, 0, 0)
 
-            , new BABYLON.Vector3(5, 0, 0)
-            , new BABYLON.Vector3(4.5,0, .5)
-            , new BABYLON.Vector3(5, 0, 0)
-
-            , new BABYLON.Vector3(0, 0, 0)
-            , new BABYLON.Vector3(0, 5, 0)
-
-            , new BABYLON.Vector3(0, 5, 0)
-            , new BABYLON.Vector3(0, 4.5, -0.5)
-            , new BABYLON.Vector3(0, 5, 0)
-
-            , new BABYLON.Vector3(0, 5, 0)
-            , new BABYLON.Vector3(0, 4.5, .5)
-            , new BABYLON.Vector3(0, 5, 0)
+            , new BABYLON.Vector3(size, 0, 0)
+            , new BABYLON.Vector3(size - tipSize,0, tipSize)
+            , new BABYLON.Vector3(size, 0, 0)
 
             , new BABYLON.Vector3(0, 0, 0)
-            , new BABYLON.Vector3(0, 0, 5)
+            , new BABYLON.Vector3(0, size, 0)
 
-            , new BABYLON.Vector3(.5, 0, 4.5)
-            , new BABYLON.Vector3(0, 0, 5)
-            , new BABYLON.Vector3(-.5, 0, 4.5)
+            , new BABYLON.Vector3(0, size, 0)
+            , new BABYLON.Vector3(0, size - tipSize, -tipSize)
+            , new BABYLON.Vector3(0, size, 0)
+
+            , new BABYLON.Vector3(0, size, 0)
+            , new BABYLON.Vector3(0, size - tipSize, tipSize)
+            , new BABYLON.Vector3(0, size, 0)
+
+            , new BABYLON.Vector3(0, 0, 0)
+            , new BABYLON.Vector3(0, 0, size)
+
+            , new BABYLON.Vector3(tipSize, 0, size - tipSize)
+            , new BABYLON.Vector3(0, 0, size)
+            , new BABYLON.Vector3(-tipSize, 0, size - tipSize)
 
         ]
     }

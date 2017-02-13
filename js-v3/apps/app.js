@@ -135,7 +135,7 @@ class SpotlightApp extends Garden {
         })
 
         this.spotLight = new SpotLight({
-            position: asVector(0, 10, 10)
+            position: asVector(0, 10, 0)
             , direction: asVector(0, -1, 0)
             , diffuse: 'white'
             , angle: 1

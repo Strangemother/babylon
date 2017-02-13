@@ -423,7 +423,7 @@ class AxisExample extends Garden {
         this._light.addToScene()
 
         this.ground = new Ground({
-            color: 'steelBlue'
+            color: 'thistle'
             , width: 50
             , height: 50
             , position: [0, 0, 0]

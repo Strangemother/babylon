@@ -42,6 +42,7 @@ class Light extends BabylonObject {
     }
 
     shadow(item, light) {
+        light = light == undefined? this._babylon: light
         let sg = this.getShadowGenerator(light);
         let m = item;
 
@@ -90,7 +91,8 @@ class Light extends BabylonObject {
 
     getShadowGenerator(light, index=-1) {
         let sg;
-        let _b = light;
+        let _b = light == undefined? this._babylon: light
+
         if(this.shadowGenerators.length == 0){
 
             _b = (_b != undefined && _b.gardenType != undefined) ? _b._babylon: _b;
