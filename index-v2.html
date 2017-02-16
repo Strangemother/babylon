@@ -23,8 +23,8 @@
          <div class='panel apps'>
             <select v-model='selected'>
                <option v-for='item in apps'
-                  v-bind:selected="item == selected"
-                  :value="item">{{ item }}</option>
+                  v-bind:selected="item[0] == selected"
+                  :value="item[0]">{{ item[1] }}</option>
             </select>
          </div>
       </div>
@@ -61,7 +61,6 @@
             <div class="tools">
                <button v-on:click='loadSelected'>Load</button>
                <h3>{{ selectedData.type }} - {{ selectedData.name }}</h3>
-
             </div>
 
             <div class="keyframe-scrubber">
