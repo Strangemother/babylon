@@ -109,4 +109,88 @@ class AnimateBoxes extends Garden {
     }
 }
 
-Garden.register(AnimateBoxes)
+
+class SpotlightAnimated extends Garden {
+
+    start(){
+        this.backgroundColor = colors.black()
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , radius: 20
+        });
+
+        this.hemiLight = new HemisphericLight({
+            intensity: .7
+        })
+
+        this.spotLight = new SpotLight({
+            position: asVector(0, 10, 0)
+            , direction: asVector(0, -1, 0)
+            , diffuse: 'white'
+            , angle: 1
+            , exponent: 5
+            , intensity: .4
+        })
+
+
+        this.ground = new Ground({
+            color: 'white'
+            , width: 20
+            , height: 20
+            , position: [0, 0, 0]
+        })
+
+        this.box = new Box({
+            position: [0, 3, 0]
+            , color: 'darkCyan'
+        });
+
+        this.box2 = new Box({
+            position: [0, 3, 3]
+            , color: 'sandyBrown'
+        });
+
+        this.cone = new Polyhedron({
+            type: 11
+            , position: [0, 3, -3]
+            , rotation: [.7, 0, 0]
+            , color: 'gold'
+        })
+
+        this.spotLight.shadows(
+            this.box
+            , this.box2
+            , this.cone
+            ).receiver(this.ground)
+
+        this.children.addMany(
+            this.spotLight
+            , this.hemiLight
+            , this.ground
+            , this.box
+            , this.cone
+            , this.box2
+            )
+
+        let anim = new Animation({ targetProperty: 'rotation.y' })
+        anim.frame(0, 0).frame(600, Math.PI*2)
+
+        let animX = new Animation({ targetProperty: 'rotation.x' })
+        animX.frame(0, 0).frame(200, -Math.PI*2)
+
+        let anim3 = new Animation({ targetProperty: 'scaling.z' })
+        anim3.frame(0, 1).frame(150, 2).frame(350, 1.2).frame(400, .5).frame(600, 1)
+
+        let anim4 = new Animation({ targetProperty: 'rotation.y' })
+        anim4.frame(0, 0).frame(400, -Math.PI*2)
+
+        this.box.animate(anim)
+        this.box.animate(animX)
+        this.box.animate(anim3)
+        this.cone.animate(anim4)
+
+    }
+}
+
+
+Garden.register(AnimateBoxes, SpotlightAnimated)
