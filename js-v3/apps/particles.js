@@ -1,5 +1,3 @@
-
-
 class SprayParticlesApp extends Garden {
     start(){
         this._camera = new ArcRotateCamera({
@@ -292,6 +290,7 @@ class PositionsParticlesApp extends Garden {
     }
 }
 
+
 class ExampleParticlesApp extends Garden {
 
     start(){
@@ -365,75 +364,73 @@ class SpaceParticlesApp extends Garden {
 }
 
 
-class AxisExample extends Garden {
-
-    start(){
-
-        this.basicScene()
-
-        this.box = new Box({
-            color: 'green'
-            , size: 7
-            , position: [0, 5, 0]})
-
-        this.box.addToScene()
-
-        this.axis = new Axis();
-        // Okay. I didn't know this worked.
-        this.axisM = this.axis.addTo(this.box)
-
-        this.finaliseScene()
-    }
-
-    finaliseScene(){
-        this.spotLight.shadows(this.box).receiver(this.ground)
-        this.animations()
-    }
-
-    animations(){
-        let anim1 = new Animation({ targetProperty: 'position.y' })
-        let y = this.box.position().y;
-        anim1.frame(0, y).frame(150, y * 4).frame(300, y)
-        this.box.animate(anim1)
-
-        let anim = new Animation({ targetProperty: 'rotation.y' })
-        anim.frame(0, 0).frame(300, Math.PI*2)
-        this.box.animate(anim)
-    }
-
-    basicScene() {
-
+class HugeParticlePlaneApp extends Garden {
+    start() {
+        let fact = 3000
+        this._light = new HemisphericLight({ color: 'white'});
         this._camera = new ArcRotateCamera({
-            activate: true
-            , alpha: -.6
-            , beta: 1.07
-            , radius: 100
+            radius: 105
+            , beta: 1.288
+            , activate:true
         });
 
-        this.spotLight = new SpotLight({
-            position: asVector(0, 30, 0)
-            , direction: asVector(0, -1, 0)
-            , diffuse: 'white'
-            , angle: 4
-            , exponent: 12
-            , intensity: .4
-        })
-
-        this._light = new HemisphericLight({ color: 'white'});
-        this._light.addToScene()
-
         this.ground = new Ground({
-            color: 'thistle'
-            , width: 50
-            , height: 50
+            color: 'midnightBlue'
+            , width: fact
+            , height: fact
             , position: [0, 0, 0]
         })
 
-        this.children.addMany(this.spotLight, this.ground)
+        var b = new Box({
+                color: 'white'
+            });
+
+        this.af = new ParticleSystem({
+        //this.af = new PS({
+            count: 100000
+            , items: [b]
+
+            , positionFunction: function(particle, i, s){
+                // let uvSize = Math.random() * 0.9;
+                asXYZ(
+                    particle.scale
+                    , Math.random() * 2 + 0.8
+                    , Math.random() * 6 + 0.8
+                    , Math.random() * 2 + 0.8
+                    )
+
+                asXYZ(
+                    particle.position
+                    , (Math.random() - 0.5) * fact
+                    , particle.scale.y / 2 + 0.01
+                    , (Math.random() - 0.5) * fact
+                    )
+
+                particle.rotation.y = Math.random() * 3.5;
+
+                //grey = 1.0 - Math.random() * 0.5;
+                //particle.color = new BABYLON.Color4(grey + 0.1, grey + 0.1, grey, 1);
+                //particle.uvs.x = Math.random() * 0.1;
+                //particle.uvs.y = Math.random() * 0.1;
+                //particle.uvs.z = particle.uvs.x + uvSize;
+                //particle.uvs.w = particle.uvs.y + uvSize;
+            }
+            , updatable: false
+            , vertexFunction(){}
+            , step: function(sps){
+                //app._camera._babylon.rotation.x += .01
+                app._camera._babylon.alpha += .0002
+
+                //sps.setParticles()
+            }
+        })
+
+        this.children.addMany(this._light, this.ground);
+        this.afm = this.af.addToScene()
+
+
     }
-
 }
-
 
 Garden.register(
                 Particles
@@ -444,5 +441,4 @@ Garden.register(
                 , PositionsParticlesApp
                 , SpaceParticlesApp
                 , ExampleParticlesApp
-                , AxisExample
                 );
