@@ -1,6 +1,6 @@
 var assets = [
    // Vendor require
-   "js/babylon-2-5.custom.js"
+   "js/babylon.2-6-light.js"
    , 'js/vendor/IT.js'
    , 'js/vendor/color.js'
    , 'js-v3/vendor/vue.min.js'
@@ -54,6 +54,10 @@ var assets = [
    , 'js-v3/apps/shape-columns.js'
    , 'js-v3/apps/particles.js'
    , 'js-v3/apps/animate-boxes.js'
+   , 'js-v3/apps/axis.js'
+   , 'js-v3/apps/simple.js'
+   , 'js-v3/apps/texture.js'
+
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'
    , 'js-v3/view.js'
