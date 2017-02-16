@@ -55,10 +55,15 @@ var colorView = new Vue({
     }
 })
 
+var cleanAppsList = (items) => {
+    var regex = /([A-Z])/mg;
+    return items.splice(0).sort().map((x)=> [x , x.replace(regex, ' $1')])
+}
+
 var appsView = new Vue({
     el: '.panel.apps'
     , data: {
-        apps: Garden.apps.splice(0)
+        apps: cleanAppsList(Garden.apps)
         , storageName: appViewStorageName
         , selected: (function(){
             let l = localStorage[appViewStorageName]
@@ -86,18 +91,6 @@ var shapesView = (function(){
         }
     })
 })()
-
-var shapesView = (function(){
-    let v = ['Shapes'].concat(Object.keys(Garden.instance().shapes))
-    return new Vue({
-        el: '.shapes'
-        , data: {
-            items: v
-            , selected: 'Shapes'
-        }
-    })
-})()
-
 
 var classSelectView = (function(){
     let v = Object.keys(Garden.instance().named)
