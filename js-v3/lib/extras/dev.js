@@ -20,6 +20,15 @@ class Developer extends BaseClass {
         let gInst = Garden.instance().children.getItem(id);
         gInst.wireframe = !gInst.wireframe;
     }
+
+    debug(show){
+        let db = app.scene().debugLayer;
+        if(show != false){
+            db.show()
+        } else {
+            db.hide()
+        }
+    }
 }
 
 
