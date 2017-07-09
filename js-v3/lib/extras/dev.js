@@ -36,6 +36,7 @@ var sceneClickers = {
     setScene: false
     , onPointerUp: funcChain([])
     , onPointerDown: funcChain([])
+    , onClick: funcChain([])
     , _onPointerUp(ev, m){
         this.onPointerUp(ev, m)
     }
@@ -158,6 +159,10 @@ class SceneClick {
         if(this._click) {
             this._click(item, e, _d)
         }
+
+        let id = item.pickedMesh.id;
+        let gInst = Garden.instance().children.getItem(id);
+        sceneClickers.onClick(item, gInst, e)
 
         if(_d < this.delta()) {
             this.doubleClicked(item, e, _d)

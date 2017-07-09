@@ -33,6 +33,7 @@ var assets = [
    , 'js-v3/lib/babylon/cameras.js'
    , 'js-v3/lib/babylon/triggers.js'
    , 'js-v3/lib/babylon/actions.js'
+   , 'js-v3/lib/babylon/controllers.js'
 
    , 'js-v3/lib/extras/textures.js'
    , 'js-v3/lib/extras/animators.js'
@@ -57,10 +58,14 @@ var assets = [
    , 'js-v3/apps/axis.js'
    , 'js-v3/apps/simple.js'
    , 'js-v3/apps/texture.js'
+   , 'js-v3/apps/gravity.js'
+   , 'js-v3/apps/procedural-floor.js'
+   , 'js-v3/apps/scaling.js'
 
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'
    , 'js-v3/view.js'
+   , 'js-v3/view/class-reader.js'
 ];
 
 assetLoader

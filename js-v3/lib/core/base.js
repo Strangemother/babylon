@@ -166,6 +166,18 @@ class Base extends Destroyable {
         log('Start run once.')
     }
 
+    actionManager() {
+        /* Return an action manager. If undefined a new one is created.*/
+        let b = this._scene;
+
+        if(b != undefined && b.actionManager == undefined) {
+            let scene = this._app.scene();
+            b.actionManager = new BABYLON.ActionManager(scene);
+        }
+
+        return b.actionManager;
+    }
+
     get backgroundColor(){
         /* return the clearColor from the main scene */
         return this.scene().clearColor

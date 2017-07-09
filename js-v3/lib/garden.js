@@ -1,3 +1,33 @@
+class Contrib {
+
+    setup(app, keys, configs, globalConfig){
+        _itc = IT.g(configs)
+        if(_itc.is('array')) {
+            // Check of right length
+
+        } else if(_itc.is('object')) {
+            /* Do all the keys exist, else
+            does the global exist
+            raise error or merge respectivly */
+        }
+
+        for(let key of keys) {
+            // let conf =
+            if(this[key] != undefined) {
+                app[key] = this[key](app, conf)
+            }
+        }
+    }
+
+    _mergeObjects() {
+        /* merge objects left to right*/
+        o = {}
+        for (var i = 0; i < arguments.length; i++) {
+               Object.assign(o, arguments[i]);
+           }
+        return o
+    }
+}
 
 class Garden extends Base {
 
@@ -95,5 +125,10 @@ class Garden extends Base {
                 return Garden.switch(n)
             }
         })(n)
+    }
+
+    screenshot(size=2){
+        let func = BABYLON.Tools.CreateScreenshot;
+        func(this._engine, this._camera, size)
     }
 }

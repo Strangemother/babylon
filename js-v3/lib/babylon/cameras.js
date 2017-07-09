@@ -65,6 +65,10 @@ class Camera extends BabylonObject {
         return camera;
     }
 
+    detach(){
+        this._babylon.detachControl(Garden.instance()._canvas)
+    }
+
 }
 
 class FreeCamera extends Camera {
