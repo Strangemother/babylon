@@ -32,7 +32,7 @@ materials.color = function(scene, name, type=colors.DIFFUSE){
     }
 
     let m = materials.standard(scene, name);
-    console.log('making', item, type)
+    // console.log('making', item, type)
     m[type] = item;
     return m
 }

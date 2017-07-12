@@ -106,7 +106,8 @@ class BaseProperty extends BaseClass {
         if( this.getterSetter() ) {
 
             if( instance.gardenType == 'instance'
-                && instance[_key] == undefined) {
+                && instance[_key] == undefined
+                && (_key in instance) == false) {
                 Object.defineProperty(instance, _key, {
                     get: v
                     , set: v

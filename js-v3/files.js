@@ -1,16 +1,18 @@
 var assets = [
    // Vendor require
-   "js/babylon.2-6-light.js"
+   "js/babylon-2-5.custom.js"
+   // "js/babylon.2-6-light.js"
    , 'js/vendor/IT.js'
    , 'js/vendor/color.js'
    , 'js-v3/vendor/vue.min.js'
    , 'js-v2/vendor/jquery-3.1.1.min.js'
-   , 'js-v2/vendor/mocha/mocha.js'
-   , 'js-v2/vendor/unitjs/browser/dist/unit.js'
+   // , 'js-v2/vendor/mocha/mocha.js'
+   // , 'js-v2/vendor/unitjs/browser/dist/unit.js'
 
+   , 'js-v3/lib/2d/core.js'
 
    , 'js-v3/lib/core/utils.js'
-   , 'js-v3/lib/tests.js'
+   // , 'js-v3/lib/tests.js'
    , 'js-v3/lib/extras/PrintLogger.js'
 
    , 'js-v3/lib/core/core.js'
@@ -45,7 +47,7 @@ var assets = [
    , 'js-v3/lib/extras/axis.js'
    , 'js-v3/lib/extras/dev.js'
 
-   , 'js-v3/tests/test.js'
+   //, 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'
    , 'js-v3/apps/app.js'

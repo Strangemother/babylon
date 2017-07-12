@@ -22,7 +22,7 @@ INPUT = {
         };
 
         for(let key in this) {
-                if(this[key] == value) return key;
+            if(this[key] == value) return key;
         }
     }
 }
@@ -48,20 +48,20 @@ XBOX_BUTTON = {
         , UP: [0, 'Up']
     }
 
-
+    , TRIGGER: 'change'
+    , STICK: 'change'
 
     , idFromInt(i, type) {
         let _t = this[type];
         if(_t == undefined) {
             _t = this[INPUT.idFromVal(type)]
-
-
         }
 
         for(let key in _t) {
             if(_t[key][0] == i) return key;
         }
 
+        return _t;
     }
 }
 
@@ -73,6 +73,7 @@ class InputController {
      */
     constructor(){
         this.controllers = []
+        this.keyChain = {}
     }
 
     waitConnect() {
@@ -98,7 +99,11 @@ class InputController {
         for(let item of this.boundMethods()) {
             let name = item.name;
             /* call each mapped method with a new calling function */
-            inputDevice[name](boundCaller(item).bind(this))
+            try {
+               inputDevice[name](boundCaller(item).bind(this))
+            } catch(e) {
+                console.warn(`Connected device ${inputDevice.id} does not support ${name} function`)
+            }
         }
 
         /*
@@ -157,7 +162,57 @@ class InputController {
     }
 
     callInput(controller, inputZone, buttonName, value) {
-        console.log(controller.index, inputZone, buttonName, value)
+        // console.log(controller.index, inputZone, buttonName, value)
+
+        // call chain
+        let ch = this.keyChain[inputZone.toLowerCase()];
+        if(ch != undefined) {
+            this.callKeyChain(ch, controller, inputZone, buttonName, value)
+        }
+    }
+
+    callKeyChain(keyChain, controller, inputZone, buttonName, value){
+
+        // console.info('call', inputZone, buttonName)
+        // console.info(keyChain)
+        for (var i = keyChain.length - 1; i >= 0; i--) {
+            keyChain[i](controller, inputZone, buttonName, value)
+        }
+    }
+
+    addMap(){
+        /*
+        Given arguments of lists, each item (type array) is a keymap
+        */
+        for (var i = arguments.length - 1; i >= 0; i--) {
+            let _t = IT.g(arguments[i]);
+            if(_t.is('object')) {
+                /*
+                    addMap(){
+                        rightStick_Changed(){}
+                    }
+                 */
+                for(let key in arguments[i]){
+                    this.addKeyFunctionMap(key, arguments[i][key], arguments[i])
+                }
+            }
+
+            if(_t.is('array')) {
+                this.addKeyFunctionMap(arguments[i][0], arguments[i][1], arguments)
+            }
+
+        }
+    }
+
+    addKeyFunctionMap(inputKey, functionCallback, keys) {
+        /* Map a input i.e "INPUT.TRIGGER', to a function callback */
+        let lik = inputKey.toLowerCase()
+        if(this.keyChain[lik] == undefined) {
+            this.keyChain[lik] = []
+        }
+
+        console.log('add', lik, 'to callbacks')
+        this.keyChain[lik].push(functionCallback)
     }
 
     keys(){

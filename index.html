@@ -35,32 +35,31 @@
          <a href="javascript:;" @click='loadItem' class="btn">Load</a>
       </div>
 
-
-         <div class="methods">
-            <h3>methods</h3>
-            <ul class="methods-list">
-               <li class="methods-item"
-                  v-for='mname in sorted(loaded.methodNames)'>{{ mname }}</li>
+      <div class="methods">
+         <h3>methods</h3>
+         <ul class="methods-list">
+            <li class="methods-item"
+               v-for='mname in sorted(loaded.methodNames)'>{{ mname }}</li>
+         </ul>
+      </div>
+      <div class="selected">
+         <h2 class="title">Loaded: {{ loaded.name }}</h2>
+         <div class="classes">
+            <h3>classes</h3>
+            <ul class="classes-list">
+               <li :class="['classes-item', {isinstance: loaded.name == cname}]"
+                  v-for='cname in loaded.classChain'>{{ cname }}</li>
             </ul>
          </div>
-         <div class="selected">
-            <h2 class="title">Loaded: {{ loaded.name }}</h2>
-            <div class="classes">
-               <h3>classes</h3>
-               <ul class="classes-list">
-                  <li :class="['classes-item', {isinstance: loaded.name == cname}]"
-                     v-for='cname in loaded.classChain'>{{ cname }}</li>
-               </ul>
-            </div>
 
-            <div class="keys">
-               <h3>keys</h3>
-               <ul class="keys-list">
-                  <li class="keys-item"
-                     v-for='kname in loaded.keys'>{{ kname }}</li>
-               </ul>
-            </div>
+         <div class="keys">
+            <h3>keys</h3>
+            <ul class="keys-list">
+               <li class="keys-item"
+                  v-for='kname in loaded.keys'>{{ kname }}</li>
+            </ul>
          </div>
+      </div>
    </div>
 
    <div class="view">
