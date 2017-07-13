@@ -2,6 +2,10 @@ class Object2D {
     /* implement the base level of world scene abstracton.
     All items and singletons should inherit from here. */
 
+    constructor(config){
+        this.config = config || {};
+    }
+
     canvas(id){
         /* provide and create, or return a canvas instance. */
         if(id == undefined) {
@@ -69,6 +73,7 @@ class Object2D {
 
 
 class Scene2D extends Object2D {
+
     /*
     A basic scene can hold an instance of the ScreenSpaceCanvas2D
     or generate new with Scene2D.create() */
@@ -85,7 +90,7 @@ class Scene2D extends Object2D {
         return new BABYLON.ScreenSpaceCanvas2D(scene,
             {
                 id: canvasName
-                , size: new BABYLON.Size(600, 600)
+                // , size: new BABYLON.Size(600, 600)
                 , cachingStrategy: BABYLON.Canvas2D.CACHESTRATEGY_DONTCACHE
                 , backgroundFill: BABYLON.Canvas2D.GetSolidColorBrushFromHex("#80808040")
                 , backgroundRoundRadius: 10
@@ -104,49 +109,52 @@ class Scene2D extends Object2D {
         let _items = [];
         let canvas = this.start()
         let items = function(){
-            if(canvas.isDisposed) {
-                clearInterval(timerId);
-                return;
-            }
             return this.items(canvas);
         }.bind(this);
 
         this.x = 0
+        this.rotation = 0
         this.renderTimer = setInterval(function(){
+            if(canvas.isDisposed) {
+                clearInterval(this.renderTimer);
+                return;
+            }
             for (var i = _items.length - 1; i >= 0; i--) {
                 _items[i].dispose();
             }
 
             _items=items()
-        })
+        }, 10)
 
         return this
     }
 
     items(canvas){
+        this.rotation -= .01
 
         var rect = new BABYLON.Rectangle2D({
             parent: canvas
             , id: "Rect"
-            , x: 150
-            , y: 150
-            , width: 150
-            , height: 150
-            , border: BABYLON.Canvas2D.GetSolidColorBrushFromHex("#404040FF")
+            , x: (app._canvas.width / 2) - 100
+            , y: (app._canvas.height / 2) - 200
+            , width: 200
+            , height: 100
+            , border: BABYLON.Canvas2D.GetSolidColorBrushFromHex("#AAAAAAFF")
             , fill: BABYLON.Canvas2D.GetGradientColorBrush(
-                new BABYLON.Color4(0.9, 0.3, 0.9, 1)
-                , new BABYLON.Color4(1.0, 1.0, 1.0, 1)
+                new BABYLON.Color4(0.1, 0.2, 0.4, .6)
+                , new BABYLON.Color4(0, 0, 0, .05)
                 )
-            , borderThickness: 10
-            , roundRadius: 10 });
+            , borderThickness: 3
+            , roundRadius: 5 });
 
-        var text = new BABYLON.Text2D("Select a Primitive!",
+        var text = new BABYLON.Text2D("Simple 2D text.",
             {
                 parent: canvas
-                , marginAlignment: "h:center, v:bottom"
+                , marginAlignment: "h:center, v:center"
                 , fontName: "12pt Arial"
+                , rotation: this.rotation
                 , defaultFontColor: new BABYLON.Color4(1, 1, 1, 1)
-                , x: this.x
+                //, x: this.x
             });
 
         return [rect, text]
