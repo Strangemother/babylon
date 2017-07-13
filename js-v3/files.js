@@ -63,6 +63,7 @@ var assets = [
    , 'js-v3/apps/gravity.js'
    , 'js-v3/apps/procedural-floor.js'
    , 'js-v3/apps/scaling.js'
+   , 'js-v3/apps/2d.js'
 
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'
