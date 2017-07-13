@@ -69,7 +69,9 @@ class Object2D {
 
 
 class Scene2D extends Object2D {
-
+    /*
+    A basic scene can hold an instance of the ScreenSpaceCanvas2D
+    or generate new with Scene2D.create() */
     create(canvasName='renderCanvas'){
          let [scene, engine, canvas] = this.getBabylonSet()
         return [scene, engine, canvas]
@@ -95,6 +97,33 @@ class Scene2D extends Object2D {
 
     start(){
         let canvas = this.screenSpace();
+        return canvas;
+    }
+
+    loop(){
+        let _items = [];
+        let canvas = this.start()
+        let items = function(){
+            if(canvas.isDisposed) {
+                clearInterval(timerId);
+                return;
+            }
+            return this.items(canvas);
+        }.bind(this);
+
+        this.x = 0
+        this.renderTimer = setInterval(function(){
+            for (var i = _items.length - 1; i >= 0; i--) {
+                _items[i].dispose();
+            }
+
+            _items=items()
+        })
+
+        return this
+    }
+
+    items(canvas){
 
         var rect = new BABYLON.Rectangle2D({
             parent: canvas
@@ -115,10 +144,11 @@ class Scene2D extends Object2D {
             {
                 parent: canvas
                 , marginAlignment: "h:center, v:bottom"
-                , fontName: "12pt Arial", defaultFontColor: new BABYLON.Color4(1, 1, 1, 1)
+                , fontName: "12pt Arial"
+                , defaultFontColor: new BABYLON.Color4(1, 1, 1, 1)
+                , x: this.x
             });
 
-        return canvas;
-
+        return [rect, text]
     }
 }
