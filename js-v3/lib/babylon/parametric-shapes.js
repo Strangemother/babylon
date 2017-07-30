@@ -94,9 +94,9 @@ class Ribbon extends ParametricShape {
             // instance    (LineMesh) an instance of a ribbon to be updated    null
             , 'instance'
             // invertUV    (boolean) to swap the U and V coordinates at geometry construction
-            , 'invertUV'
+            // , 'invertUV'
             // time (texture rotation of 90°)   false
-            , 'time'
+            //, 'time'
 
         ]
     }

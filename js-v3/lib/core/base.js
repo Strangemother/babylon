@@ -145,6 +145,7 @@ class Base extends Destroyable {
         this.displayListManager = new DisplayListManager(this)
         this.children = this.displayListManager.childList() // new ChildList(this)
         this._childID = this.constructor.name
+        this._renderers.push(this.displayListManager.getRenderer())
     }
 
     get babylonSet(){

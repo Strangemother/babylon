@@ -136,6 +136,35 @@ class BabylonObject extends ChildManager {
         return this.addTo(this._app, options)
     }
 
+    babylonParamsArray(scene, overrides) {
+        /* return the configured options in order for this bablyonCall
+        arguments as an array. If null=true in overrides, for each missing
+        option, store a 'null' for the array placeholder.
+
+        This is used for BABYLON update options when generating a mesh.*/
+        let donull = overrides.null == true;
+
+        let a = [donull? null: name];
+
+        let keys= this.keys()
+
+        for (var i = 0; i < keys.length; i++) {
+            let key = keys[i]
+            console.log('key', key)
+            /* Read each key, appending in order.*/
+            let v = overrides[key] || null
+            if(v == undefined){
+                if(donull != true) {
+                    continue
+                }
+            };
+
+            a.push(v)
+        }
+
+        return a;
+    }
+
     babylonParams(scene, overrides) {
         /* Return the configured options in order for this.babylonCall arguments
         Returned is [name, options, scene] */
@@ -185,6 +214,7 @@ class BabylonObject extends ChildManager {
 
         return a
     }
+
 
     babylonSceneArg(scene){
         /* Given the scene, return an argument for the scen argument

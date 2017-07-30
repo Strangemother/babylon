@@ -41,6 +41,26 @@ class Shape extends BabylonObject {
         /* return a new instance or _duplicate item_ instance*/
         return i;
     }
+
+    update(options) {
+        /* Call an update for an item flagged with option updateable=True.
+         A mesh with updated paramters mutates the currentl _bablyon item*/
+        let _options = Object.assign({ instance: this._babylon, null: true}, options);
+        let scene = this._app._scene;
+        let arr = this.babylonParams(
+            scene,
+            _options
+        );
+
+        //console.log(arr)
+        let mesh = this._babylon;
+        let pathArray = options.pathArray
+        //arr = [
+        //    null, pathArray, null, null, null, null, null, null, mesh
+        //];
+
+        this.babylonFunc()[this.babylonFuncName()](scene, _options)
+    }
 }
 
 

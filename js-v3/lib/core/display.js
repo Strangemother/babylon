@@ -6,8 +6,30 @@ class DisplayListManager {
 
         this._displaySets = {};
         this.parent = parent || _instance;
+
         // this.id = Math.random().toString(32).slice(2);
     }
+
+    getRenderer(){
+        /* Returns a a function for iterating and calling all item.renderLoop
+        methods within the display set.*/
+
+        return function(scene, index){
+
+            for(let did in this._displaySets) {
+                for(let id in this._displaySets[did][0].itemNameMap){
+                    let ref = this._displaySets[did][0].itemNameMap[id];
+                    let item = this._displaySets[did][1][ref[1]]
+                    if(item[0].renderLoop != undefined) {
+                        // console.log('call renderLoop')
+                        item[0].renderLoop(scene, item[1], index, item[0])
+                    }
+                }
+            }
+
+        }.bind(this)
+    }
+
 
     get(id){
         return this._displaySets[id]
@@ -49,6 +71,8 @@ class DisplayListManager {
     childList() {
         let r = new ChildList(this.parent, this);
         this._displaySets[r.id] = [r, []];
+
+
         return r;
     }
 
@@ -212,6 +236,7 @@ class ChildList {
         l.push([callback, once, scope])
 
         this._onAdd[id] = l
+
     }
 
     onBeforeAdd(id, callback, once=false, scope) {

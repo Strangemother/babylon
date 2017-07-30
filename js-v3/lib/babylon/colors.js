@@ -24,7 +24,27 @@ materials.standard = function(scene, name) {
 }
 
 materials.color = function(scene, name, type=colors.DIFFUSE){
+    /* nuild a material with a colour, using any color from the
+    colors object. For type options `colors.DIFFUSE` and `colors.EMISSIVE` are
+    permissable. If the name is a simpleID, an asset or texture is used.
+
+
+        materials.color('red')
+        materials.color('red', 'diffuseColor')
+        materials.color(scene, 'red', 'diffuseColor')
+        materials.color(scene, 'red')
+
+        materials.color('woodAsset')
+    */
     let item = name;
+    if(typeof(scene) == 'string') {
+        if(name != undefined) {
+            type = name;
+        };
+        name = scene;
+        scene = undefined
+    }
+
     if(typeof(name) == 'string') {
         item = colors[name](undefined, type)
     } else {
@@ -78,9 +98,15 @@ colors.get = function(value, count=-1, type=colors.DIFFUSE){
     // Cast the element as the given type.
 
     let c = (count==-1)? 4: count;
-    if(typeof(value) == 'string' ) {
-        // if(count==-1) c = 3
-        return colors[value](c, type)
+    if(typeof(value) == 'string') {
+        if(colors[value] != undefined) {
+            // if(count==-1) c = 3
+            return colors[value](c, type)
+        }
+
+        if(value[0] == '#') {
+            return colors.make.apply(colors, colors.hexToRgb(value))
+        }
     }
 
     let _t = IT.g(value)
@@ -113,8 +139,10 @@ colors.get = function(value, count=-1, type=colors.DIFFUSE){
     if(_t.is('array')) {
         // Cast new
         let func = count == -1? 'make': `make${count}`
-        return colors.make(...value)
+        // return colors.make(...value)
+        return colors.make.apply(colors, value)
     };
+
 
     let m = `Could not resolve color "${value}"`
     console.error('Could not resolve color:', value)

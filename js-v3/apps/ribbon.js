@@ -90,47 +90,116 @@ class BabylonRibbon extends Garden {
 class Ribbon extends Garden {
 
     start(){
+        /* The height of each peak of a sin.*/
+        this.height = 5;
+        /* The peak _Side_ width */
+        this.width = 12;
+        /* The peak length*/
+        this.depth = 7;
 
         this.basicScene()
 
-        this.makeRibbon()
-        //this.axis = new Axis();
-        // Okay. I didn't know this worked.
-        //this.axisM = this.axis.addTo(this.ribbon)
+        this.ribbon = this.makeRibbon()
+        this.ribbon.addToScene()
+        this.ribbon.wireframe = true;
 
-        this.finaliseScene()
+        let r2 = this.makeRibbon({
+                color: 'dodgerBlue',
+                position: [0,-20,0]}
+            )
+        r2.addToScene()
+        this.r2 = r2
     }
 
-    makeRibbon(){
-        let count = 60;
-        let pathArray = new Array(count)
+    makeRibbon(options){
+        /* Creae a ribbon instance using the insternal path generation functions
+        REturns a ribbon instance
+        */
 
-        for (var k = -20; k < 20; k++) {
-            for (var i = pathArray.length - 1; i >= 0; i--) {
-                pathArray[i] = asVector(i - count, 0, k)
-            };
-        }
-
-          var mat = new BABYLON.StandardMaterial("mat1", app.scene());
-          mat.alpha = 1.0;
-          mat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 1.0);
-          mat.backFaceCulling = false;
-
-        let rib = new this.shapes.Ribbon({
-            pathArray: pathArray
-            , material: mat
-            , offset: 0
+        let conf = Object.assign({
+            pathArray: this.firstPath()
             , updatable: true
             , sideOrientation: BABYLON.Mesh.BACKSIDE
-        })
+        }, options)
 
-        this.ribbon = rib
-        rib.addToScene()
+        // Generate a new material.
+        let mat = conf.material || materials.color(conf.color || 'mediumAquaMarine')
+        mat.backFaceCulling = false;
+        conf.material = mat
+
+        // Make a new ribbon
+        let rib = new this.shapes.Ribbon(conf)
+
+        // Bind an update loop to the path update.
+        rib.timestep = 0
+        rib.renderLoop = this.ribbonLoop.bind(this);
+
+        return rib
     }
 
-    finaliseScene(){
-        //this.spotLight.shadows(this.ribbon).receiver(this.ground)
+    firstPath(){
+        /* Generate the initial path for the ribbon. This is a two-step for loop
+        calling `generatevenctors` */
+        let pathArray = [] //new Array(count)
+        for(var i = -20; i < 20; i++) {
+            pathArray.push(this.generateVectors(i * 2));
+        }
 
+        return pathArray
+    }
+
+    generateVectors(k) {
+        /* GFenerate an array of Vector3 instances, for the ribbon path.*/
+        var path = [];
+        for (var i = 0; i < 60; i++) {
+            var x =  i - 30;
+            var y = 0;
+            var z = k;
+            path.push(asVector(x, y, z));
+        }
+        return path;
+    }
+
+    updatePath(pathArray, timestep=0) {
+        /* Iterate the pathArray with `updateVector.
+        The path is mutated in place. Nothing is returned.*/
+        for(var p = 0; p < pathArray.length; p++) {
+            this.updateVector(pathArray[p], timestep);
+        }
+    }
+
+    updateVector(path, k) {
+        /* For each item in the path array, update the x,y,z for updating
+        the view instance ventors */
+        for (var i = 0; i < path.length; i++) {
+            var z = path[i].z;
+            var y = this.height * Math.sin(i/ this.depth) * Math.sin(k + z / this.width);
+            path[i].y = y;
+        }
+    }
+
+    ribbonLoop( scene, mesh, index, ribbon){
+        /* given to ribbon.updateLoop, this function is called upon every
+        displayList render iteration.
+        Update the existing paths in the ribbon.
+        Nothing is returned.
+
+        This function is called directly from the displayList child iterator,
+        therefore the given arguments reflect the item in the display list.
+
+            scene: the attached item displayList scene
+            mesh: the _bablyon item for the ribbon instance
+            index: position within the displatList children
+            ribbon: the ribbon instance, same as `this` by default.
+
+        The local scope is the item(ribbon) by default. If your scope is lost
+        due to binding, the last item in the arguments (ribbon) is the `this` scope.
+        Therefore you can `bind()` the renderLoop function to some other instance.
+        */
+        let pathArray = ribbon._options.pathArray;
+        this.updatePath(pathArray, ribbon.timestep += .02)
+        ribbon.update({pathArray})
+        mesh.rotation.y += .003
     }
 
     basicScene() {
