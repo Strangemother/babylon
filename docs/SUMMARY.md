@@ -2,7 +2,7 @@
 
 * [Introduction](README.md)
    * [File Loader](file_loader/README.md)
-   * [Builds](builds)
+   * [Builds](builds.md)
 * [Garden](garden/README.md)
    * [Examples](garden/examples.md)
    * [Config](garden/the_canvas.md)

@@ -51,6 +51,7 @@ var assets = [
 
    , 'js-v3/config.js'
    , 'js-v3/apps/app.js'
+   , 'js-v3/apps/ribbon.js'
    , 'js-v3/apps/basic-scene.js'
    , 'js-v3/apps/basic-elements.js'
    , 'js-v3/apps/basic-app.js'
