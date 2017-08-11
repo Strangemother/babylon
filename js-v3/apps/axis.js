@@ -68,5 +68,66 @@ class AxisExample extends Garden {
 
 }
 
+class Axis3dExample extends AxisExample {
+    start(){
 
-Garden.register(AxisExample);
+        this.basicScene()
+
+        this.box = new Box({
+            color: 'red'
+            , size: 7
+            , position: [0, 5, 0]})
+
+        this.box.addToScene()
+
+        this.axis = new Axis3D();
+        // Okay. I didn't know this worked.
+        this.axisM = this.axis.addTo(this.box)
+
+        this.finaliseScene()
+    }
+}
+
+class AxisLabelExample extends AxisExample {
+    start(){
+
+        this.basicScene()
+
+        this.box = new Box({
+            color: 'red'
+            , size: 7
+            , position: [0, 5, 0]})
+
+        this.box.addToScene()
+
+        this.axis = new ColorAxisArrow();
+        // Okay. I didn't know this worked.
+        this.axisM = this.axis.addTo(this.box)
+
+        this.finaliseScene()
+    }
+}
+
+class AxisLayeredExample extends AxisExample {
+
+    start(){
+        super.start()
+        this._render = true
+
+        this.colorAxis = new ColorAxisArrow({size: 10});
+        this.colorAxis.addTo(this.box)
+
+        this.axis3d = new Axis3D();
+        this.axis3d.addTo(this.box)
+        this.ground.color('grey')
+    }
+
+    renderLoop(){
+        super.renderLoop.apply(this, arguments);
+        if(this._render != true) return;
+        this.box._babylon.rotation.addInPlace(asVector(.001, .005, .002));
+
+    }
+}
+
+Garden.register(AxisExample, Axis3dExample, AxisLabelExample, AxisLayeredExample);
