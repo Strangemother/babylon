@@ -3,6 +3,27 @@ textures.DIFFUSE = 'diffuseTexture'
 textures.EMISSIVE = 'emissiveTexture'
 
 
+textTexture = function(text,color='white',  size=2, font="bold 36px Arial"){
+
+    let scene = app.scene()
+
+    var textPlane = function(text, color, size, font) {
+        var texture = new BABYLON.DynamicTexture("DynamicTexture", 50, scene, true);
+        texture.hasAlpha = true;
+        texture.drawText(text, 5, 40, font, color , "transparent", true);
+
+        var plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
+        plane.material = materials.standard()
+        plane.material.backFaceCulling = false;
+        plane.material.specularColor = colors.white()
+        plane.material.diffuseTexture = texture;
+        return plane;
+    };
+
+    return textPlane(text, color, size, font)
+}
+
+
 class Texture extends BabylonObject {
     static assignmentName(item) {
         return 'textures'
