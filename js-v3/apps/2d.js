@@ -1,4 +1,4 @@
-class Simple2DExample extends Garden {
+class Simple2dExample extends Garden {
 
     start(){
         this.scene2D = (new Scene2D).loop()
@@ -6,4 +6,4 @@ class Simple2DExample extends Garden {
 }
 
 
-Garden.register(Simple2DExample)
+Garden.register(Simple2dExample)

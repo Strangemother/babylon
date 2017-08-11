@@ -20,6 +20,9 @@ class DisplayListManager {
                 for(let id in this._displaySets[did][0].itemNameMap){
                     let ref = this._displaySets[did][0].itemNameMap[id];
                     let item = this._displaySets[did][1][ref[1]]
+
+                    if(item == undefined) continue;
+
                     if(item[0].renderLoop != undefined) {
                         // console.log('call renderLoop')
                         item[0].renderLoop(scene, item[1], index, item[0])

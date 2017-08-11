@@ -1,7 +1,7 @@
 ;(function(){
 
 
-class BabylonRibbon extends Garden {
+class RibbonOfBabylon extends Garden {
 
     basicScene() {
 
@@ -19,8 +19,8 @@ class BabylonRibbon extends Garden {
 
     start(){
         this.basicScene()
-
         let scene = app.scene()
+
         var mat = new BABYLON.StandardMaterial("mat1", scene);
         mat.alpha = 1.0;
         mat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 1.0);
@@ -87,7 +87,7 @@ class BabylonRibbon extends Garden {
 }
 
 
-class Ribbon extends Garden {
+class RibbonOfGarden extends Garden {
 
     start(){
         /* The height of each peak of a sin.*/
@@ -105,7 +105,7 @@ class Ribbon extends Garden {
 
         let r2 = this.makeRibbon({
                 color: 'dodgerBlue',
-                position: [0,-20,0]}
+                position: [0,-40,0]}
             )
         r2.addToScene()
         this.r2 = r2
@@ -219,6 +219,6 @@ class Ribbon extends Garden {
 }
 
 
-Garden.register(Ribbon, BabylonRibbon);
+Garden.register(RibbonOfGarden, RibbonOfBabylon);
 
 })()

@@ -23,7 +23,7 @@ class SprayParticlesApp extends Garden {
 }
 
 
-class AsteroidsApp extends Garden {
+class AsteroidFieldExample extends Garden {
     start(){
         this._camera = new ArcRotateCamera({
             activate:true
@@ -44,7 +44,7 @@ class AsteroidsApp extends Garden {
 }
 
 
-class Particles extends Garden {
+class ParticlesSystem extends Garden {
     start(){
         this._light = new PointLight({ color: 'white', intensity: 1});
         this._camera = new ArcRotateCamera({
@@ -136,7 +136,7 @@ class Particles extends Garden {
 }
 
 
-class ImmutableParticles extends Garden {
+class ParticlesImmutableSystem extends Garden {
     start(){
         this.backgroundColor = colors.black()
         this._light = new PointLight({
@@ -231,7 +231,7 @@ class ImmutableParticles extends Garden {
 }
 
 
-class SprayParticlesApp2 extends Garden {
+class ParticleSystemWithUpdators extends Garden {
     start(){
         this._camera = new ArcRotateCamera({
             activate:true
@@ -260,7 +260,7 @@ class SprayParticlesApp2 extends Garden {
 }
 
 
-class PositionsParticlesApp extends Garden {
+class ParticlesPositionPlane extends Garden {
 
     start(){
 
@@ -291,7 +291,7 @@ class PositionsParticlesApp extends Garden {
 }
 
 
-class ExampleParticlesApp extends Garden {
+class ParticleSystemMatrix extends Garden {
 
     start(){
 
@@ -325,7 +325,7 @@ class ExampleParticlesApp extends Garden {
 }
 
 
-class SpaceParticlesApp extends Garden {
+class ParticleSystemSpace extends Garden {
 
     start(){
         this.backgroundColor = 'black';
@@ -364,7 +364,7 @@ class SpaceParticlesApp extends Garden {
 }
 
 
-class HugeParticlePlaneApp extends Garden {
+class ParticleSystemHugePlane extends Garden {
     start() {
         let fact = 3000
         this._light = new HemisphericLight({ color: 'white'});
@@ -433,12 +433,13 @@ class HugeParticlePlaneApp extends Garden {
 }
 
 Garden.register(
-                Particles
+                ParticlesSystem
                 , SprayParticlesApp
-                , SprayParticlesApp2
-                , AsteroidsApp
-                , ImmutableParticles
-                , PositionsParticlesApp
-                , SpaceParticlesApp
-                , ExampleParticlesApp
+                , ParticleSystemWithUpdators
+                , AsteroidFieldExample
+                , ParticlesImmutableSystem
+                , ParticlesPositionPlane
+                , ParticleSystemSpace
+                , ParticleSystemMatrix
+                , ParticleSystemHugePlane
                 );

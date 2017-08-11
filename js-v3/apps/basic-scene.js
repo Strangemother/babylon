@@ -1,4 +1,4 @@
-class BasicScene extends Garden {
+class SimpleBasicScene extends Garden {
 
     start(){
 
@@ -34,4 +34,4 @@ class BasicScene extends Garden {
     }
 }
 
-Garden.register(BasicScene)
+Garden.register(SimpleBasicScene)

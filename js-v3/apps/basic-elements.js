@@ -1,5 +1,5 @@
 
-class BasicElements extends Garden {
+class BasicElementsBabylonClone extends Garden {
     start(){
         var scene = this.scene()
 
@@ -107,4 +107,4 @@ class BasicElements extends Garden {
     }
 }
 
-Garden.register(BasicElements)
+Garden.register(BasicElementsBabylonClone)

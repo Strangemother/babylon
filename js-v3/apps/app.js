@@ -1,4 +1,4 @@
-class Sandbox extends Garden {
+class MultiTextureBox extends Garden {
     init(config){
         config = config || {};
         config.backgroundColor = config.backgroundColor || this._baseColor()
@@ -45,25 +45,10 @@ class Sandbox extends Garden {
 
         this._camera.activate()
     }
-
-    _shapes(){
-        let shapes = app.shapes;
-        let c = 0;
-        for(let keyName in shapes) {
-            c += 2;
-            let shape = new shapes[keyName];
-            try {
-                let mesh = this.children.add(shape)
-                mesh.position.x = c;
-            } catch (e){
-                console.warn('Did not make', keyName)
-            }
-        }
-    }
 }
 
 
-class SpotlightApp extends Garden {
+class BoxInSpotlight extends Garden {
 
     start(){
         this.backgroundColor = colors.black()
@@ -118,7 +103,8 @@ class SpotlightApp extends Garden {
 }
 
 
-class ChildrenApp extends Garden {
+class BoxesWithChildren extends Garden {
+
     start(){
         this._light = new HemisphericLight({ color: 'white'});
         this._camera = new ArcRotateCamera({activate:true});
@@ -144,7 +130,7 @@ class ChildrenApp extends Garden {
 }
 
 
-Garden.register(Sandbox
-                , ChildrenApp
-                , SpotlightApp
+Garden.register(MultiTextureBox
+                , BoxesWithChildren
+                , BoxInSpotlight
                 );

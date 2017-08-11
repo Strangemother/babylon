@@ -110,7 +110,7 @@ class AnimateBoxes extends Garden {
 }
 
 
-class SpotlightAnimated extends Garden {
+class AnimatedInSpotlight extends Garden {
 
     start(){
         this.backgroundColor = colors.black()
@@ -193,4 +193,4 @@ class SpotlightAnimated extends Garden {
 }
 
 
-Garden.register(AnimateBoxes, SpotlightAnimated)
+Garden.register(AnimateBoxes, AnimatedInSpotlight)

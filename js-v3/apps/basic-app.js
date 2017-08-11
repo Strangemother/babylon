@@ -1,5 +1,5 @@
 
-class App extends Garden {
+class SimpleColoredSpheres extends Garden {
     init(config){
 
         config = config || {};
@@ -41,4 +41,4 @@ class App extends Garden {
 }
 
 
-Garden.register(App)
+Garden.register(SimpleColoredSpheres)
