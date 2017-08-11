@@ -1,4 +1,27 @@
-class Simple extends Garden {
+class EmptyScene extends Garden {
+    start(){
+        //this.backgroundColor = colors.white()
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , radius: 20
+        });
+
+        this.pointLight = new PointLight({
+            position: [2, 7, 2]
+            , intensity: .5
+        })
+
+        this.hemiLight = new HemisphericLight({
+            intensity: .5
+        })
+
+
+        this.children.addMany(this.hemiLight, this.pointLight);
+    }
+
+}
+
+class SimpleBox extends Garden {
     init(config){
         config = config || {};
         config.backgroundColor = config.backgroundColor || [.2, .2, .4]
@@ -42,43 +65,7 @@ class ToonColors extends Garden {
 }
 
 
-class Main extends Garden {
-
-    init(config){
-        super.init(config)
-        log('Main.init')
-        this.backgroundColor = [.2, .1, .1]
-
-    }
-
-    runGame() {
-        this.makeLights()
-        this.makeBox()
-        this.makeCamera()
-    }
-
-    makeCamera(){
-        let options = {alpha:1, beta:1, radius: 10, target: new BABYLON.Vector3(0, 0, 0)};
-        let c = new ArcRotateCamera(options)
-        c.activate()
-    }
-
-    makeLights(){
-        // create a basic light, aiming 0,1,0 - meaning, to the sky
-        // let [scene, engine, canvas] = this._app.babylonSet
-        // this.light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
-        this.light = new HemisphericLight()
-        this.light.addToScene()
-    }
-
-    makeBox(){
-        /* A simple make box example */
-        let b = new Box
-        this.children.add(b)
-    }
-}
-
-class SpinBox extends Garden {
+class SimpleBoxRotation extends Garden {
     start(){
         this.backgroundColor = colors.white()
         this._camera = new ArcRotateCamera({
@@ -101,14 +88,52 @@ class SpinBox extends Garden {
             , color: 'red'
         });
 
-        this.children.addMany(this.hemiLight, this.pointLight, this.box)
+        this.children.addMany(this.hemiLight, this.pointLight, this.box);
+        this._render = true;
+    }
+
+    renderLoop(){
+        super.renderLoop.apply(this, arguments);
+        if(this._render != true) return;
+        this.box._babylon.rotation.addInPlace(asVector(.001, .005, .002));
 
     }
 }
 
 
-Garden.register(Simple
-                , ToonColors
-                , Main
-                , SpinBox
+class SimpleExample extends Garden {
+
+    start(){
+        this._camera = new FreeCamera({
+            activate:true
+            , radius: 20
+            , position: [0, 5, -10]
+        });
+
+        this.hemiLight = new HemisphericLight({
+            intensity: .5
+        })
+
+        this.sphere = new Sphere({
+            diameter: 2
+            , subdivisions: 16
+            , position: [0, 1, 0]
+        })
+
+
+        this.ground = new Ground({
+            width: 6
+            , height: 6
+            , subdivisions: 2
+        })
+
+        this.children.addMany(this._camera, this.hemiLight, this.sphere, this.ground)
+    }
+}
+
+Garden.register(ToonColors
+                , EmptyScene
+                , SimpleBox
+                , SimpleBoxRotation
+                , SimpleExample
                 );
