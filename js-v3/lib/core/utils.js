@@ -305,6 +305,21 @@ var asBabylon = function(item) {
     return item;
 }
 
+var randomInt = function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+
+
+var distance = function(a, b) {
+    a.subtract(b)
+    let v = a.subtract(b)
+    let dv = asVector(v.asArray().map(Math.pow))
+    return dv.x + dv.y + dv.z
+}
+
 
 var loadConfig = function(name) {
     return JSON.parse(localstorage[name])
@@ -441,7 +456,7 @@ var saveConfig = function(name, data) {
         // A dummy constructor because a class can only extend something constructible
         function ConstructibleProxyTarget() {
             console.log('xmultipleClasses ConstructibleProxyTarget:', this.constructor.name)
-            return this.__init__.apply(this, arguments);
+            return this.__init__ && this.__init__.apply(this, arguments);
         }
 
         // Replace prototype with a forwarding proxy to parents' prototypes

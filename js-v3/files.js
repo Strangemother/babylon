@@ -47,6 +47,7 @@ var assets = [
    , 'js-v3/lib/extras/particle-positions.js'
    , 'js-v3/lib/extras/axis.js'
    , 'js-v3/lib/extras/dev.js'
+   , 'js-v3/lib/extras/polygon.js'
 
    //, 'js-v3/tests/test.js'
 
@@ -67,6 +68,7 @@ var assets = [
    , 'js-v3/apps/procedural-floor.js'
    , 'js-v3/apps/scaling.js'
    , 'js-v3/apps/2d.js'
+   , 'js-v3/apps/polygons.js'
 
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'

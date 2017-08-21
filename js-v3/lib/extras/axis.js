@@ -7,8 +7,18 @@ class Axis extends Lines {
         return 'CreateLines'
     }
 
+    keys(){
+        k = super.keys()
+        k.push('size')
+        return k
+    }
+
+    sizeKey(){
+        return 1
+    }
+
     pointsKey(){
-        let size = 1
+        let size = this._options.size
         let tipSize = size * .10
         return [
 
@@ -92,7 +102,9 @@ class Axis3D extends Sphere {
 
         /* This is a little ugly and should be removed.*/
         setTimeout(function(){
-            this.color('white').alpha = .2
+            let _c = this.color() || this.color('white');
+            this.material().alpha = .2
+
             mesh.visibility = 1;
 
             /* Apply the axis columns to the upper render group of
@@ -247,6 +259,7 @@ class ColorAxisArrow extends Box {
                 let _m = elements[i].addTo(this);
                 _m.renderingGroupId = 3;
             };
+            mesh.visibility = 0
         }.bind(this))
 
 

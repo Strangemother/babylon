@@ -35,7 +35,7 @@ class Camera extends BabylonObject {
         return camera;
     }
 
-    activate(scene, control=true, cache=true) {
+    activate(scene, control=false, cache=true) {
         /* Activate the camera, implementing as the scene.activeCamera.
         If `control` is true (default), the camera will take control
         of the canvas.*/

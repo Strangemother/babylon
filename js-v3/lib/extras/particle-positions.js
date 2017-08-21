@@ -108,6 +108,22 @@ class SlowRotateParticlePositions extends ParticlePosition {
 
     options(){
         return {
+            speed: 0.05
+        }
+    }
+
+    position(particle, i, s){
+
+        particle.rotation.y += this.data.speed;
+        //sps.mesh.position.y = Math.sin( (k - Date.now())/10000 )
+        //k += 0.0002
+    }
+}
+
+class SlowRotateMeshPositions extends ParticlePosition {
+
+    options(){
+        return {
             speed: 0.0005
         }
     }

@@ -162,6 +162,7 @@ class SceneClick {
 
         let id = item.pickedMesh.id;
         let gInst = Garden.instance().children.getItem(id);
+        window.garden_lastSelected = gInst
         sceneClickers.onClick(item, gInst, e)
 
         if(_d < this.delta()) {

@@ -174,7 +174,14 @@ class ChildList {
         this._addAfter(items, meshes, options, scene, engine, canvas)
         this._deleteFlagged()
         // User did not pass an array, therefore return one mesh.
-        if(!Array.isArray(children)) return mesh;
+        if(!Array.isArray(children)) {
+            items[0].addedToScene ? items[0].addedToScene(mesh, options, scene):undefined
+            return mesh;
+        }
+
+        for (var i = 0; i < items.length; i++) {
+            items[i].addedToScene ? items[i].addedToScene(meshes[i], options, scene): undefined;
+        }
 
         return meshes;
     }

@@ -179,6 +179,9 @@ class BabylonObject extends ChildManager {
     }
 
     babylonArrayArgs() {
+        /* Should the parameters given to garden convert to an
+        array for babylon object generation.
+        If true, an array of keys from the this.keys() order */
         return true
     }
 
