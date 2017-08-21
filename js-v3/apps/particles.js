@@ -274,8 +274,11 @@ class ParticlesPositionPlane extends Garden {
         let item = this.s = new Box({
             diameter: 1
             , segments: 1
-            , color: colors.emissive('white')
+            , color: colors.get('white')
         })
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this.children.add(this._light);
 
         this.ps = new ParticleSystem({
             count: 10000
@@ -325,7 +328,7 @@ class ParticleSystemMatrix extends Garden {
 }
 
 
-class ParticleSystemSpace extends Garden {
+class ParticleSystemStarField extends Garden {
 
     start(){
         this.backgroundColor = 'black';
@@ -432,6 +435,67 @@ class ParticleSystemHugePlane extends Garden {
     }
 }
 
+class ParticleSystemHugePlaneField extends Garden {
+    start() {
+        let fact = 4000
+
+        this.backgroundColor = [0,0,0];
+        this._camera = new ArcRotateCamera({
+            radius: 3084
+            , alpha: 14
+            , beta: 1.588
+            , activate:true
+        });
+
+
+        var b = new Box({
+                color: colors.emissive('white')
+            });
+
+        this.af = new ParticleSystem({
+        //this.af = new PS({
+            count: 100000
+            , items: [b]
+
+            , positionFunction: function(particle, i, s){
+                // let uvSize = Math.random() * 0.9;
+                asXYZ(
+                    particle.scale
+                    , Math.random() * 2 + 0.8
+                    , Math.random() * 6 + 0.8
+                    , Math.random() * 2 + 0.8
+                    )
+
+                asXYZ(
+                    particle.position
+                    , (Math.random() - 0.5) * fact
+                    , particle.scale.y / 2 + 0.01
+                    , (Math.random() - 0.5) * fact
+                    )
+
+                particle.rotation.y = Math.random() * 3.5;
+
+                //grey = 1.0 - Math.random() * 0.5;
+                //particle.color = new BABYLON.Color4(grey + 0.1, grey + 0.1, grey, 1);
+                //particle.uvs.x = Math.random() * 0.1;
+                //particle.uvs.y = Math.random() * 0.1;
+                //particle.uvs.z = particle.uvs.x + uvSize;
+                //particle.uvs.w = particle.uvs.y + uvSize;
+            }
+            , updatable: false
+            , vertexFunction(){}
+            , step: function(sps){
+                //app._camera._babylon.rotation.x += .01
+                app._camera._babylon.alpha += .0002
+            }
+        })
+
+        this.afm = this.af.addToScene()
+
+
+    }
+}
+
 Garden.register(
                 ParticlesSystem
                 , SprayParticlesApp
@@ -439,7 +503,8 @@ Garden.register(
                 , AsteroidFieldExample
                 , ParticlesImmutableSystem
                 , ParticlesPositionPlane
-                , ParticleSystemSpace
+                , ParticleSystemStarField
                 , ParticleSystemMatrix
                 , ParticleSystemHugePlane
+                , ParticleSystemHugePlaneField
                 );
