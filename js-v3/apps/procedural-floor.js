@@ -1,30 +1,38 @@
-class ProceduralFloor extends Garden {
+class ConveyerCubes extends Garden {
     init(config){
         config = config || {};
-        config.backgroundColor = config.backgroundColor || [.2, .2, .4]
+        config.backgroundColor = config.backgroundColor || [0.3,.3,.3]
         super.init(config)
+
     }
 
     start(){
-        this._path = this.path()
-        this._light = new HemisphericLight();
-
-        this.children.addMany(this._light);
-
-        this._camera = new ArcRotateCamera({
-            beta: 1.2
-            , radius: 12
-            , alpha: -3.105
-            , activate:true
-        });
-        // this._camera.activate()
+        this.walker = new WalkerInterface(this)
+        this.walker.start()
+        window.we = this.walker;
+        this._ready = true
+        this.renderLoop = this.renderLoop_ofStart
     }
 
-    path(){
+    renderLoop_ofStart() {
+        this.walker.step()
+        return super.renderLoop.apply(this, arguments)
+    }
+}
+
+class Walker {
+
+    constructor(app){
+        this.app = app;
+        this.count = 50;
+        this.width = 3
+    }
+
+    makePath(){
         /* render many panels in a direction as a _path_ */
         let panels = [];
         let panel;
-        for(let i=0; i < 100; i++) {
+        for(let i=0; i < this.count; i++) {
             panel = this.panel(i);
             panel.addToScene()
             panels.push(panel)
@@ -34,7 +42,7 @@ class ProceduralFloor extends Garden {
     }
 
     panel(p){
-        let width = 3
+        let width = this.width;
         /* returns a simple panel */
         let b = new Box({
             color: 'white',
@@ -45,7 +53,44 @@ class ProceduralFloor extends Garden {
         });
         return b
     }
+
+    basicScene(){
+        let app = this.app;
+        this.light = new HemisphericLight();
+        app.children.addMany(this.light);
+
+        this.camera = new ArcRotateCamera({
+            beta: 1.2
+            , radius: 32
+            , alpha: -3.105
+            , activate:true
+        });
+
+        this.axis = new ColorAxisArrow({size: 1})
+        this.axis.addToScene()
+    }
+
+    step(){
+        /* step the scene.*/
+        let v = this.count * (this.width + .1)
+        for (var i = 0; i < this.path.length; i++) {
+            let b = this.path[i]._babylon;
+            b.position.x -= .05
+
+            if(b.position.x < -v/2) {
+                b.position.x += v
+            }
+        }
+    }
 }
 
+class WalkerInterface extends Walker {
 
-Garden.register(ProceduralFloor)
+    start(){
+        this.basicScene()
+        this.path = this.makePath()
+    }
+
+}
+
+Garden.register(ConveyerCubes)
