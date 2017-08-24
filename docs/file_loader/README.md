@@ -22,7 +22,7 @@ var assets = [
    // Lib
    , 'js-v2/lib/core/utils.js'
    , 'js-v2/lib/PrintLogger.js'
-   , 'js-v3/lib/base.js
+   , 'js-v3/lib/base.js'
    // App
    , 'js-v2/config.js'
    , 'js-v3/main.js'
