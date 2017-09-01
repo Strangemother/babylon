@@ -4,6 +4,145 @@ class Curve extends Shape {
     }
 }
 
+class VectorSet {
+
+    constructor(parent=undefined, vectors=null){
+        this.parent = parent;
+        this.vectors = vectors;
+    }
+
+    redraw(options) {
+        if(this.parent.draw) {
+            this.parent.draw(options)
+        }
+    }
+
+    add(item) {
+        for (var i = 0; i < arguments.length; i++) {
+            this.addVector(arguments[i])
+        }
+
+        this.redraw({ points: this.vectors })
+    }
+
+    insert(index, item){
+        /* add at position*/
+        for (var i = 1; i < arguments.length; i++) {
+            this.vectors.splice(index, 0, arguments[i])
+        }
+
+        this.redraw({ points: this.vectors })
+    }
+
+    remove(item) {
+        let removed = undefined;
+        if(Number.isInteger(item)) {
+            removed = this.vectors.splice(item, 1)
+        }
+
+        let i = this.vectors.indexOf(item);
+        if(i > -1) {
+            removed = this.vectors.splice(i, 1)
+        }
+
+        this.redraw({ points: this.vectors })
+
+        return removed
+    }
+
+    addVector(item) {
+        if(this.vectors == null) {
+            this.vectors = []
+        }
+
+        this.vectors.push(item)
+    }
+
+    get(item) {
+        if(Number.isInteger(item)) {
+            return this.vectors[item]
+        }
+    }
+
+    list(){
+        return this.vectors || []
+    }
+}
+
+class Spline extends BabylonObject {
+
+    init(options, ...args){
+        /* API hook to start your component. Such as an add to view.*/
+        this.points = new VectorSet(this, options? options.points: this.defaultPoints())
+        super.init(options, ...args)
+    }
+
+    keys(){
+        return [
+            'points'
+            , 'initial'
+        ]
+    }
+
+    defaultPoints(){
+        return [asVector(0, 0, 0), asVector(0, 0, 0)]
+    }
+
+    pointsKey(){
+        return this.points.list()
+
+    }
+
+    initialKey(){
+        return asVector(0, 0, 0)
+    }
+
+    babylonFuncName(){
+        return 'Path3D'
+    }
+
+    babylonSceneArg(){
+        return undefined
+    }
+
+    babylonNameArg(){
+        return undefined
+    }
+
+    addtoScene(options){
+        return this.draw(options)
+    }
+
+    draw(options={}){
+        let conf = Object.assign({}, { points: undefined }, options);
+        if(conf.points == undefined) {
+            let curve;
+            if(this._babylon) {
+                curve = this._babylon.getCurve();
+            } else {
+                curve = this.create(options).getCurve()
+            };
+            conf.points = curve;
+        };
+
+        let lines = new Lines()
+        lines.addToScene(conf);
+        if(this._last) {
+            this._last.destroy()
+        }
+        this._last = lines;
+        return lines;
+    }
+
+    destroy(){
+        if(this._last) {
+            this._last.destroy()
+        }
+
+        return super.destroy()
+    }
+}
+
 class CubicBezier extends Curve {
 
     keys(){
@@ -14,12 +153,7 @@ class CubicBezier extends Curve {
     }
 
     pointsKey(){
-        return [
-            new BABYLON.Vector3(5, 5, -5),
-            new BABYLON.Vector3(30, 30, 40),
-            new BABYLON.Vector3(-60, 50, -40),
-            new BABYLON.Vector3( -30, 60, 30)
-        ]
+        return []
     }
 
     pointCountKey(){
@@ -44,7 +178,7 @@ class CubicBezier extends Curve {
 }
 
 
-class CubicBezierLine extends ParametricShape {
+class CubicBezierLine extends CubicBezier {
 
     keys(){
         return [
@@ -60,8 +194,14 @@ class CubicBezierLine extends ParametricShape {
 
     }
 
+
     babylonFuncName(){
         return 'CreateLines'
+    }
+
+
+    pointsKey(){
+        return [asVector(0, 0, 0)]
     }
 
     pointCountKey(){
