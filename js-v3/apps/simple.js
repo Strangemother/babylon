@@ -40,31 +40,6 @@ class SimpleBox extends Garden {
 }
 
 
-class ToonColors extends Garden {
-
-    start(scene) {
-        this.ball = new Sphere;
-        this.box = new Box({
-            position: [0, -3, 0]
-            , color: colors.emissive('red')
-        });
-
-        this.knot = new TorusKnot({
-            p: 1
-            , q: 2
-            , position: [0,3, 0]
-        })
-
-        this.knotMesh = this.knot.addToScene()
-        this.ballMesh = this.children.add(this.ball)
-        this.boxMesh = this.children.add(this.box)
-
-        app.backgroundColor = colors.white()
-        app.ball.color( colors.emissive('green') )
-    }
-}
-
-
 class SimpleBoxRotation extends Garden {
     start(){
         this.backgroundColor = colors.white()
@@ -131,8 +106,7 @@ class SimpleExample extends Garden {
     }
 }
 
-Garden.register(ToonColors
-                , EmptyScene
+Garden.register(EmptyScene
                 , SimpleBox
                 , SimpleBoxRotation
                 , SimpleExample

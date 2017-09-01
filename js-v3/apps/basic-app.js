@@ -42,3 +42,4 @@ class SimpleColoredSpheres extends Garden {
 
 
 Garden.register(SimpleColoredSpheres)
+

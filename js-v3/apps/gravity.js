@@ -17,6 +17,7 @@ class Force extends Garden {
             , alpha: -1
             , beta: .8
             , radius: 19
+
         });
 
         this._bcc = 0
@@ -179,241 +180,6 @@ class Force extends Garden {
 
 }
 
-
-class SlowBoxDraw extends Garden {
-
-    init(config){
-
-        config = config || {};
-        config.backgroundColor = [.2, .2, .4];
-        super.init(config);
-
-        this.run();
-    }
-
-    start(){
-
-        this._camera = new ArcRotateCamera({
-            position: [4, 2, -4]
-            , radius: 50
-        });
-
-        this.light = new HemisphericLight({ color: 'white' });
-
-        this.children.addMany(this.light);
-        this._camera.activate();
-
-        sceneClickers.onClick.add(this.onClick)
-
-        this.ball = this.centerPoint()
-        this.children.addMany(this.ball)
-        this.sandbox()
-    }
-
-    onClick(item, gInst, ev){
-        console.log('onClick', gInst)
-        // this.boxBound(gInst)
-    }
-
-    centerPoint(){
-
-        let b1 = new Sphere({
-            color: 'red'
-            , position: asVector(0, 0, 0)
-        });
-
-        return b1
-    }
-
-    sandbox(){
-        /* Generate the entire play space*/
-        let loopCall = function(){
-            window.setTimeout(function(){
-                this.createBox(this.getRandomConfig(), loopCall)
-            }.bind(this), 900)
-        }.bind(this)
-
-        this.createBox(this.getRandomConfig(), loopCall)
-        // this.universe = this.createBox(config)
-    }
-
-    getRandomConfig(){
-        return {
-            // Universe size
-            position: [
-                      randomInt(-10, 10)
-                    , randomInt(-10, 10)
-                    , randomInt(-10, 10)
-                ]
-            , size: [
-                [
-                    randomInt(2, 20)
-                    , randomInt(2, 20)
-                ]
-                , randomInt(2, 20)
-            ]
-            , speed: 60
-        }
-
-    }
-
-    buildDone(lines){
-        console.log('made', lines)
-    }
-
-    boxBound(){
-        /* apply the bound box.*/
-
-    }
-
-    createBox(config, cb) {
-        /* build the playable area*/
-
-        // Apply space bounding box.
-        // As box
-        let position = asVector(config.position);
-
-        let x = 5
-        let shapes = []
-        let connects =[]
-        var self = this;
-        let speed = config.speed != undefined? config.speed: 50
-        var instanceArray = this._connects ||[];
-
-        // Create two squares
-        let [a, b] = [
-                this.createLineArgs(
-                        [
-                            position.x, position.y , position.z
-                        ]
-                        , instanceArray.splice(0, 4)
-                        , config.size[0]
-                    )
-                , this.createLineArgs(
-                        [
-                            position.x + 20, position.y , position.z
-                        ]
-                        , instanceArray.splice(4)
-                        , config.size[1]
-                    )
-            ]
-
-        let lines = a.concat(b);
-
-
-        let line = lines.pop();
-        this._connects = connects;
-        this._shapes = shapes;
-        this._lines= lines;
-
-        this._mainSlowTimer = window.setInterval(function(){
-            let gInst = self.createLine.apply(self, line);
-            connects.push(gInst);
-            gInst.addToScene();
-
-            line = lines.pop();
-            if(line == undefined) {
-                window.clearInterval(self._mainSlowTimer)
-                self.slowAddConnections(a, b, connects, instanceArray, speed, cb)
-                return
-            };
-        }, speed)
-
-    }
-
-    slowAddConnections(a, b, storeArray=undefined, instanceArray=undefined, ms=1000, cb) {
-
-        let connects = storeArray != undefined ? storeArray: []
-        let self = this;
-        /* The current math plots the last item in the same position
-        as the first, as the two squres 'turtle' draw the lines.
-        Therefore the _last_ vectors of the first line are used
-        for the missing step. */
-        let stepBackInterval = 1;
-        instanceArray = instanceArray == undefined? Array(connects.length):instanceArray
-
-        this._slowTimer = window.setInterval((function(a, b){
-            return function(){
-                let pos = a.length - 1;
-                let item = a.pop();
-                let itemB = b.pop();
-
-                if(item === undefined) {
-                    window.clearInterval(self._slowTimer)
-                    cb && cb(connects)
-                    return
-                };
-
-                let [lineA, lineB] = [item, itemB]
-                let line = self.createLine(
-                        lineA[stepBackInterval], lineB[stepBackInterval]
-                        , instanceArray[pos]
-                        , 'dodgerBlue'
-                    )
-                connects.push(line)
-                stepBackInterval = 0
-                line.addToScene()
-            }
-        })(a,b), ms);
-    }
-
-    createLine(vectorA, vectorB, instance, color='green') {
-        let LinesClass = app.shapes.Lines;
-
-        let lines = new LinesClass({
-            points: [ vectorA, vectorB ]
-            , color: color
-            , updatable: true
-            , instance: instance == undefined? instance: asBabylon(instance)
-        })
-
-        return lines;
-
-    }
-
-    createLineArgs(positionVector, instances, size=1) {
-        let pv = asVector(positionVector);
-        let [x,y] = [size, size]
-
-        if( IT.g(size).is('array') ) {
-            [x,y] = size;
-        }
-
-        return [
-            // up
-            [
-                asVector(pv.x, pv.y, pv.z)
-                , asVector(pv.x, y + pv.y, pv.z)
-                , instances[0]
-                , 'green'
-            ]
-
-            // back
-            , [
-                asVector(pv.x, y + pv.y, pv.z)
-                , asVector(pv.x, y + pv.y, x + pv.z)
-                , instances[1]
-                , 'white'
-            ]
-            // down
-            , [
-                asVector(pv.x, y + pv.y, x + pv.z)
-                , asVector(pv.x, pv.y, x + pv.z)
-                , instances[2]
-                , 'red'
-            ]
-            // forward to Start
-            , [
-                asVector(pv.x, pv.y, pv.z)
-                , asVector(pv.x, pv.y, x + pv.z)
-                , instances[3]
-                , 'yellow'
-            ]
-        ]
-    }
-}
-
-
 class TriPointCenter extends Garden {
     /*
         Given three points, calculate the centeroid of the triangle
@@ -430,16 +196,17 @@ class TriPointCenter extends Garden {
         this.light = new HemisphericLight({ color: 'white' });
         this._rc = 0
         this._counter = 0
+        this.linesOnScene = false;
 
 
-        this.a1 = new Axis3D({ position: [2,  1, 2], color: 'red'})
-        this.a2 = new Axis3D({ position: [-3, 2, 3 ], color: 'white'})
-        this.a3 = new Axis3D({ position: [-1, 1, -4], color: 'green'})
+        this.a1 = new Axis3D({ position: [2,  4, 2], color: 'red'})
+        this.a2 = new Axis3D({ position: [-3, 5, 3 ], color: 'white'})
+        this.a3 = new Axis3D({ position: [-1, 4, -4], color: 'green'})
 
         this.aStage = new ColorAxisArrow({ size: 2})
 
         this.af = new Axis({ size: .4})
-        this.rotationVector = new Axis3D({ size: 4})
+        this.rotationVector = new ColorAxisArrow({ size: 2})
 
 
         this.children.addMany(
@@ -541,26 +308,29 @@ class TriPointCenter extends Garden {
         this.lines12 = new Lines({
             points: [this.a1.position(), this.a2.position()]
             , updatable: true
-            , instance: this.lines12 ? this.lines12._babylon: undefined
+            , instance: this.lines12Mesh
         })
 
 
         this.lines23 = new Lines({
             points: [this.a2.position(), this.a3.position()]
             , updatable: true
-            , instance: this.lines23 ? this.lines23._babylon: undefined
+            , instance: this.lines23Mesh
         })
 
 
         this.lines13 = new Lines({
             points: [this.a1.position(), this.a3.position()]
             , updatable: true
-            , instance: this.lines13 ? this.lines13._babylon: undefined
+            , instance: this.lines13Mesh
         })
 
-        this.lines12.addToScene()
-        this.lines23.addToScene()
-        this.lines13.addToScene()
+
+        this.lines12Mesh = this.lines12.addToScene()
+        this.lines23Mesh = this.lines23.addToScene()
+        this.lines13Mesh = this.lines13.addToScene()
+
+
     }
 
     renderLoop(){
@@ -574,7 +344,6 @@ class TriPointCenter extends Garden {
 
 
 Garden.register(
-    SlowBoxDraw
-    , Force
+    Force
     , TriPointCenter
 )

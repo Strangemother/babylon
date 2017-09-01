@@ -53,11 +53,11 @@ class ControllerExample extends BoxLightCameraExample {
     upScale(item, value) {
         let l = asVector(this.maxScale, this.maxScale, this.maxScale)
             .MinimizeInPlace(
-                value.scaling().add(
+                item.scaling().add(
                     asVector(value, value, value)
                 )
             )
-        value.scaling(l)
+        item.scaling(l)
     }
 
     xyScale(item, value){
@@ -95,13 +95,13 @@ class ControllerExample extends BoxLightCameraExample {
                 self.downScale(self.box, value * .12)
             }
             , [INPUT.RIGHTSTICK_CHANGED](controller, zone, name, value) {
-                console.log(zone, name, value)
+                //console.log(zone, name, value)
 
                 self.xyRotate(self.box, value)
             }
 
             , [INPUT.LEFTSTICK_CHANGED](controller, zone, name, value) {
-                console.log(zone, name, value)
+                //console.log(zone, name, value)
 
                 self.xyScale(self.box, value);
             }
