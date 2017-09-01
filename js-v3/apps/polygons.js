@@ -177,7 +177,15 @@ class NgonPaths extends PolygonExampleBase {
             np.addArc(0, -2, 4, -4, 100);
         }, 2000);
 
+        var hole = [ new BABYLON.Vector2(1, -1),
+         new BABYLON.Vector2(1.5, 0),
+         new BABYLON.Vector2(1.4, 1),
+         new BABYLON.Vector2(0.5, 1.5)
+        ]
 
+        setTimeout(function(){
+            np.hole(hole);
+        }, 2500);
     }
 
 }
