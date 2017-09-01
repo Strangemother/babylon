@@ -121,6 +121,13 @@ class Base extends Destroyable {
         this._renderers.push(this.startCaller.bind(this))
         this._setInitKeys()
 
+        this._patches = []
+        this._patchIndex = {}
+
+        if(this.$patches) {
+            let patches = this.$patches();
+            this.$mountPatches(patches);
+        };
     }
 
     _inheritInstanceKeys(_i) {
@@ -157,9 +164,65 @@ class Base extends Destroyable {
     startCaller(scene, index) {
         /* Call the `start` function and remove the function from the _render
         list. */
+
+        this._patchCall('$start', [scene])
         let r = this.start(scene, index);
+        this._patchCall('$afterStart', [scene])
         this._renderers.splice(index, 1)
         return r;
+    }
+
+    _patchFor(func, patches){
+        /* iterate the mounted matches with the given function
+
+            _patchFor(func(patch, index, array))
+         */
+        if(patches == undefined) {
+            patches = this._patches
+        }
+
+        for (var i = 0; i < patches.length; i++) {
+            func(patches[i], i, patches)
+        }
+    }
+
+    _patchCall(methodName, args, patches){
+        /* Call every patch with the given method name and arguments.
+
+            _patchCall("$mounted", [this])
+        */
+        if(patches == undefined) {
+            patches = this._patches ? this._patches: []
+        }
+
+        for (var i = 0; i < patches.length; i++) {
+            patches[i][methodName].apply(patches[i], args)
+        }
+    }
+
+    $mountPatches(patches){
+        for (var i = 0; i < patches.length; i++) {
+            let P = patches[i]
+            P.$preMount(this, i);
+            let p = new P();
+            this.$mountPatch(p);
+        }
+    }
+
+    $mountPatch(patch) {
+        /* Given a mountable instance, and a scene, mount the instances
+        into the active patches list. */
+
+        if(patch.$mount) {
+            patch.$mount(this)
+        }
+
+        let name = patch.name()
+        let pos = -1 + this._patches.push(patch)
+        let r = this._patchIndex[name];
+        if(r == undefined) r = [];
+        r.push(pos)
+        this._patchIndex[name] = r;
     }
 
     start(scene, index) {
