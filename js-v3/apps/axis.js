@@ -12,9 +12,10 @@ class AxisExample extends Garden {
 
         this.box.addToScene()
 
-        this.axis = new Axis();
-        // Okay. I didn't know this worked.
+        this.axis = new Axis({ color: 'white' });
+
         this.axisM = this.axis.addTo(this.box)
+        //this.axisM = this.axis.addToScene(this.box)
 
         this.finaliseScene()
     }
@@ -27,7 +28,7 @@ class AxisExample extends Garden {
     animations(){
         let anim1 = new Animation({ targetProperty: 'position.y' })
         let y = this.box.position().y;
-        anim1.frame(0, y).frame(150, y * 4).frame(300, y)
+        anim1.frame(0, y).frame(150, y * 2).frame(300, y)
         this.box.animate(anim1)
 
         let anim = new Animation({ targetProperty: 'rotation.y' })
@@ -74,13 +75,13 @@ class Axis3dExample extends AxisExample {
         this.basicScene()
 
         this.box = new Box({
-            color: 'red'
-            , size: 7
+            color: 'white'
+            , size: 3
             , position: [0, 5, 0]})
 
         this.box.addToScene()
 
-        this.axis = new Axis3D();
+        this.axis = new Axis3D({size: 3, diameter: 2});
         // Okay. I didn't know this worked.
         this.axisM = this.axis.addTo(this.box)
 
@@ -117,9 +118,9 @@ class AxisLayeredExample extends AxisExample {
         this.colorAxis = new ColorAxisArrow({size: 10});
         this.colorAxis.addTo(this.box)
 
-        this.axis3d = new Axis3D();
+        this.axis3d = new Axis3D({ size: 2});
         this.axis3d.addTo(this.box)
-        this.ground.color('grey')
+        this.ground.color('lightBlue')
     }
 
     renderLoop(){
