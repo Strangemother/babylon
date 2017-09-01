@@ -9,8 +9,11 @@ class AnimateBoxes extends Garden {
     }
 
     baseScene(){
-        this.skyBox = new SkyBox({assetName: 'mountains'});
-        this.skyBoxMesh = this.skyBox.addToScene();
+
+        this.hemiLight = new HemisphericLight({
+            intensity: 1
+        })
+        this.hemiLight.addToScene()
 
         this.camera = new app.cameras.ArcRotateCamera(true)
     }
