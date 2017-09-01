@@ -54,28 +54,34 @@ class DisplayListManager {
 
             items=items[1]
         } else {
-            console.info('No scene element to remove', child)
+            // console.info('No scene element to remove', child)
             return
         }
 
         if(items == undefined) return
-
+        let [childList, indexArray] = this._displaySets[child._displayListName]
         // let entry = items[child._displayListIndex]
         let removed = items[child._displayListIndex];
-        if(removed.length > 0) {
-            this._displaySets[child._displayListName][1][child._displayListIndex] = undefined
+        if(removed && removed.length > 0) {
+            let childList = this._displaySets[child._displayListName][0]
+            let items = this._displaySets[child._displayListName][1]
+
+            if(childList.remove != undefined) {
+                childList.remove(removed, child._displayListIndex)
+            }
+            items[child._displayListIndex] = undefined
+
             delete child._displayListIndex;
             delete child._displayListName;
+
+           return removed[0]
         }
 
-        return removed[0]
     }
 
     childList() {
         let r = new ChildList(this.parent, this);
         this._displaySets[r.id] = [r, []];
-
-
         return r;
     }
 
@@ -110,9 +116,11 @@ class ChildList {
         // are flagged for deletion during iteration, then
         // cleared after all are done.
         this._deletions = [];
-
+        this._dirtyCount = 0;
         this.id = Math.random().toString(32).slice(2);
         this.createIterators()
+
+        this._garbageTimer = setInterval(this.collectGarbage.bind(this), 1000)
     }
 
     iterators(){
@@ -293,6 +301,12 @@ class ChildList {
     append(item, mesh, options) {
 
         let v = [item, mesh, options];
+
+        if(item._options.instance != undefined) {
+            //debugger
+            return
+        }
+
         // give item index and child list reference
         let index = -1 + this.displayList.push(v);
 
@@ -304,6 +318,58 @@ class ChildList {
         // Add to master list
         // _displayList[item.id] = v
         return index;
+    }
+
+    remove(item, atIndex) {
+
+        let displaylist = this.displayList
+
+        if(displaylist == undefined) {
+            return undefined
+        }
+
+        if(atIndex == undefined) {
+            for (var i = 0; i < displaylist.length; i++) {
+                if(displaylist[i] == item){
+                    atIndex = i;
+                    break
+                }
+            }
+        }
+
+        if(displaylist[atIndex] == item) {
+            // this.displayList.splice(atIndex, 1)
+            displaylist[atIndex] = undefined
+            this._dirtyCount += 1
+            return true
+        }
+
+
+        return false;
+    }
+
+    collectGarbage(){
+        /* clean the display list of nulls.*/
+
+        let dl = this.displayList;
+        // removed any old flag spaces
+        dl = dl.filter((e)=> e != undefined)
+        // Remap locations
+        dl.forEach(function(e,i, a){
+                e[0]._displayListIndex = i
+                this.itemNameMap[e[0].id][1] = i
+                this.meshNameMap[this.itemNameMap[e[0].id][0]][1] = i
+            }.bind(this))
+        // delete from itemNameMap is the index > max length
+        for(let itemID in this.itemNameMap) {
+            if(this.itemNameMap[itemID][1] > dl.length) {
+                delete this.meshNameMap[this.itemNameMap[itemID][0]]
+                delete this.itemNameMap[itemID]
+            }
+        }
+
+        this.displayList = [this, dl];
+        this._dirtyCount = 0
     }
 
     destroy(){
@@ -322,6 +388,7 @@ class ChildList {
             }
         }
 
+        this.collectGarbage()
         this.meshNameMap = {};
     }
 }
