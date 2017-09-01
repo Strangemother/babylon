@@ -42,6 +42,7 @@ class BabylonObject extends ChildManager {
 
         let args = this.setup(scene, options, cache);
         // Return babylon instance
+
         return this.babylonCall(...args);
     }
 
@@ -188,7 +189,8 @@ class BabylonObject extends ChildManager {
     babylonConvertOptions(name, options, scene){
 
         let v, allowSet;
-        let a = [name];
+        let na = this.babylonNameArg(name, options, scene);
+        let a = na != undefined ? [na]: [];
         let keys = this.keys();
         let oKeys = Object.getOwnPropertyNames(options)
         for(let key of keys){
@@ -203,7 +205,7 @@ class BabylonObject extends ChildManager {
             }
         };
 
-        if(a.length != keys.length + 1) {
+        if(a.length != keys.length + 1 && this.babylonSceneArg() != undefined) {
             Garden.handleWarning(
                     'Camera.babylonParams.options'
                     , 'Given parameter length does not match API parameter length'
@@ -225,6 +227,10 @@ class BabylonObject extends ChildManager {
         as the last parameter, return false or undefined
         */
         return scene
+    }
+
+    babylonNameArg(name, options, scene){
+        return name
     }
 
     _babylonParamsMissingKey(key, keys, options, scene) {
