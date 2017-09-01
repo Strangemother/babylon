@@ -505,3 +505,75 @@ class ParticlePosition extends BaseClass {
     //     console.log('ParticlePosition afterUpdate')
     // }
 }
+
+
+class AdvancedParticleSystem extends ParticleSystem {
+
+    spsKeyDef(){
+        let box = (new Box).addToScene();
+        box.isVisible = false;
+        this._emitter = box;
+
+        return {
+            // particleTexture: new BABYLON.Texture("/textures/Flare.png", scene);
+            minAngularSpeed: -0.5
+            , maxAngularSpeed: 0.5
+            , minSize: 0.1
+            , maxSize: 0.5
+            , minLifeTime: 0.5
+            , maxLifeTime: 2.0
+            , minEmitPower: 0.5
+            , maxEmitPower: 4.0
+            , emitter: box
+            , emitRate: 400
+            , blendMode: BABYLON.ParticleSystem.BLENDMODE_ONEONE
+            , minEmitBox: new BABYLON.Vector3(0, 0, 0)
+            , maxEmitBox: new BABYLON.Vector3(0, 0, 0)
+            , direction1: new BABYLON.Vector3(-1, 1, -1)
+            , direction2: new BABYLON.Vector3(1, 1, 1)
+            , color1: new BABYLON.Color3(1, 0, 0)
+            , color2: new BABYLON.Color3(0, 1, 1)
+            , gravity: new BABYLON.Vector3(0, -2.0, 0)
+            , start: true
+        }
+    }
+
+    executeBabylon(babylonFunc, name, _name, options, scene) {
+        let sps = super.executeBabylon(babylonFunc, name, _name, options, scene);
+        let keys = this.spsKeyDef();
+        let ignores = ['start'];
+
+        for(let name in keys) {
+
+            if(ignores.indexOf(name) > -1) {
+                continue;
+            }
+
+            sps[name] = keys[name];
+        }
+
+        return sps;
+    }
+}
+
+    // var particleSystem = new BABYLON.ParticleSystem("particles", 10000, scene);
+    // particleSystem.particleTexture = new BABYLON.Texture("/textures/Flare.png", scene);
+    // particleSystem.minAngularSpeed = -0.5;
+    // particleSystem.maxAngularSpeed = 0.5;
+    // particleSystem.minSize = 0.1;
+    // particleSystem.maxSize = 0.5;
+    // particleSystem.minLifeTime = 0.5;
+    // particleSystem.maxLifeTime = 2.0;
+    // particleSystem.minEmitPower = 0.5;
+    // particleSystem.maxEmitPower = 4.0;
+    // particleSystem.emitter = emitter0;
+    // particleSystem.emitRate = 400;
+    // particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    // particleSystem.minEmitBox = new BABYLON.Vector3(0, 0, 0);
+    // particleSystem.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+    // particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
+    // particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+    // particleSystem.color1 = new BABYLON.Color3(1, 0, 0);
+    // particleSystem.color2 = new BABYLON.Color3(0, 1, 1);
+    // particleSystem.gravity = new BABYLON.Vector3(0, -2.0, 0);
+    // particleSystem.start();

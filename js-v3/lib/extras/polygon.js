@@ -47,6 +47,11 @@ class PathManager extends EntityManager {
         return this.path = new BABYLON[fname](x,y,z);
     }
 
+    hole(vectors) {
+        this.entity.builder.addHole(vectors)
+        this.redraw({ path: this.path, destroyBuilder: false })
+    }
+
     addLine(x, y, z) {
         let poly_path = this.path;
         if(this.path == null) {
@@ -199,6 +204,14 @@ class Ngon extends BabylonObject {
         return false
     }
 
+    dynamicPath(){
+        if(this.points.path == null) {
+            return this.points.vectors
+        }
+
+        return this.points.path;
+    }
+
     babylonCall(name, options, scene) {
         /* Produce a babylon object using the given args as
         parameters for the CreateXXX call.
@@ -217,14 +230,6 @@ class Ngon extends BabylonObject {
         return polygon
     }
 
-    dynamicPath(){
-        if(this.points.path == null) {
-            return this.points.vectors
-        }
-
-        return this.points.path;
-    }
-
     executeBabylon(babylonFunc, babylonName, ...args) {
         /* expecting MeshBuilder */
 
@@ -232,6 +237,7 @@ class Ngon extends BabylonObject {
         let name = args[0]
             , path = args[1].path
             , updatable = args[1].updatable
+            , options = args[1]
             , scene = args[2]
 
         if(updatable == undefined) {
@@ -245,6 +251,12 @@ class Ngon extends BabylonObject {
         if(path == undefined) {
             path = this.dynamicPath()
         };
+
+        if(options
+            && options.destroyBuilder == false
+            && this.builder) {
+            return this.builder;
+        }
 
         return new babylonFunc[babylonName](name, path, scene);
     }
@@ -271,14 +283,16 @@ class Ngon extends BabylonObject {
     redraw(options) {
         let atc = false;
         if(this.builder) {
-            delete this.builder;
+            if(options.destroyBuilder !== false) {
+                delete this.builder;
+            }
+
             if(this._babylon) {
                 this.destroy()
                 atc = true
             }
-        }
-        /*
-        If the element is already on the scene, it should be re-added.
+        };
+        /* If the element is already on the scene, it should be re-added.
         This is to ensure the after effects are applied to a
         new object. the create() function factories a new babylon only. */
         let f = atc ? 'addToScene': 'create'
@@ -288,5 +302,10 @@ class Ngon extends BabylonObject {
 
     addVector(point) {
         return this.points.add(point)
+    }
+
+    hole(vectors) {
+
+        return this.points.hole(vectors)
     }
 }
