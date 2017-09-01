@@ -48,11 +48,12 @@ var assets = [
    , 'js-v3/lib/extras/axis.js'
    , 'js-v3/lib/extras/dev.js'
    , 'js-v3/lib/extras/polygon.js'
+   , 'js-v3/lib/extras/patch.js'
 
    //, 'js-v3/tests/test.js'
 
    , 'js-v3/config.js'
-   , 'js-v3/apps/app.js'
+   //, 'js-v3/apps/app.js'
    , 'js-v3/apps/ribbon.js'
    , 'js-v3/apps/basic-scene.js'
    , 'js-v3/apps/basic-elements.js'
@@ -69,6 +70,8 @@ var assets = [
    , 'js-v3/apps/scaling.js'
    , 'js-v3/apps/2d.js'
    , 'js-v3/apps/polygons.js'
+   , 'js-v3/apps/patchExample.js'
+   , 'js-v3/apps/spotlight.js'
 
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'
