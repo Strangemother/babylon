@@ -29,6 +29,7 @@ class Contrib {
     }
 }
 
+
 class Garden extends Base {
 
     static assignmentName(){
@@ -81,8 +82,6 @@ class Garden extends Base {
         Garden.reset()
     }
 
-
-
     static run(name, config, runConfig){
         if(config == undefined && IT.g(name).is('object')) {
             config = name;
@@ -102,13 +101,25 @@ class Garden extends Base {
         let app = new C(config);
 
         if(!app._ran) {
+            //this.beginPatches(app, config, runConfig)
             app.run(runConfig)
         }
 
         return app;
     }
 
+    beginPatches(app, config, runConfig) {
+        /* Construct new pathces */
+        let patches = this.patches
+        if(patches == undefined) {
+            return
+        }
 
+        for (var i = 0; i < patches.length; i++) {
+            let PatchC = patches[i];
+
+        }
+    }
 
     static switch(name, destroy=true) {
         let gi = Garden.instance();
@@ -127,8 +138,25 @@ class Garden extends Base {
         })(n)
     }
 
-    screenshot(size=2){
-        let func = BABYLON.Tools.CreateScreenshot;
-        func(this._engine, this._camera, size)
+    screenshot(width, height, camera){
+        /* Create an image screenshot of the active engine.
+        Optional values will match the engine if undefined.*/
+        let engine = this._engine;
+        if(width == undefined) width = engine.getRenderWidth();
+        if(height == undefined) height = engine.getRenderHeight();
+        if(camera == undefined) {
+            camera = this._camera
+            if(camera._babylon != undefined){
+                camera = camera._babylon;
+            }
+        }
+        let func = BABYLON.Tools.CreateScreenshotUsingRenderTarget;
+        func(engine, camera, { width, height})
     }
+
+    //getRunConfig(){
+    //    /* merge patch config */
+    //    if(this.patches) {
+    //    }
+    //}
 }
