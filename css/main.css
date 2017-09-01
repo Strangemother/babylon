@@ -671,3 +671,12 @@ body {
 .side-by-side {
     display: flex;
 }
+
+a.screenshot.btn {
+    background: #333;
+    padding: 0.4em;
+    display: block;
+    text-align: center;
+    font-size: 1.1em;
+    cursor: pointer;
+}

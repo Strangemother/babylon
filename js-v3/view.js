@@ -81,6 +81,17 @@ var appsView = new Vue({
     }
 })
 
+var screenshotView = new Vue({
+    el: '#screenshot'
+    , methods: {
+        screenshot(e){
+            e.preventDefault()
+            app.screenshot()
+            return false;
+        }
+    }
+})
+
 var shapesView = (function(){
     let v = ['Shapes'].concat(Object.keys(Garden.instance().shapes))
     return new Vue({
