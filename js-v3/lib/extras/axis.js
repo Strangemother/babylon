@@ -18,7 +18,7 @@ class Axis extends Lines {
     }
 
     pointsKey(){
-        let size = this._options.size
+        let size = this._options.size || this.sizeKey()
         let tipSize = size * .10
         return [
 
@@ -66,30 +66,42 @@ class Axis3D extends Sphere {
         return 'CreateSphere'
     }
 
+    keys(){
+        k = super.keys()
+        k.push('size')
+        return k
+    }
+
+    sizeKey(){
+        return 1
+    }
+
     //executeBabylon(babylonFunc, name, args) {
     babylonExecuted(mesh) {
-        let diameter = .06;
+        let size = this._options.size || this.sizeKey()
+        let diameter = size * .06;
+
         let x = new Cylinder({
-            height: 1,
+            height: size,
             diameter: diameter,
             color: 'red',
             rotation: [0, 0, 1.5707963267948966],
-            position: [.5, 0, 0]
+            position: [size * .5, 0, 0]
         })
 
         let z = new Cylinder({
-            height: 1,
+            height: size,
             diameter: diameter,
             color: 'blue',
             rotation: [1.5707963267948966, 0, 0],
-            position: [0, 0, .5]
+            position: [0, 0, size * .5]
         })
 
         let y = new Cylinder({
-            height: 1,
+            height: size,
             diameter: diameter,
             color: 'green',
-            position: [0, .5, 0]
+            position: [0, size * .5, 0]
         })
 
 
@@ -258,7 +270,9 @@ class ColorAxisArrow extends Box {
             for (var i = 0; i < elements.length; i++) {
                 let _m = elements[i].addTo(this);
                 _m.renderingGroupId = 3;
+
             };
+
             mesh.visibility = 0
         }.bind(this))
 
