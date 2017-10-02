@@ -9,7 +9,7 @@ class LitScene extends GardenPatch {
 
         });
 
-        this.light = new HemisphericLight({ color: 'white', intensity: .7 });
+        this.light = new HemisphericLight({ color: 'white'});
 
         this.ground = new Ground({
             width: 20

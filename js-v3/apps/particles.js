@@ -260,6 +260,42 @@ class ParticleSystemWithUpdators extends Garden {
 }
 
 
+class AdvancedParticleSystemWithUpdators extends Garden {
+
+    start(){
+        let alpha = 3
+        this._camera = new ArcRotateCamera({
+            activate:true
+            , alpha: -.6
+            , beta: 1.07
+            , radius: 130
+        });
+
+        this._light = new HemisphericLight({ color: 'white'});
+        this.children.add(this._light);
+
+        this.ground = new Ground({ width: 100, height: 100, color: 'lightBlue' })
+        this.children.add(this.ground);
+
+        this.ps = new AdvancedParticleSystem({
+            count: 200
+            //, items: [new Sphere({diameter: 1, segments: 1, color: 'royalBlue'})]
+            , updatable: false
+
+        })
+        this.spp = new SprayParticlePositions();
+        //this.srp = SlowRotateParticlePositions
+        //this.ps.addUpdator(this.spp, this.srp)
+        this.spsMesh = this.ps.create()
+        this._scene.registerBeforeRender(function(){
+            this.ps._emitter.position.x = 4 * Math.cos(alpha);
+            this.ps._emitter.position.z = 4 * Math.sin(alpha);
+        }.bind(this))
+
+    }
+}
+
+
 class ParticlesPositionPlane extends Garden {
 
     start(){
@@ -507,4 +543,5 @@ Garden.register(
                 , ParticleSystemMatrix
                 , ParticleSystemHugePlane
                 , ParticleSystemHugePlaneField
+                , AdvancedParticleSystemWithUpdators
                 );

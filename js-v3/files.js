@@ -72,6 +72,8 @@ var assets = [
    , 'js-v3/apps/polygons.js'
    , 'js-v3/apps/patchExample.js'
    , 'js-v3/apps/spotlight.js'
+   , 'js-v3/apps/camera-vr.js'
+   , 'js-v3/apps/forces-engines.js'
 
    , 'js-v3/main.js'
    , 'js-v3/vue-components/scrubber.js'

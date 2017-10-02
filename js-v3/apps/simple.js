@@ -1,5 +1,6 @@
 class EmptyScene extends Garden {
     start(){
+        debugger
         //this.backgroundColor = colors.white()
         this._camera = new ArcRotateCamera({
             activate:true

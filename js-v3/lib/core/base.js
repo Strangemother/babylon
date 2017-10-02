@@ -165,7 +165,7 @@ class Base extends Destroyable {
         /* Call the `start` function and remove the function from the _render
         list. */
 
-        this._patchCall('$start', [scene])
+        this._patchCall('$start', [scene, app])
         let r = this.start(scene, index);
         this._patchCall('$afterStart', [scene])
         this._renderers.splice(index, 1)
