@@ -1,0 +1,161 @@
+var bGUI = bGUI || {};
+
+(function() {
+    /**
+     * Represents an object in the gui system
+     * @param mesh
+     * @param guisystem
+     * @param onclick
+     * @constructor
+     */
+    var GUIObject = function(mesh, guiSystem) {
+        this.mesh       = mesh;
+        this.mesh.__gui = true; // This mesh is a gui component
+        this.guiSystem  = guiSystem;
+        // Action called on pick up
+        this.onClick    = null;
+        // Action called when the mouse enter the image
+        this.onHoverOn    = null;
+        // Action called when the mouse leave the image
+        this.onHoverOut   = null;
+
+        this.mesh.actionManager = new BABYLON.ActionManager(mesh._scene);
+
+        var _this = this;
+        var updateOnPointerUp = new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger,
+            function(e) {
+                if (_this.onClick) {
+                    _this.onClick(e);
+                }
+            }
+        );
+        // Action on hover on
+        var updateOnHoverOn = new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger,
+            function(e) {
+                if (_this.onHoverOn) {
+                    _this.onHoverOn(e);
+                }
+            }
+        );
+
+        // Action on hover out
+        var updateOnHoverOut = new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger,
+            function(e) {
+                if (_this.onHoverOut) {
+                    _this.onHoverOut(e);
+                }
+            }
+        );
+        this.mesh.actionManager.registerAction(updateOnPointerUp);
+        this.mesh.actionManager.registerAction(updateOnHoverOn);
+        this.mesh.actionManager.registerAction(updateOnHoverOut);
+
+        this.mesh.layerMask     = bGUI.GUISystem.LAYER_MASK;
+
+        this.guiSystem.objects.push(this);
+
+        // The object position in the gui system
+        this.guiposition(BABYLON.Vector3.Zero());
+    };
+    /**
+     * Set the absolute position of this object in the gui world
+     * @param guiposition
+     */
+    GUIObject.prototype.guiposition = function(gp) {
+        this.guiPosition = gp;
+
+        // Update the object posion
+        this.mesh.position = new BABYLON.Vector3(
+            gp.x / this.guiSystem.zoom - this.guiSystem.guiWidth / 2,
+            this.guiSystem.guiHeight / 2 - gp.y / this.guiSystem.zoom,
+            gp.z);
+    };
+    /**
+     * Set the object in percentage position of the screen.
+     * @param wp
+     * @param hp
+     * @param z
+     */
+    GUIObject.prototype.relativePosition = function(pos) {
+        if (pos) {
+            this.mesh.position.x = this.guiSystem.guiWidth * pos.x - this.guiSystem.guiWidth/2;
+            this.mesh.position.y = this.guiSystem.guiHeight * (1-pos.y) - this.guiSystem.guiHeight/2;
+            this.mesh.position.z = pos.z;
+        } else {
+            return new BABYLON.Vector3(
+                (this.mesh.position.x + this.guiSystem.guiWidth/2) / this.guiSystem.guiWidth,
+                (this.guiSystem.guiHeight/2 - this.mesh.position.y) / this.guiSystem.guiHeight,
+                this.mesh.position.z
+            );
+        }
+
+    };
+    GUIObject.prototype.position = function(pos) {
+        if (pos) {
+            // Update the object position
+            this.mesh.position = pos;
+            // Compute the gui position
+            this.guiPosition = new BABYLON.Vector3(
+                this.guiSystem.guiWidth/2+pos.x,
+                this.guiSystem.guiHeight/2+pos.y,
+                pos.z);
+        } else {
+            return this.mesh.position;
+        }
+
+    };
+    GUIObject.prototype.scaling = function(scale) {
+        if (scale) {
+            // Update the object position
+            this.mesh.scaling = scale;
+
+        } else {
+            return this.mesh.scaling;
+        }
+    };
+    GUIObject.prototype.dispose = function() {
+        this.mesh.dispose();
+    };
+    GUIObject.prototype.setVisible = function(bool) {
+        this.mesh.isVisible = bool;
+    };
+
+    /**
+     * Fire an flip animation
+     * @param duration The duration of the flip (in milliseconds)
+     */
+    GUIObject.prototype.flip = function(duration) {
+        var end = this.mesh.rotation.y + Math.PI*2;
+        if (typeof duration === 'undefined') {
+            duration = 1000;
+        }
+        BABYLON.Animation.CreateAndStartAnimation(
+            "flip", this.mesh, "rotation.y", 30, 30*duration*0.001, this.mesh.rotation.y, end, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
+    };
+    /**
+     * Fire an fade out animation
+     * @param duration The duration of the fade out (in milliseconds)
+     */
+    GUIObject.prototype.fadeout = function(duration) {
+        if (typeof duration === 'undefined') {
+            duration = 1000;
+        }
+        BABYLON.Animation.CreateAndStartAnimation(
+            "fadeout", this.mesh, "visibility", 30, 30*duration*0.001, 1, 0, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
+    };
+    /**
+     * Fire an fade in animation
+     * @param duration The duration of the fade in (in milliseconds)
+     */
+    GUIObject.prototype.fadein = function(duration) {
+        if (typeof duration === 'undefined') {
+            duration = 1000;
+        }
+        BABYLON.Animation.CreateAndStartAnimation(
+            "fadein", this.mesh, "visibility", 30, 30*duration*0.001, 0, 1, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
+    };
+    bGUI.GUIObject = GUIObject;
+})();
