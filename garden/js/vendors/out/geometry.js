@@ -1082,7 +1082,7 @@ var BABYLON;
                     return _this;
                 }
                 Box.prototype._regenerateVertexData = function () {
-                    return BABYLON.VertexData.CreateBox({ size: this.size, sideOrientation: this.side });
+                    return BABYLON.VertexData.CreateCube({ size: this.size, sideOrientation: this.side });
                 };
                 Box.prototype.copy = function (id) {
                     return new Box(id, this.getScene(), this.size, this.canBeRegenerated(), undefined, this.side);

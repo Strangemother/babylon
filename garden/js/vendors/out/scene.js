@@ -3787,7 +3787,7 @@ var BABYLON;
                 return null;
             }
             // Skybox
-            var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", scale, this);
+            var hdrSkybox = BABYLON.Mesh.CreateCube("hdrSkyBox", scale, this);
             if (pbr) {
                 var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", this);
                 hdrSkyboxMaterial.backFaceCulling = false;

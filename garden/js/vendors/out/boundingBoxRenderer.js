@@ -18,7 +18,7 @@ var BABYLON;
                 uniforms: ["world", "viewProjection", "color"]
             });
             var engine = this._scene.getEngine();
-            var boxdata = BABYLON.VertexData.CreateBox({ size: 1.0 });
+            var boxdata = BABYLON.VertexData.CreateCube({ size: 1.0 });
             this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(engine, boxdata.positions, BABYLON.VertexBuffer.PositionKind, false);
             this._createIndexBuffer();
         };

@@ -18,18 +18,18 @@ var BABYLON;
          * The parameter `size` sets the size (float) of each box side (default 1).
          * You can set some different box dimensions by using the parameters `width`, `height` and `depth` (all by default have the same value than `size`).
          * You can set different colors and different images to each box side by using the parameters `faceColors` (an array of 6 Color3 elements) and `faceUV` (an array of 6 Vector4 elements).
-         * Please read this tutorial : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
+         * Please read this tutorial : http://doc.babylonjs.com/tutorials/CreateCube_Per_Face_Textures_And_Colors
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * If you create a double-sided mesh, you can choose what parts of the texture image to crop and stick respectively on the front and the back sides with the parameters `frontUVs` and `backUVs` (Vector4).
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
-        MeshBuilder.CreateBox = function (name, options, scene) {
+        MeshBuilder.CreateCube = function (name, options, scene) {
             if (scene === void 0) { scene = null; }
             var box = new BABYLON.Mesh(name, scene);
             options.sideOrientation = MeshBuilder.updateSideOrientation(options.sideOrientation);
             box._originalBuilderSideOrientation = options.sideOrientation;
-            var vertexData = BABYLON.VertexData.CreateBox(options);
+            var vertexData = BABYLON.VertexData.CreateCube(options);
             vertexData.applyToMesh(box, options.updatable);
             return box;
         };
@@ -771,7 +771,7 @@ var BABYLON;
         /**
          * Creates an extruded polygon mesh, with depth in the Y direction.
          * You can set different colors and different images to the top, bottom and extruded side by using the parameters `faceColors` (an array of 3 Color3 elements) and `faceUV` (an array of 3 Vector4 elements).
-         * Please read this tutorial : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
+         * Please read this tutorial : http://doc.babylonjs.com/tutorials/CreateCube_Per_Face_Textures_And_Colors
         */
         MeshBuilder.ExtrudePolygon = function (name, options, scene) {
             return MeshBuilder.CreatePolygon(name, options, scene);
@@ -917,7 +917,7 @@ var BABYLON;
          * You can build other polyhedron types than the 15 embbeded ones by setting the parameter `custom` (`polyhedronObject`, default null). If you set the parameter `custom`, this overwrittes the parameter `type`.
          * A `polyhedronObject` is a formatted javascript object. You'll find a full file with pre-set polyhedra here : https://github.com/BabylonJS/Extensions/tree/master/Polyhedron
          * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (Color4, default `(1, 1, 1, 1)`) and faceUV (Vector4, default `(0, 0, 1, 1)`).
-         * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
+         * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.babylonjs.com/tutorials/CreateCube_Per_Face_Textures_And_Colors
          * The parameter `flat` (boolean, default true). If set to false, it gives the polyhedron a single global face, so less vertices and shared normals. In this case, `faceColors` and `faceUV` are ignored.
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * If you create a double-sided mesh, you can choose what parts of the texture image to crop and stick respectively on the front and the back sides with the parameters `frontUVs` and `backUVs` (Vector4).

@@ -387,7 +387,7 @@ var BABYLON;
         EnvironmentHelper.prototype._setupSkybox = function (sceneSize) {
             var _this = this;
             if (!this._skybox) {
-                this._skybox = BABYLON.Mesh.CreateBox("BackgroundSkybox", sceneSize.skyboxSize, this._scene, undefined, BABYLON.Mesh.BACKSIDE);
+                this._skybox = BABYLON.Mesh.CreateCube("BackgroundSkybox", sceneSize.skyboxSize, this._scene, undefined, BABYLON.Mesh.BACKSIDE);
                 this._skybox.onDisposeObservable.add(function () { _this._skybox = null; });
             }
             this._skybox.parent = this._rootMesh;

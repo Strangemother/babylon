@@ -92,7 +92,7 @@ var BABYLON;
             };
             PhysicsViewer.prototype._getDebugBoxMesh = function (scene) {
                 if (!this._debugBoxMesh) {
-                    this._debugBoxMesh = BABYLON.MeshBuilder.CreateBox('physicsBodyBoxViewMesh', { size: 1 }, scene);
+                    this._debugBoxMesh = BABYLON.MeshBuilder.CreateCube('physicsBodyBoxViewMesh', { size: 1 }, scene);
                     this._debugBoxMesh.renderingGroupId = 1;
                     this._debugBoxMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
                     this._debugBoxMesh.material = this._getDebugMaterial(scene);

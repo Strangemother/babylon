@@ -627,7 +627,7 @@ var BABYLON;
         /**
          * Creates the VertexData of the Box.
          */
-        VertexData.CreateBox = function (options) {
+        VertexData.CreateCube = function (options) {
             var normalsSource = [
                 new BABYLON.Vector3(0, 0, 1),
                 new BABYLON.Vector3(0, 0, -1),
