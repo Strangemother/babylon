@@ -1,0 +1,49 @@
+.code-block {
+    /* border: solid 1px; */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.code-block .renderer {
+    /* border: solid; */
+    display: flex;
+    flex-grow: 1;
+    flex-direction: row;
+    width: 100%;
+}
+
+.code-block .code-view, .code-block .output-render {
+    /* border: solid 1px red; */
+    flex-grow: 1;
+}
+
+.code-block .code-view .actions {
+    align-items: flex-end;
+    border: solid 1px green;
+    margin: 1em;
+    display: flex;
+    align-self: flex-end;
+}
+
+.code-block .header-label {
+    align-self: flex-start;
+    background: #EEE;
+    font-size: 1.3em;
+    padding: 0.1em 0.4em;
+}
+
+.code-block .code pre {
+    align-items: flex-start;
+    align-self: flex-start;
+    align-content: flex-start;
+    text-align: left;
+    padding: 0px 5px 5px 10px;
+}
+
+.code-block .output-render canvas {
+    width: 640px;
+    height: 480px;
+    border: solid 3px;
+    border-radius: 3px;
+}

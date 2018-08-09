@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Garden.js</title>
+
+    <!-- CSS  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Overpass+Mono:300,400,600,700" rel="stylesheet">
+    <link href="static/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href="static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href="static/css/code-block.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body>
+<nav class="white" role="navigation">
+    <div class="nav-wrapper container">
+        <!-- <a id="logo-container" href="#" class="brand-logo">Logo</a> -->
+        <ul class="right hide-on-med-and-down">
+            <li><a href="#">Navbar Link</a></li>
+        </ul>
+
+        <ul id="nav-mobile" class="sidenav">
+            <li><a href="#">Navbar Link</a></li>
+        </ul>
+        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </div>
+</nav>
+
+  <div id="index-banner" class="parallax-container">
+    <div class="section no-pad-bot">
+      <div class="container">
+        <br><br>
+        <h1 class="header special-font center white-text text-lighten-2">Garden JS</h1>
+        <div class="row center">
+          <h5 class="header col s12 light">The 3D graphics engine designed for absolute clarity.</h5>
+        </div>
+        <div class="row center">
+          <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-large waves-effect waves-light">Get Started</a>
+        </div>
+
+        <div class="note row">
+            <div class="note-header">Version alpha</div>
+            <markdown file='content/alpha-note'></markdown>
+        </div>
+
+      </div>
+    </div>
+    <div class="parallax"><img src="static/images/ab1.png" alt="Unsplashed background img 1"></div>
+  </div>
+
+  <div id="markdown-template">
+      <div class="markdown" v-html='renderText'></div>
+  </div>
+  <div id="code_block_template">
+      <div class="code-block">
+          <div class="header-label">
+              <div v-if='label == undefined'>
+                  <slot name='foo'>Slot Label</slot>
+              </div>
+              <div v-else>
+                  LABEL: {{ label }}
+              </div>
+          </div>
+
+          <div class="renderer">
+              <div class="code-view">
+                  <div class="actions">
+                    <button class="btn" @click='run'>Run</button>
+                    <button class="btn" @click='refresh'>Refresh</button>
+                  </div>
+                  <div class="code">
+                      <pre><code ref='code-block' class="js mono-font">{{ fileData }}</code></pre>
+                  </div>
+              </div>
+              <div class="output-render">
+                  <canvas ref='canvas'></canvas>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+         <div class="row">
+            <div class="col s12 center">
+                <h3><i class="mdi-content-send brown-text"></i></h3>
+
+                <p class="left-align light flow-text">
+                    Completely written in ES6, Garden.js is designed to be thin and easy to understand.
+                </p>
+
+
+                <div id="comp-test">
+
+                <code-block
+                    label='Simply basics'
+                    file='blocks/intro/getting-started'></code-block>
+
+                <p class="left-align light flow-text">
+                    Garden deletes the complexities of 3D application development for fast, simple and easy browser-based rendering.
+                </p>
+
+                <code-block file='blocks/intro/simple-scene' part='1'>
+                    <div slot='foo'>Lights! Camera!..</div>
+                </code-block>
+
+                <code-block file='blocks/intro/simple-scene' part='2'>
+                    <div slot='foo'>Action!!</div>
+                </code-block>
+
+                <p class="left-align light flow-text">
+                    Designed for quick and dirty prototyping of ideas. Use your own own
+                </p>
+
+                </div>
+
+                <p class="left-align light flow-text">
+                    I want to forget learning a 3D framework or designing an architecture for new ideas. I know I need a 'Box' but I don't want to think about tessellating polypoints. I know math but I don't care about light vector scattering or setting up shaded splines!?
+                </p>
+
+                <p class="left-align light flow-text">
+                    ---
+
+                    Do you want to do 3D apps and games, but don't give a shit about Fresnels, emmisive textures, vertex shading, octrees or other techy sounding wizardry?
+                </p>
+
+                <p class="left-align light flow-text">
+                    Do you want to press Go, and worry about collisions, accelerated loading, post-processing and scene-picking tomorrow?
+                </p>
+
+
+                <p class="left-align light flow-text">
+                    Plucking all the cool ideas off the interweb we have Garden.js full of the best ideas from a 3D world. An attempt to delete the complexities of 3D, so you can focus on whatever the hell you're building.
+                </p>
+
+                <p class="left-align light flow-text">
+                    Garden.js is a 3D prototyping engine. Abstracting the complex boilerplate into human readable 3D stuff.
+                </p>
+
+                <p class="left-align light flow-text">
+                    We've done our best to provide all the best parts of the best 3D frameworks - so when you need Reflection-probes? we've got you covered.
+                </p>
+
+
+
+            </div>
+        </div>
+      <!--   Icon Section   -->
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center brown-text"><i class="material-icons">flash_on</i></h2>
+            <h5 class="center">Speeds up development</h5>
+
+            <p class="light">We did most of the heavy lifting for you to provide a default stylings that incorporate our custom components. Additionally, we refined animations and transitions to provide a smoother experience for developers.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center brown-text"><i class="material-icons">group</i></h2>
+            <h5 class="center">User Experience Focused</h5>
+
+            <p class="light">By utilizing elements and principles of Material Design, we were able to create a framework that incorporates components and animations that provide more feedback to users. Additionally, a single underlying responsive system across all platforms allow for a more unified user experience.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center brown-text"><i class="material-icons">settings</i></h2>
+            <h5 class="center">Easy to work with</h5>
+
+            <p class="light">We have provided detailed documentation as well as specific code examples to help new users get started. We are also always open to feedback and can answer any questions a user may have about Materialize.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container">
+        <div class="row center">
+          <h5 class="header col s12 light">A modern responsive front-end framework based on Material Design</h5>
+        </div>
+      </div>
+    </div>
+    <div class="parallax"><img src="background2.jpg" alt="Unsplashed background img 2"></div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+
+      <div class="row">
+        <div class="col s12 center">
+          <h3><i class="mdi-content-send brown-text"></i></h3>
+          <h4>Contact Us</h4>
+          <p class="left-align light">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam scelerisque id nunc nec volutpat. Etiam pellentesque tristique arcu, non consequat magna fermentum ac. Cras ut ultricies eros. Maecenas eros justo, ullamcorper a sapien id, viverra ultrices eros. Morbi sem neque, posuere et pretium eget, bibendum sollicitudin lacus. Aliquam eleifend sollicitudin diam, eu mattis nisl maximus sed. Nulla imperdiet semper molestie. Morbi massa odio, condimentum sed ipsum ac, gravida ultrices erat. Nullam eget dignissim mauris, non tristique erat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+      <div class="container">
+        <div class="row center">
+          <h5 class="header col s12 light">A modern responsive front-end framework based on Material Design</h5>
+        </div>
+      </div>
+    </div>
+    <div class="parallax"><img src="background3.jpg" alt="Unsplashed background img 3"></div>
+  </div>
+
+  <footer class="page-footer teal">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">Company Bio</h5>
+          <p class="grey-text text-lighten-4">We are a team of college students working on this project like it's our full time job. Any amount would help support and continue development on this project and is greatly appreciated.</p>
+
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+      Made by <a class="brown-text text-lighten-3" href="http://materializecss.com">Materialize</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="static/js/materialize.js"></script>
+  <script src="static/js/vue.js"></script>
+
+  <link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+
+<script type="text/javascript" src='../alpha/js/vendor/doT/doT.js'></script>
+<script type="text/javascript" src='../alpha/js-v3/lib/extras/loader.js'></script>
+<script type="text/javascript" src='static/js/files.js'></script>
+
+
+  <script src="static/js/components/code-block.js"></script>
+  <script src="static/js/components/markdown-node.js"></script>
+
+  <script src="static/js/init.js"></script>
+  </body>
+</html>

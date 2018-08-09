@@ -1,28 +1,54 @@
 
-var parseCode = function (code, opts={
+function loadScriptFile(src, callback) {
+  httpRequest = new XMLHttpRequest()
+  httpRequest.open('GET', src)
+  httpRequest.send()
+  httpRequest.onreadystatechange = function(){
+    // Process the server response here.
+    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+      if (httpRequest.status === 200) {
+        callback(httpRequest.responseText)
+    } else {
+      console.log('There was a problem with the request.');
+    }
+   }
+  }
+}
+
+var past = undefined;
+var parseUrl = function(src, opts) {
+    loadScriptFile(src, function(text){
+        past = parseCode(text, opts)
+    })
+}
+
+var parseCode = function (codeString, opts={
         locations: true,
         ranges: true
     }) {
 
-  var comments = opts.onComment = [];
-  var tokens = opts.onToken = [];
+    var comments = opts.onComment = [];
+    var tokens = opts.onToken = [];
 
-  var ast;
-  try {
-    ast = acorn.parse(code, opts);
-  } catch (err) { throw err; }
+    var ast;
+    try {
+        ast = acorn.parse(codeString, opts);
+    } catch (err) {
+      throw err;
+    }
 
-  tokens.pop();
-  ast.tokens = toTokens(tokens, types);
+    tokens.pop();
+    ast.tokens = toTokens(tokens, types);
 
-  convertComments(comments);
-  ast.comments = comments;
-  attachComments(ast, comments, ast.tokens);
+    convertComments(comments);
+    ast.comments = comments;
+    attachComments(ast, comments, ast.tokens);
 
-  //toAST(ast, traverse);
+    //toAST(ast, traverse);
 
-  return ast;
+    return ast;
 }
+
 
 var beforeExpr = { beforeExpr: true },
     startsExpr = { startsExpr: true };
@@ -31,6 +57,7 @@ var beforeExpr = { beforeExpr: true },
 function binop(name, prec) {
   return new TokenType(name, { beforeExpr: true, binop: prec });
 }
+
 
 var convertTemplateType = function (tokens, tt) {
   var startingToken    = 0;
@@ -139,7 +166,8 @@ var toTokens = function (tokens, tt, code) {
   }
 
   return transformedTokens;
-};
+}
+
 
 var toToken = function (token, tt, source) {
   var type = token.type;
@@ -200,7 +228,7 @@ var toToken = function (token, tt, source) {
   }
 
   return token;
-};
+}
 
 
 // var traverse = require("babel-core").traverse;
@@ -212,7 +240,7 @@ var toAST = function (ast, traverse, code) {
   ast.sourceType = "module";
   ast.range = [ast.start, ast.end];
   traverse(ast, astTransformVisitor);
-};
+}
 
 
 function changeToLiteral(node) {
@@ -450,7 +478,7 @@ var astTransformVisitor = {
       });
     }
   }
-};
+}
 
 
 var attachComments = function (ast, comments, tokens) {
@@ -509,7 +537,8 @@ var attachComments = function (ast, comments, tokens) {
   }
   ast.range[0] = ast.start;
   ast.range[1] = ast.end;
-};
+}
+
 
 var convertComments = function (comments) {
   for (var i = 0; i < comments.length; i++) {
@@ -552,11 +581,14 @@ function fixDirectives (path) {
   });
   delete directivesContainer.directives;
 }
+
 // fixDirectives
+var _classCallCheck = function (instance, Constructor) {
+    if(!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+    }
+};
 
-
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
 var TokenType = function TokenType(label) {
   var conf = arguments[1] === undefined ? {} : arguments[1];
@@ -574,7 +606,7 @@ var TokenType = function TokenType(label) {
   this.postfix = !!conf.postfix;
   this.binop = conf.binop || null;
   this.updateContext = null;
-};
+}
 
 var types = {
   num: new TokenType("num", startsExpr),
@@ -633,4 +665,4 @@ var types = {
   star: binop("*", 10),
   slash: binop("/", 10),
   exponent: new TokenType("**", { beforeExpr: true, binop: 11, rightAssociative: true })
-};
+}
