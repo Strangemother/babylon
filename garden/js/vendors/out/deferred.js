@@ -1,0 +1,44 @@
+
+var LIB;
+(function (LIB) {
+    /**
+     * Wrapper class for promise with external resolve and reject.
+     */
+    var Deferred = /** @class */ (function () {
+        /**
+         * Constructor for this deferred object.
+         */
+        function Deferred() {
+            var _this = this;
+            this.promise = new Promise(function (resolve, reject) {
+                _this._resolve = resolve;
+                _this._reject = reject;
+            });
+        }
+        Object.defineProperty(Deferred.prototype, "resolve", {
+            /**
+             * The resolve method of the promise associated with this deferred object.
+             */
+            get: function () {
+                return this._resolve;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Deferred.prototype, "reject", {
+            /**
+             * The reject method of the promise associated with this deferred object.
+             */
+            get: function () {
+                return this._reject;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Deferred;
+    }());
+    LIB.Deferred = Deferred;
+})(LIB || (LIB = {}));
+
+//# sourceMappingURL=LIB.deferred.js.map
+//# sourceMappingURL=LIB.deferred.js.map
