@@ -1,14 +1,42 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Defines the WebVRController object that represents controllers tracked in 3D space
+     */
     var WebVRController = /** @class */ (function (_super) {
         __extends(WebVRController, _super);
+        /**
+         * Creates a new WebVRController from a gamepad
+         * @param vrGamepad the gamepad that the WebVRController should be created from
+         */
         function WebVRController(vrGamepad) {
             var _this = _super.call(this, vrGamepad) || this;
             // Observables
+            /**
+             * Fired when the trigger state has changed
+             */
             _this.onTriggerStateChangedObservable = new LIB.Observable();
+            /**
+             * Fired when the main button state has changed
+             */
             _this.onMainButtonStateChangedObservable = new LIB.Observable();
+            /**
+             * Fired when the secondary button state has changed
+             */
             _this.onSecondaryButtonStateChangedObservable = new LIB.Observable();
+            /**
+             * Fired when the pad state has changed
+             */
             _this.onPadStateChangedObservable = new LIB.Observable();
+            /**
+             * Fired when controllers stick values have changed
+             */
             _this.onPadValuesChangedObservable = new LIB.Observable();
+            /**
+             * X and Y axis corrisponding to the controllers joystick
+             */
             _this.pad = { x: 0, y: 0 };
             // avoid GC, store state in a tmp object
             _this._changes = {
@@ -21,16 +49,26 @@
             _this.hand = vrGamepad.hand;
             return _this;
         }
+        /**
+         * Fired when a controller button's state has changed
+         * @param callback the callback containing the button that was modified
+         */
         WebVRController.prototype.onButtonStateChange = function (callback) {
             this._onButtonStateChange = callback;
         };
         Object.defineProperty(WebVRController.prototype, "defaultModel", {
+            /**
+             * The default controller model for the controller
+             */
             get: function () {
                 return this._defaultModel;
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * Updates the state of the controller and mesh based on the current position and rotation of the controller
+         */
         WebVRController.prototype.update = function () {
             _super.prototype.update.call(this);
             for (var index = 0; index < this._buttons.length; index++) {
@@ -62,7 +100,7 @@
             this._checkChanges(newState, currentState);
             if (this._changes.changed) {
                 this._onButtonStateChange && this._onButtonStateChange(this.index, buttonIndex, newState);
-                this.handleButtonChange(buttonIndex, newState, this._changes);
+                this._handleButtonChange(buttonIndex, newState, this._changes);
             }
             this._buttons[buttonIndex].pressed = newState.pressed;
             this._buttons[buttonIndex].touched = newState.touched;
@@ -76,6 +114,9 @@
             this._changes.changed = this._changes.pressChanged || this._changes.touchChanged || this._changes.valueChanged;
             return this._changes;
         };
+        /**
+         * Disposes of th webVRCOntroller
+         */
         WebVRController.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
             this.onTriggerStateChangedObservable.clear();
@@ -89,4 +130,5 @@
     LIB.WebVRController = WebVRController;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.webVRController.js.map
 //# sourceMappingURL=LIB.webVRController.js.map

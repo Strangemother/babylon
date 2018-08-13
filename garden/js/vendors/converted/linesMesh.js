@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var LinesMesh = /** @class */ (function (_super) {
         __extends(LinesMesh, _super);
@@ -102,7 +105,7 @@
             return this;
         };
         LinesMesh.prototype._draw = function (subMesh, fillMode, instancesCount) {
-            if (!this._geometry || !this._geometry.getVertexBuffers() || !this._geometry.getIndexBuffer()) {
+            if (!this._geometry || !this._geometry.getVertexBuffers() || (!this._unIndexed && !this._geometry.getIndexBuffer())) {
                 return this;
             }
             var engine = this.getScene().getEngine();
@@ -125,4 +128,5 @@
     LIB.LinesMesh = LinesMesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.linesMesh.js.map
 //# sourceMappingURL=LIB.linesMesh.js.map

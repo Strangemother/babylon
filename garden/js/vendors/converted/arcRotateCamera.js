@@ -1,8 +1,17 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCamera = /** @class */ (function (_super) {
         __extends(ArcRotateCamera, _super);
-        function ArcRotateCamera(name, alpha, beta, radius, target, scene) {
-            var _this = _super.call(this, name, LIB.Vector3.Zero(), scene) || this;
+        function ArcRotateCamera(name, alpha, beta, radius, target, scene, setActiveOnSceneIfNoneActive) {
+            if (setActiveOnSceneIfNoneActive === void 0) { setActiveOnSceneIfNoneActive = true; }
+            var _this = _super.call(this, name, LIB.Vector3.Zero(), scene, setActiveOnSceneIfNoneActive) || this;
             _this.inertialAlphaOffset = 0;
             _this.inertialBetaOffset = 0;
             _this.inertialRadiusOffset = 0;
@@ -31,6 +40,7 @@
             _this._previousPosition = LIB.Vector3.Zero();
             _this._collisionVelocity = LIB.Vector3.Zero();
             _this._newPosition = LIB.Vector3.Zero();
+            _this._computationVector = LIB.Vector3.Zero();
             _this._onCollisionPositionChange = function (collisionId, newPosition, collidedMesh) {
                 if (collidedMesh === void 0) { collidedMesh = null; }
                 if (_this.getScene().workerCollisions && _this.checkCollisions) {
@@ -54,7 +64,8 @@
                     sinb = 0.0001;
                 }
                 var target = _this._getTargetPosition();
-                target.addToRef(new LIB.Vector3(_this.radius * cosa * sinb, _this.radius * cosb, _this.radius * sina * sinb), _this._newPosition);
+                _this._computationVector.copyFromFloats(_this.radius * cosa * sinb, _this.radius * cosb, _this.radius * sina * sinb);
+                target.addToRef(_this._computationVector, _this._newPosition);
                 _this.position.copyFrom(_this._newPosition);
                 var up = _this.upVector;
                 if (_this.allowUpsideDown && _this.beta < 0) {
@@ -440,12 +451,14 @@
             this.inputs.checkInputs();
             // Inertia
             if (this.inertialAlphaOffset !== 0 || this.inertialBetaOffset !== 0 || this.inertialRadiusOffset !== 0) {
-                if (this.getScene().useRightHandedSystem) {
-                    this.alpha -= this.beta <= 0 ? -this.inertialAlphaOffset : this.inertialAlphaOffset;
-                }
-                else {
-                    this.alpha += this.beta <= 0 ? -this.inertialAlphaOffset : this.inertialAlphaOffset;
-                }
+                var inertialAlphaOffset = this.inertialAlphaOffset;
+                if (this.beta <= 0)
+                    inertialAlphaOffset *= -1;
+                if (this.getScene().useRightHandedSystem)
+                    inertialAlphaOffset *= -1;
+                if (this.parent && this.parent._getWorldMatrixDeterminant() < 0)
+                    inertialAlphaOffset *= -1;
+                this.alpha += inertialAlphaOffset;
                 this.beta += this.inertialBetaOffset;
                 this.radius -= this.inertialRadiusOffset;
                 this.inertialAlphaOffset *= this.inertia;
@@ -530,18 +543,18 @@
             }
         };
         ArcRotateCamera.prototype.rebuildAnglesAndRadius = function () {
-            var radiusv3 = this.position.subtract(this._getTargetPosition());
-            this.radius = radiusv3.length();
+            this.position.subtractToRef(this._getTargetPosition(), this._computationVector);
+            this.radius = this._computationVector.length();
             if (this.radius === 0) {
                 this.radius = 0.0001; // Just to avoid division by zero
             }
             // Alpha
-            this.alpha = Math.acos(radiusv3.x / Math.sqrt(Math.pow(radiusv3.x, 2) + Math.pow(radiusv3.z, 2)));
-            if (radiusv3.z < 0) {
+            this.alpha = Math.acos(this._computationVector.x / Math.sqrt(Math.pow(this._computationVector.x, 2) + Math.pow(this._computationVector.z, 2)));
+            if (this._computationVector.z < 0) {
                 this.alpha = 2 * Math.PI - this.alpha;
             }
             // Beta
-            this.beta = Math.acos(radiusv3.y / this.radius);
+            this.beta = Math.acos(this._computationVector.y / this.radius);
             this._checkLimits();
         };
         ArcRotateCamera.prototype.setPosition = function (position) {
@@ -588,7 +601,8 @@
                 sinb = 0.0001;
             }
             var target = this._getTargetPosition();
-            target.addToRef(new LIB.Vector3(this.radius * cosa * sinb, this.radius * cosb, this.radius * sina * sinb), this._newPosition);
+            this._computationVector.copyFromFloats(this.radius * cosa * sinb, this.radius * cosb, this.radius * sina * sinb);
+            target.addToRef(this._computationVector, this._newPosition);
             if (this.getScene().collisionsEnabled && this.checkCollisions) {
                 if (!this._collider) {
                     this._collider = new LIB.Collider();
@@ -605,12 +619,7 @@
                     up = up.clone();
                     up = up.negate();
                 }
-                if (this.getScene().useRightHandedSystem) {
-                    LIB.Matrix.LookAtRHToRef(this.position, target, up, this._viewMatrix);
-                }
-                else {
-                    LIB.Matrix.LookAtLHToRef(this.position, target, up, this._viewMatrix);
-                }
+                this._computeViewMatrix(this.position, target, up);
                 this._viewMatrix.m[12] += this.targetScreenOffset.x;
                 this._viewMatrix.m[13] += this.targetScreenOffset.y;
             }
@@ -629,12 +638,12 @@
             if (doNotUpdateMaxZ === void 0) { doNotUpdateMaxZ = false; }
             var meshesOrMinMaxVector;
             var distance;
-            if (meshesOrMinMaxVectorAndDistance.min === undefined) {
+            if (meshesOrMinMaxVectorAndDistance.min === undefined) { // meshes
                 var meshes = meshesOrMinMaxVectorAndDistance || this.getScene().meshes;
                 meshesOrMinMaxVector = LIB.Mesh.MinMax(meshes);
                 distance = LIB.Vector3.Distance(meshesOrMinMaxVector.min, meshesOrMinMaxVector.max);
             }
-            else {
+            else { //minMaxVector and distance
                 var minMaxVectorAndDistance = meshesOrMinMaxVectorAndDistance;
                 meshesOrMinMaxVector = minMaxVectorAndDistance;
                 distance = minMaxVectorAndDistance.distance;
@@ -764,4 +773,5 @@
     LIB.ArcRotateCamera = ArcRotateCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCamera.js.map
 //# sourceMappingURL=LIB.arcRotateCamera.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var PhysicsHelper = /** @class */ (function () {
         function PhysicsHelper(scene) {
@@ -157,15 +159,14 @@
             if (!this._intersectsWithSphere(impostor, origin, radius)) {
                 return null;
             }
-            if (impostor.object.getClassName() !== 'Mesh') {
+            if (impostor.object.getClassName() !== 'Mesh' && impostor.object.getClassName() !== 'InstancedMesh') {
                 return null;
             }
-            var impostorObject = impostor.object;
             var impostorObjectCenter = impostor.getObjectCenter();
             var direction = impostorObjectCenter.subtract(origin);
             var ray = new LIB.Ray(origin, direction, radius);
             this._rays.push(ray);
-            var hit = ray.intersectsMesh(impostorObject);
+            var hit = ray.intersectsMesh(impostor.object);
             var contactPoint = hit.pickedPoint;
             if (!contactPoint) {
                 return null;
@@ -461,15 +462,14 @@
             if (!this._intersectsWithCylinder(impostor)) {
                 return null;
             }
-            if (impostor.object.getClassName() !== 'Mesh') {
+            if (impostor.object.getClassName() !== 'Mesh' && impostor.object.getClassName() !== 'InstancedMesh') {
                 return null;
             }
-            var impostorObject = impostor.object;
             var impostorObjectCenter = impostor.getObjectCenter();
             var originOnPlane = new LIB.Vector3(this._origin.x, impostorObjectCenter.y, this._origin.z); // the distance to the origin as if both objects were on a plane (Y-axis)
             var originToImpostorDirection = impostorObjectCenter.subtract(originOnPlane);
             var ray = new LIB.Ray(originOnPlane, originToImpostorDirection, this._radius);
-            var hit = ray.intersectsMesh(impostorObject);
+            var hit = ray.intersectsMesh(impostor.object);
             var contactPoint = hit.pickedPoint;
             if (!contactPoint) {
                 return null;
@@ -530,17 +530,22 @@
     */
     var PhysicsRadialImpulseFalloff;
     (function (PhysicsRadialImpulseFalloff) {
+        /** Defines that impulse is constant in strength across it's whole radius */
         PhysicsRadialImpulseFalloff[PhysicsRadialImpulseFalloff["Constant"] = 0] = "Constant";
-        PhysicsRadialImpulseFalloff[PhysicsRadialImpulseFalloff["Linear"] = 1] = "Linear"; // impulse gets weaker if it's further from the origin
+        /** DEfines that impulse gets weaker if it's further from the origin */
+        PhysicsRadialImpulseFalloff[PhysicsRadialImpulseFalloff["Linear"] = 1] = "Linear";
     })(PhysicsRadialImpulseFalloff = LIB.PhysicsRadialImpulseFalloff || (LIB.PhysicsRadialImpulseFalloff = {}));
     /**
      * The strenght of the force in correspondence to the distance of the affected object
      */
     var PhysicsUpdraftMode;
     (function (PhysicsUpdraftMode) {
+        /** Defines that the upstream forces will pull towards the top center of the cylinder */
         PhysicsUpdraftMode[PhysicsUpdraftMode["Center"] = 0] = "Center";
-        PhysicsUpdraftMode[PhysicsUpdraftMode["Perpendicular"] = 1] = "Perpendicular"; // once a impostor is inside the cylinder, it will shoot out perpendicular from the ground of the cylinder
+        /** Defines that once a impostor is inside the cylinder, it will shoot out perpendicular from the ground of the cylinder */
+        PhysicsUpdraftMode[PhysicsUpdraftMode["Perpendicular"] = 1] = "Perpendicular";
     })(PhysicsUpdraftMode = LIB.PhysicsUpdraftMode || (LIB.PhysicsUpdraftMode = {}));
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.physicsHelper.js.map
 //# sourceMappingURL=LIB.physicsHelper.js.map

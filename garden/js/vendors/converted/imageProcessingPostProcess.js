@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var ImageProcessingPostProcess = /** @class */ (function (_super) {
         __extends(ImageProcessingPostProcess, _super);
@@ -25,7 +33,7 @@
                 IMAGEPROCESSINGPOSTPROCESS: false,
                 EXPOSURE: false,
             };
-            // Setup the configuration as forced by the constructor. This would then not force the
+            // Setup the configuration as forced by the constructor. This would then not force the 
             // scene materials output in linear space and let untouched the default forward pass.
             if (imageProcessingConfiguration) {
                 imageProcessingConfiguration.applyByPostProcess = true;
@@ -33,6 +41,7 @@
                 // This will cause the shader to be compiled
                 _this.fromLinearSpace = false;
             }
+            // Setup the default processing configuration to the scene.
             else {
                 _this._attachImageProcessingConfiguration(null, true);
                 _this.imageProcessingConfiguration.applyByPostProcess = true;
@@ -400,4 +409,5 @@
     LIB.ImageProcessingPostProcess = ImageProcessingPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.imageProcessingPostProcess.js.map
 //# sourceMappingURL=LIB.imageProcessingPostProcess.js.map

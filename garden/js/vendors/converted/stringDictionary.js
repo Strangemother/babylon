@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * This class implement a typical dictionary using a string as key and the generic type T as value.
@@ -165,4 +167,5 @@
     LIB.StringDictionary = StringDictionary;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.stringDictionary.js.map
 //# sourceMappingURL=LIB.stringDictionary.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     // We're mainly based on the logic defined into the FreeCamera code
     var GamepadCamera = /** @class */ (function (_super) {
@@ -45,4 +48,5 @@
     LIB.GamepadCamera = GamepadCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.gamepadCamera.js.map
 //# sourceMappingURL=LIB.gamepadCamera.js.map

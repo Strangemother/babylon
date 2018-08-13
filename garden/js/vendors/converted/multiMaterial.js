@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var MultiMaterial = /** @class */ (function (_super) {
         __extends(MultiMaterial, _super);
@@ -127,4 +130,5 @@
     LIB.MultiMaterial = MultiMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.multiMaterial.js.map
 //# sourceMappingURL=LIB.multiMaterial.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FilterPostProcess = /** @class */ (function (_super) {
         __extends(FilterPostProcess, _super);
@@ -14,4 +17,5 @@
     LIB.FilterPostProcess = FilterPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.filterPostProcess.js.map
 //# sourceMappingURL=LIB.filterPostProcess.js.map

@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var Texture = /** @class */ (function (_super) {
         __extends(Texture, _super);
@@ -103,7 +111,6 @@
             this.delayLoad();
         };
         Texture.prototype.delayLoad = function () {
-            var _this = this;
             if (this.delayLoadState !== LIB.Engine.DELAYLOADSTATE_NOTLOADED) {
                 return;
             }
@@ -120,20 +127,17 @@
                 }
             }
             else {
-                if (this._texture.isReady) {
-                    LIB.Tools.SetImmediate(function () {
-                        if (!_this._delayedOnLoad) {
-                            return;
-                        }
-                        _this._delayedOnLoad();
-                    });
-                }
-                else {
-                    if (this._delayedOnLoad) {
+                if (this._delayedOnLoad) {
+                    if (this._texture.isReady) {
+                        LIB.Tools.SetImmediate(this._delayedOnLoad);
+                    }
+                    else {
                         this._texture.onLoadedObservable.add(this._delayedOnLoad);
                     }
                 }
             }
+            this._delayedOnLoad = null;
+            this._delayedOnError = null;
         };
         Texture.prototype.updateSamplingMode = function (samplingMode) {
             if (!this._texture) {
@@ -290,6 +294,8 @@
                 serializationObject.base64String = this._buffer;
                 serializationObject.name = serializationObject.name.replace("data:", "");
             }
+            serializationObject.invertY = this._invertY;
+            serializationObject.samplingMode = this.samplingMode;
             return serializationObject;
         };
         Texture.prototype.getClassName = function () {
@@ -352,7 +358,11 @@
                         texture = Texture.CreateFromBase64String(parsedTexture.base64String, parsedTexture.name, scene, !generateMipMaps);
                     }
                     else {
-                        texture = new Texture(rootUrl + parsedTexture.name, scene, !generateMipMaps);
+                        var url = rootUrl + parsedTexture.name;
+                        if (Texture.UseSerializedUrlIfAny && parsedTexture.url) {
+                            url = parsedTexture.url;
+                        }
+                        texture = new Texture(url, scene, !generateMipMaps, parsedTexture.invertY);
                     }
                     return texture;
                 }
@@ -415,6 +425,10 @@
         Texture.CLAMP_ADDRESSMODE = 0;
         Texture.WRAP_ADDRESSMODE = 1;
         Texture.MIRROR_ADDRESSMODE = 2;
+        /**
+         * Gets or sets a boolean which defines if the texture url must be build from the serialized URL instead of just using the name and loading them side by side with the scene file
+         */
+        Texture.UseSerializedUrlIfAny = false;
         __decorate([
             LIB.serialize()
         ], Texture.prototype, "url", void 0);
@@ -447,4 +461,5 @@
     LIB.Texture = Texture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.texture.js.map
 //# sourceMappingURL=LIB.texture.js.map

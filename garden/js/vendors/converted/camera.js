@@ -1,13 +1,29 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var Camera = /** @class */ (function (_super) {
         __extends(Camera, _super);
-        function Camera(name, position, scene) {
+        function Camera(name, position, scene, setActiveOnSceneIfNoneActive) {
+            if (setActiveOnSceneIfNoneActive === void 0) { setActiveOnSceneIfNoneActive = true; }
             var _this = _super.call(this, name, scene) || this;
+            /**
+             * The vector the camera should consider as up.
+             * (default is Vector3(0, 1, 0) aka Vector3.Up())
+             */
             _this.upVector = LIB.Vector3.Up();
             _this.orthoLeft = null;
             _this.orthoRight = null;
             _this.orthoBottom = null;
             _this.orthoTop = null;
+            /**
+             * FOV is set in Radians. (default is 0.8)
+             */
             _this.fov = 0.8;
             _this.minZ = 1;
             _this.maxZ = 10000.0;
@@ -15,7 +31,14 @@
             _this.mode = Camera.PERSPECTIVE_CAMERA;
             _this.isIntermediate = false;
             _this.viewport = new LIB.Viewport(0, 0, 1.0, 1.0);
+            /**
+             * Restricts the camera to viewing objects with the same layerMask.
+             * A camera with a layerMask of 1 will render mesh.layerMask & camera.layerMask!== 0
+             */
             _this.layerMask = 0x0FFFFFFF;
+            /**
+             * fovMode sets the camera frustum bounds to the viewport bounds. (default is FOVMODE_VERTICAL_FIXED)
+             */
             _this.fovMode = Camera.FOVMODE_VERTICAL_FIXED;
             // Camera rig members
             _this.cameraRigMode = Camera.RIG_MODE_NONE;
@@ -32,13 +55,14 @@
             _this._computedViewMatrix = LIB.Matrix.Identity();
             _this._projectionMatrix = new LIB.Matrix();
             _this._doNotComputeProjectionMatrix = false;
+            _this._worldMatrix = LIB.Matrix.Identity();
             _this._postProcesses = new Array();
             _this._transformMatrix = LIB.Matrix.Zero();
             _this._activeMeshes = new LIB.SmartArray(256);
             _this._globalPosition = LIB.Vector3.Zero();
             _this._refreshFrustumPlanes = true;
             _this.getScene().addCamera(_this);
-            if (!_this.getScene().activeCamera) {
+            if (setActiveOnSceneIfNoneActive && !_this.getScene().activeCamera) {
                 _this.getScene().activeCamera = _this;
             }
             _this.position = position;
@@ -59,6 +83,11 @@
             configurable: true
         });
         Object.defineProperty(Camera, "FOVMODE_VERTICAL_FIXED", {
+            /**
+             * This is the default FOV mode for perspective cameras.
+             * This setting aligns the upper and lower bounds of the viewport to the upper and lower bounds of the camera frustum.
+             *
+             */
             get: function () {
                 return Camera._FOVMODE_VERTICAL_FIXED;
             },
@@ -66,6 +95,10 @@
             configurable: true
         });
         Object.defineProperty(Camera, "FOVMODE_HORIZONTAL_FIXED", {
+            /**
+             * This setting aligns the left and right bounds of the viewport to the left and right bounds of the camera frustum.
+             *
+             */
             get: function () {
                 return Camera._FOVMODE_HORIZONTAL_FIXED;
             },
@@ -180,6 +213,23 @@
         Camera.prototype.isActiveMesh = function (mesh) {
             return (this._activeMeshes.indexOf(mesh) !== -1);
         };
+        /**
+         * Is this camera ready to be used/rendered
+         * @param completeCheck defines if a complete check (including post processes) has to be done (false by default)
+         * @return true if the camera is ready
+         */
+        Camera.prototype.isReady = function (completeCheck) {
+            if (completeCheck === void 0) { completeCheck = false; }
+            if (completeCheck) {
+                for (var _i = 0, _a = this._postProcesses; _i < _a.length; _i++) {
+                    var pp = _a[_i];
+                    if (pp && !pp.isReady()) {
+                        return false;
+                    }
+                }
+            }
+            return _super.prototype.isReady.call(this, completeCheck);
+        };
         //Cache
         Camera.prototype._initCache = function () {
             _super.prototype._initCache.call(this);
@@ -267,10 +317,23 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Internal, gets the first post proces.
+         * @returns the first post process to be run on this camera.
+         */
+        Camera.prototype._getFirstPostProcess = function () {
+            for (var ppIndex = 0; ppIndex < this._postProcesses.length; ppIndex++) {
+                if (this._postProcesses[ppIndex] !== null) {
+                    return this._postProcesses[ppIndex];
+                }
+            }
+            return null;
+        };
         Camera.prototype._cascadePostProcessesToRigCams = function () {
             // invalidate framebuffer
-            if (this._postProcesses.length > 0) {
-                this._postProcesses[0].markTextureDirty();
+            var firstPostProcess = this._getFirstPostProcess();
+            if (firstPostProcess) {
+                firstPostProcess.markTextureDirty();
             }
             // glue the rigPostProcess to the end of the user postprocesses & assign to each sub-camera
             for (var i = 0, len = this._rigCameras.length; i < len; i++) {
@@ -300,6 +363,9 @@
             if (insertAt == null || insertAt < 0) {
                 this._postProcesses.push(postProcess);
             }
+            else if (this._postProcesses[insertAt] === null) {
+                this._postProcesses[insertAt] = postProcess;
+            }
             else {
                 this._postProcesses.splice(insertAt, 0, postProcess);
             }
@@ -309,16 +375,16 @@
         Camera.prototype.detachPostProcess = function (postProcess) {
             var idx = this._postProcesses.indexOf(postProcess);
             if (idx !== -1) {
-                this._postProcesses.splice(idx, 1);
+                this._postProcesses[idx] = null;
             }
             this._cascadePostProcessesToRigCams(); // also ensures framebuffer invalidated
         };
         Camera.prototype.getWorldMatrix = function () {
-            if (!this._worldMatrix) {
-                this._worldMatrix = LIB.Matrix.Identity();
+            if (this._isSynchronizedViewMatrix()) {
+                return this._worldMatrix;
             }
-            var viewMatrix = this.getViewMatrix();
-            viewMatrix.invertToRef(this._worldMatrix);
+            // Getting the the view matrix will also compute the world matrix.
+            this.getViewMatrix();
             return this._worldMatrix;
         };
         Camera.prototype._getViewMatrix = function () {
@@ -331,24 +397,13 @@
             this.updateCache();
             this._computedViewMatrix = this._getViewMatrix();
             this._currentRenderId = this.getScene().getRenderId();
+            this._childRenderId = this._currentRenderId;
             this._refreshFrustumPlanes = true;
-            if (!this.parent || !this.parent.getWorldMatrix) {
-                this._globalPosition.copyFrom(this.position);
-            }
-            else {
-                if (!this._worldMatrix) {
-                    this._worldMatrix = LIB.Matrix.Identity();
-                }
-                this._computedViewMatrix.invertToRef(this._worldMatrix);
-                this._worldMatrix.multiplyToRef(this.parent.getWorldMatrix(), this._computedViewMatrix);
-                this._globalPosition.copyFromFloats(this._computedViewMatrix.m[12], this._computedViewMatrix.m[13], this._computedViewMatrix.m[14]);
-                this._computedViewMatrix.invert();
-                this._markSyncedWithParent();
-            }
             if (this._cameraRigParams && this._cameraRigParams.vrPreViewMatrix) {
                 this._computedViewMatrix.multiplyToRef(this._cameraRigParams.vrPreViewMatrix, this._computedViewMatrix);
             }
             this.onViewMatrixChangedObservable.notifyObservers(this);
+            this._computedViewMatrix.invertToRef(this._worldMatrix);
             return this._computedViewMatrix;
         };
         Camera.prototype.freezeProjectionMatrix = function (projection) {
@@ -445,7 +500,13 @@
             var direction = LIB.Vector3.Normalize(forwardWorld);
             return new LIB.Ray(origin, direction, length);
         };
-        Camera.prototype.dispose = function () {
+        /**
+         * Releases resources associated with this node.
+         * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
+         * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
+         */
+        Camera.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
+            if (disposeMaterialAndTextures === void 0) { disposeMaterialAndTextures = false; }
             // Observables
             this.onViewMatrixChangedObservable.clear();
             this.onProjectionMatrixChangedObservable.clear();
@@ -478,7 +539,10 @@
             else {
                 var i = this._postProcesses.length;
                 while (--i >= 0) {
-                    this._postProcesses[i].dispose(this);
+                    var postProcess = this._postProcesses[i];
+                    if (postProcess) {
+                        postProcess.dispose(this);
+                    }
                 }
             }
             // Render targets
@@ -489,7 +553,7 @@
             this.customRenderTargets = [];
             // Active Meshes
             this._activeMeshes.dispose();
-            _super.prototype.dispose.call(this);
+            _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
         };
         Object.defineProperty(Camera.prototype, "leftCamera", {
             // ---- Camera rigs section ----
@@ -742,9 +806,9 @@
                     return function () { return new LIB.StereoscopicGamepadCamera(name, LIB.Vector3.Zero(), interaxial_distance, isStereoscopicSideBySide, scene); };
                 case "StereoscopicUniversalCamera":
                     return function () { return new LIB.StereoscopicUniversalCamera(name, LIB.Vector3.Zero(), interaxial_distance, isStereoscopicSideBySide, scene); };
-                case "FreeCamera":// Forcing Universal here
+                case "FreeCamera": // Forcing Universal here
                     return function () { return new LIB.UniversalCamera(name, LIB.Vector3.Zero(), scene); };
-                default:// Universal Camera is the default value
+                default: // Universal Camera is the default value
                     return function () { return new LIB.UniversalCamera(name, LIB.Vector3.Zero(), scene); };
             }
         };
@@ -764,7 +828,7 @@
                 camera.inputs.parse(parsedCamera);
                 camera._setupInputs();
             }
-            if (camera.setPosition) {
+            if (camera.setPosition) { // need to force position
                 camera.position.copyFromFloats(0, 0, 0);
                 camera.setPosition(LIB.Vector3.FromArray(parsedCamera.position));
             }
@@ -859,4 +923,5 @@
     LIB.Camera = Camera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.camera.js.map
 //# sourceMappingURL=LIB.camera.js.map

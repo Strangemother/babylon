@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var LensFlareSystem = /** @class */ (function () {
         function LensFlareSystem(name, emitter, scene) {
@@ -233,4 +235,5 @@
     LIB.LensFlareSystem = LensFlareSystem;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.lensFlareSystem.js.map
 //# sourceMappingURL=LIB.lensFlareSystem.js.map

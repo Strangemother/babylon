@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Scalar = /** @class */ (function () {
         function Scalar() {
@@ -210,7 +212,7 @@
             // angle = angle % Tools.TwoPi;
             // angle = (angle + Tools.TwoPi) % Tools.TwoPi;
             //if (angle > Math.PI) {
-            //  angle -= Tools.TwoPi;
+            //	angle -= Tools.TwoPi;
             //}
             angle -= (Scalar.TwoPi * Math.floor((angle + Math.PI) / Scalar.TwoPi));
             return angle;
@@ -224,4 +226,5 @@
     LIB.Scalar = Scalar;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.math.scalar.js.map
 //# sourceMappingURL=LIB.math.scalar.js.map

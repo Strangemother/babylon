@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Octree = /** @class */ (function () {
         function Octree(creationFunc, maxBlockCapacity, maxDepth) {
@@ -88,4 +90,5 @@
     LIB.Octree = Octree;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.octree.js.map
 //# sourceMappingURL=LIB.octree.js.map

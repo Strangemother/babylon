@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     // Inspired by http://http.developer.nvidia.com/GPUGems3/gpugems3_ch13.html
     var VolumetricLightScatteringPostProcess = /** @class */ (function (_super) {
@@ -21,17 +29,14 @@
             _this._screenCoordinates = LIB.Vector2.Zero();
             /**
             * Custom position of the mesh. Used if "useCustomMeshPosition" is set to "true"
-            * @type {Vector3}
             */
             _this.customMeshPosition = LIB.Vector3.Zero();
             /**
             * Set if the post-process should use a custom position for the light source (true) or the internal mesh position (false)
-            * @type {boolean}
             */
             _this.useCustomMeshPosition = false;
             /**
             * If the post-process should inverse the light scattering direction
-            * @type {boolean}
             */
             _this.invert = true;
             /**
@@ -40,22 +45,18 @@
             _this.excludedMeshes = new Array();
             /**
             * Controls the overall intensity of the post-process
-            * @type {number}
             */
             _this.exposure = 0.3;
             /**
             * Dissipates each sample's contribution in range [0, 1]
-            * @type {number}
             */
             _this.decay = 0.96815;
             /**
             * Controls the overall intensity of each sample
-            * @type {number}
             */
             _this.weight = 0.58767;
             /**
             * Controls the density of each sample
-            * @type {number}
             */
             _this.density = 0.926;
             scene = ((camera === null) ? scene : camera.getScene()); // parameter "scene" can be null.
@@ -96,7 +97,7 @@
         VolumetricLightScatteringPostProcess.prototype.getClassName = function () {
             return "VolumetricLightScatteringPostProcess";
         };
-        VolumetricLightScatteringPostProcess.prototype.isReady = function (subMesh, useInstances) {
+        VolumetricLightScatteringPostProcess.prototype._isReady = function (subMesh, useInstances) {
             var mesh = subMesh.getMesh();
             // Render this.mesh as default
             if (mesh === this.mesh && mesh.material) {
@@ -137,7 +138,7 @@
                 attribs.push("world2");
                 attribs.push("world3");
             }
-            // Get correct effect
+            // Get correct effect      
             var join = defines.join("\n");
             if (this._cachedDefines !== join) {
                 this._cachedDefines = join;
@@ -192,6 +193,7 @@
             this._volumetricLightScatteringRTT.wrapV = LIB.Texture.CLAMP_ADDRESSMODE;
             this._volumetricLightScatteringRTT.renderList = null;
             this._volumetricLightScatteringRTT.renderParticles = false;
+            this._volumetricLightScatteringRTT.ignoreCameraViewport = true;
             var camera = this.getCamera();
             if (camera) {
                 camera.customRenderTargets.push(this._volumetricLightScatteringRTT);
@@ -219,7 +221,7 @@
                     return;
                 }
                 var hardwareInstancedRendering = (engine.getCaps().instancedArrays) && (batch.visibleInstances[subMesh._id] !== null);
-                if (_this.isReady(subMesh, hardwareInstancedRendering)) {
+                if (_this._isReady(subMesh, hardwareInstancedRendering)) {
                     var effect = _this._volumetricLightScatteringPass;
                     if (mesh === _this.mesh) {
                         if (subMesh.effect) {
@@ -276,11 +278,9 @@
                 for (index = 0; index < opaqueSubMeshes.length; index++) {
                     renderSubMesh(opaqueSubMeshes.data[index]);
                 }
-                engine.setAlphaTesting(true);
                 for (index = 0; index < alphaTestSubMeshes.length; index++) {
                     renderSubMesh(alphaTestSubMeshes.data[index]);
                 }
-                engine.setAlphaTesting(false);
                 if (transparentSubMeshes.length) {
                     // Sort sub meshes
                     for (index = 0; index < transparentSubMeshes.length; index++) {
@@ -383,4 +383,5 @@
     LIB.VolumetricLightScatteringPostProcess = VolumetricLightScatteringPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.volumetricLightScatteringPostProcess.js.map
 //# sourceMappingURL=LIB.volumetricLightScatteringPostProcess.js.map

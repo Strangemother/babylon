@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FreeCameraGamepadInput = /** @class */ (function () {
         function FreeCameraGamepadInput() {
@@ -82,4 +85,5 @@
     LIB.CameraInputTypes["FreeCameraGamepadInput"] = FreeCameraGamepadInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraGamepadInput.js.map
 //# sourceMappingURL=LIB.freeCameraGamepadInput.js.map

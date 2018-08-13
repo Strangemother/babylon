@@ -1,34 +1,69 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Defines supported buttons for XBox360 compatible gamepads
+     */
     var Xbox360Button;
     (function (Xbox360Button) {
+        /** A */
         Xbox360Button[Xbox360Button["A"] = 0] = "A";
+        /** B */
         Xbox360Button[Xbox360Button["B"] = 1] = "B";
+        /** X */
         Xbox360Button[Xbox360Button["X"] = 2] = "X";
+        /** Y */
         Xbox360Button[Xbox360Button["Y"] = 3] = "Y";
+        /** Start */
         Xbox360Button[Xbox360Button["Start"] = 4] = "Start";
+        /** Back */
         Xbox360Button[Xbox360Button["Back"] = 5] = "Back";
+        /** Left button */
         Xbox360Button[Xbox360Button["LB"] = 6] = "LB";
+        /** Right button */
         Xbox360Button[Xbox360Button["RB"] = 7] = "RB";
+        /** Left stick */
         Xbox360Button[Xbox360Button["LeftStick"] = 8] = "LeftStick";
+        /** Right stick */
         Xbox360Button[Xbox360Button["RightStick"] = 9] = "RightStick";
     })(Xbox360Button = LIB.Xbox360Button || (LIB.Xbox360Button = {}));
+    /** Defines values for XBox360 DPad  */
     var Xbox360Dpad;
     (function (Xbox360Dpad) {
+        /** Up */
         Xbox360Dpad[Xbox360Dpad["Up"] = 0] = "Up";
+        /** Down */
         Xbox360Dpad[Xbox360Dpad["Down"] = 1] = "Down";
+        /** Left */
         Xbox360Dpad[Xbox360Dpad["Left"] = 2] = "Left";
+        /** Right */
         Xbox360Dpad[Xbox360Dpad["Right"] = 3] = "Right";
     })(Xbox360Dpad = LIB.Xbox360Dpad || (LIB.Xbox360Dpad = {}));
+    /**
+     * Defines a XBox360 gamepad
+     */
     var Xbox360Pad = /** @class */ (function (_super) {
         __extends(Xbox360Pad, _super);
+        /**
+         * Creates a new XBox360 gamepad object
+         * @param id defines the id of this gamepad
+         * @param index defines its index
+         * @param gamepad defines the internal HTML gamepad object
+         * @param xboxOne defines if it is a XBox One gamepad
+         */
         function Xbox360Pad(id, index, gamepad, xboxOne) {
             if (xboxOne === void 0) { xboxOne = false; }
             var _this = _super.call(this, id, index, gamepad, 0, 1, 2, 3) || this;
             _this._leftTrigger = 0;
             _this._rightTrigger = 0;
+            /** Observable raised when a button is pressed */
             _this.onButtonDownObservable = new LIB.Observable();
+            /** Observable raised when a button is released */
             _this.onButtonUpObservable = new LIB.Observable();
+            /** Observable raised when a pad is pressed */
             _this.onPadDownObservable = new LIB.Observable();
+            /** Observable raised when a pad is released */
             _this.onPadUpObservable = new LIB.Observable();
             _this._buttonA = 0;
             _this._buttonB = 0;
@@ -49,13 +84,24 @@
             _this._isXboxOnePad = xboxOne;
             return _this;
         }
+        /**
+         * Defines the callback to call when left trigger is pressed
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.onlefttriggerchanged = function (callback) {
             this._onlefttriggerchanged = callback;
         };
+        /**
+         * Defines the callback to call when right trigger is pressed
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.onrighttriggerchanged = function (callback) {
             this._onrighttriggerchanged = callback;
         };
         Object.defineProperty(Xbox360Pad.prototype, "leftTrigger", {
+            /**
+             * Gets or sets left trigger value
+             */
             get: function () {
                 return this._leftTrigger;
             },
@@ -69,6 +115,9 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "rightTrigger", {
+            /**
+             * Gets or sets right trigger value
+             */
             get: function () {
                 return this._rightTrigger;
             },
@@ -81,15 +130,31 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Defines the callback to call when a button is pressed
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.onbuttondown = function (callback) {
             this._onbuttondown = callback;
         };
+        /**
+         * Defines the callback to call when a button is released
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.onbuttonup = function (callback) {
             this._onbuttonup = callback;
         };
+        /**
+         * Defines the callback to call when a pad is pressed
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.ondpaddown = function (callback) {
             this._ondpaddown = callback;
         };
+        /**
+         * Defines the callback to call when a pad is released
+         * @param callback defines the callback to use
+         */
         Xbox360Pad.prototype.ondpadup = function (callback) {
             this._ondpadup = callback;
         };
@@ -128,6 +193,7 @@
             return newValue;
         };
         Object.defineProperty(Xbox360Pad.prototype, "buttonA", {
+            /** Gets or sets value of A button */
             get: function () {
                 return this._buttonA;
             },
@@ -138,6 +204,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonB", {
+            /** Gets or sets value of B button */
             get: function () {
                 return this._buttonB;
             },
@@ -148,6 +215,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonX", {
+            /** Gets or sets value of X button */
             get: function () {
                 return this._buttonX;
             },
@@ -158,6 +226,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonY", {
+            /** Gets or sets value of Y button */
             get: function () {
                 return this._buttonY;
             },
@@ -168,6 +237,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonStart", {
+            /** Gets or sets value of Start button  */
             get: function () {
                 return this._buttonStart;
             },
@@ -178,6 +248,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonBack", {
+            /** Gets or sets value of Back button  */
             get: function () {
                 return this._buttonBack;
             },
@@ -188,6 +259,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonLB", {
+            /** Gets or sets value of Left button  */
             get: function () {
                 return this._buttonLB;
             },
@@ -198,6 +270,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonRB", {
+            /** Gets or sets value of Right button  */
             get: function () {
                 return this._buttonRB;
             },
@@ -208,6 +281,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonLeftStick", {
+            /** Gets or sets value of left stick */
             get: function () {
                 return this._buttonLeftStick;
             },
@@ -218,6 +292,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "buttonRightStick", {
+            /** Gets or sets value of right stick */
             get: function () {
                 return this._buttonRightStick;
             },
@@ -228,6 +303,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "dPadUp", {
+            /** Gets or sets value of DPad up */
             get: function () {
                 return this._dPadUp;
             },
@@ -238,6 +314,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "dPadDown", {
+            /** Gets or sets value of DPad down */
             get: function () {
                 return this._dPadDown;
             },
@@ -248,6 +325,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "dPadLeft", {
+            /** Gets or sets value of DPad left */
             get: function () {
                 return this._dPadLeft;
             },
@@ -258,6 +336,7 @@
             configurable: true
         });
         Object.defineProperty(Xbox360Pad.prototype, "dPadRight", {
+            /** Gets or sets value of DPad right */
             get: function () {
                 return this._dPadRight;
             },
@@ -267,6 +346,9 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Force the gamepad to synchronize with device values
+         */
         Xbox360Pad.prototype.update = function () {
             _super.prototype.update.call(this);
             if (this._isXboxOnePad) {
@@ -318,4 +400,5 @@
     LIB.Xbox360Pad = Xbox360Pad;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.xboxGamepad.js.map
 //# sourceMappingURL=LIB.xboxGamepad.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var __decoratorInitialStore = {};
     var __mergedStore = {};
@@ -16,10 +18,11 @@
             if (sourceProperty !== undefined && sourceProperty !== null) {
                 switch (propertyType) {
                     case 0: // Value
-                    case 6:// Mesh reference
+                    case 6: // Mesh reference
+                    case 11: // Camera reference
                         destination[property] = sourceProperty;
                         break;
-                    case 1:// Texture
+                    case 1: // Texture
                         destination[property] = (instanciate || sourceProperty.isRenderTarget) ? sourceProperty : sourceProperty.clone();
                         break;
                     case 2: // Color3
@@ -27,7 +30,7 @@
                     case 4: // Vector2
                     case 5: // Vector3
                     case 7: // Color Curves
-                    case 10:// Quaternion
+                    case 10: // Quaternion
                         destination[property] = instanciate ? sourceProperty : sourceProperty.clone();
                         break;
                 }
@@ -158,6 +161,14 @@
         return generateSerializableMember(10, sourceName); // quaternion member
     }
     LIB.serializeAsQuaternion = serializeAsQuaternion;
+    /**
+     * Decorator used to define property that can be serialized as reference to a camera
+     * @param sourceName defines the name of the property to decorate
+     */
+    function serializeAsCameraReference(sourceName) {
+        return generateSerializableMember(11, sourceName); // camera reference member
+    }
+    LIB.serializeAsCameraReference = serializeAsCameraReference;
     var SerializationHelper = /** @class */ (function () {
         function SerializationHelper() {
         }
@@ -178,35 +189,41 @@
                 var sourceProperty = entity[property];
                 if (sourceProperty !== undefined && sourceProperty !== null) {
                     switch (propertyType) {
-                        case 0:// Value
+                        case 0: // Value
                             serializationObject[targetPropertyName] = sourceProperty;
                             break;
-                        case 1:// Texture
+                        case 1: // Texture
                             serializationObject[targetPropertyName] = sourceProperty.serialize();
                             break;
-                        case 2:// Color3
+                        case 2: // Color3
                             serializationObject[targetPropertyName] = sourceProperty.asArray();
                             break;
-                        case 3:// FresnelParameters
+                        case 3: // FresnelParameters
                             serializationObject[targetPropertyName] = sourceProperty.serialize();
                             break;
-                        case 4:// Vector2
+                        case 4: // Vector2
                             serializationObject[targetPropertyName] = sourceProperty.asArray();
                             break;
-                        case 5:// Vector3
+                        case 5: // Vector3
                             serializationObject[targetPropertyName] = sourceProperty.asArray();
                             break;
-                        case 6:// Mesh reference
+                        case 6: // Mesh reference
                             serializationObject[targetPropertyName] = sourceProperty.id;
                             break;
-                        case 7:// Color Curves
+                        case 7: // Color Curves
                             serializationObject[targetPropertyName] = sourceProperty.serialize();
                             break;
-                        case 8:// Color 4
+                        case 8: // Color 4
                             serializationObject[targetPropertyName] = sourceProperty.asArray();
                             break;
-                        case 9:// Image Processing
+                        case 9: // Image Processing
                             serializationObject[targetPropertyName] = sourceProperty.serialize();
+                            break;
+                        case 10: // Quaternion
+                            serializationObject[targetPropertyName] = sourceProperty.asArray();
+                            break;
+                        case 11: // Camera reference
+                            serializationObject[targetPropertyName] = sourceProperty.id;
                             break;
                     }
                 }
@@ -232,39 +249,47 @@
                 if (sourceProperty !== undefined && sourceProperty !== null) {
                     var dest = destination;
                     switch (propertyType) {
-                        case 0:// Value
+                        case 0: // Value
                             dest[property] = sourceProperty;
                             break;
-                        case 1:// Texture
+                        case 1: // Texture
                             if (scene) {
                                 dest[property] = LIB.Texture.Parse(sourceProperty, scene, rootUrl);
                             }
                             break;
-                        case 2:// Color3
+                        case 2: // Color3
                             dest[property] = LIB.Color3.FromArray(sourceProperty);
                             break;
-                        case 3:// FresnelParameters
+                        case 3: // FresnelParameters
                             dest[property] = LIB.FresnelParameters.Parse(sourceProperty);
                             break;
-                        case 4:// Vector2
+                        case 4: // Vector2
                             dest[property] = LIB.Vector2.FromArray(sourceProperty);
                             break;
-                        case 5:// Vector3
+                        case 5: // Vector3
                             dest[property] = LIB.Vector3.FromArray(sourceProperty);
                             break;
-                        case 6:// Mesh reference
+                        case 6: // Mesh reference
                             if (scene) {
                                 dest[property] = scene.getLastMeshByID(sourceProperty);
                             }
                             break;
-                        case 7:// Color Curves
+                        case 7: // Color Curves
                             dest[property] = LIB.ColorCurves.Parse(sourceProperty);
                             break;
-                        case 8:// Color 4
+                        case 8: // Color 4
                             dest[property] = LIB.Color4.FromArray(sourceProperty);
                             break;
-                        case 9:// Image Processing
+                        case 9: // Image Processing
                             dest[property] = LIB.ImageProcessingConfiguration.Parse(sourceProperty);
+                            break;
+                        case 10: // Quaternion
+                            dest[property] = LIB.Quaternion.FromArray(sourceProperty);
+                            break;
+                        case 11: // Camera reference
+                            if (scene) {
+                                dest[property] = scene.getCameraByID(sourceProperty);
+                            }
                             break;
                     }
                 }
@@ -282,4 +307,5 @@
     LIB.SerializationHelper = SerializationHelper;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.decorators.js.map
 //# sourceMappingURL=LIB.decorators.js.map

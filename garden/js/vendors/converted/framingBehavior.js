@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var FramingBehavior = /** @class */ (function () {
         function FramingBehavior() {
@@ -309,6 +311,7 @@
                 this._radiusTransition = LIB.Animation.CreateAnimation("radius", LIB.Animation.ANIMATIONTYPE_FLOAT, 60, FramingBehavior.EasingFunction);
             }
             animatable = LIB.Animation.TransitionTo("radius", radius, this._attachedCamera, this._attachedCamera.getScene(), 60, this._radiusTransition, this._framingTime, function () {
+                _this.stopAllAnimations();
                 if (onAnimationEnd) {
                     onAnimationEnd();
                 }
@@ -323,9 +326,9 @@
         /**
          * Calculates the lowest radius for the camera based on the bounding box of the mesh.
          * @param mesh The mesh on which to base the calculation. mesh boundingInfo used to estimate necessary
-         *            frustum width.
+         *			  frustum width.
          * @return The minimum distance from the primary mesh's center point at which the camera must be kept in order
-         *       to fully enclose the mesh in the viewing frustum.
+         *		 to fully enclose the mesh in the viewing frustum.
          */
         FramingBehavior.prototype._calculateLowerRadiusFromModelBoundingSphere = function (minimumWorld, maximumWorld) {
             var size = maximumWorld.subtract(minimumWorld);
@@ -475,4 +478,5 @@
     LIB.FramingBehavior = FramingBehavior;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.framingBehavior.js.map
 //# sourceMappingURL=LIB.framingBehavior.js.map

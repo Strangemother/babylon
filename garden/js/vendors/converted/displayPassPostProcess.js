@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var DisplayPassPostProcess = /** @class */ (function (_super) {
         __extends(DisplayPassPostProcess, _super);
@@ -9,4 +12,5 @@
     LIB.DisplayPassPostProcess = DisplayPassPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.displayPassPostProcess.js.map
 //# sourceMappingURL=LIB.displayPassPostProcess.js.map

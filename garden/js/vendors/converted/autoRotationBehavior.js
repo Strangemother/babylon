@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var AutoRotationBehavior = /** @class */ (function () {
         function AutoRotationBehavior() {
@@ -184,4 +186,5 @@
     LIB.AutoRotationBehavior = AutoRotationBehavior;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.autoRotationBehavior.js.map
 //# sourceMappingURL=LIB.autoRotationBehavior.js.map

@@ -1,4 +1,13 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
+    /** @hidden */
     var StandardMaterialDefines = /** @class */ (function (_super) {
         __extends(StandardMaterialDefines, _super);
         function StandardMaterialDefines() {
@@ -50,11 +59,13 @@
             _this.REFLECTIONFRESNELFROMSPECULAR = false;
             _this.LIGHTMAP = false;
             _this.LIGHTMAPDIRECTUV = 0;
+            _this.OBJECTSPACE_NORMALMAP = false;
             _this.USELIGHTMAPASSHADOWMAP = false;
             _this.REFLECTIONMAP_3D = false;
             _this.REFLECTIONMAP_SPHERICAL = false;
             _this.REFLECTIONMAP_PLANAR = false;
             _this.REFLECTIONMAP_CUBIC = false;
+            _this.USE_LOCAL_REFLECTIONMAP_CUBIC = false;
             _this.REFLECTIONMAP_PROJECTION = false;
             _this.REFLECTIONMAP_SKYBOX = false;
             _this.REFLECTIONMAP_EXPLICIT = false;
@@ -86,6 +97,16 @@
             _this.SAMPLER3DGREENDEPTH = false;
             _this.SAMPLER3DBGRMAP = false;
             _this.IMAGEPROCESSINGPOSTPROCESS = false;
+            /**
+             * If the reflection texture on this material is in linear color space
+             * @hidden
+             */
+            _this.IS_REFLECTION_LINEAR = false;
+            /**
+             * If the refraction texture on this material is in linear color space
+             * @hidden
+             */
+            _this.IS_REFRACTION_LINEAR = false;
             _this.EXPOSURE = false;
             _this.rebuild();
             return _this;
@@ -120,12 +141,17 @@
             _this._useSpecularOverAlpha = false;
             _this._useReflectionOverAlpha = false;
             _this._disableLighting = false;
+            _this._useObjectSpaceNormalMap = false;
             _this._useParallax = false;
             _this._useParallaxOcclusion = false;
             _this.parallaxScaleBias = 0.05;
             _this._roughness = 0;
             _this.indexOfRefraction = 0.98;
             _this.invertRefractionY = true;
+            /**
+             * Defines the alpha limits in alpha test mode
+             */
+            _this.alphaCutOff = 0.4;
             _this._useLightmapAsShadowmap = false;
             _this._useReflectionFresnelFromSpecular = false;
             _this._useGlossinessFromSpecularMapAlpha = false;
@@ -159,23 +185,6 @@
             };
             return _this;
         }
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
-        ;
         Object.defineProperty(StandardMaterial.prototype, "imageProcessingConfiguration", {
             /**
              * Gets the image processing configuration used either in this material.
@@ -448,10 +457,6 @@
                             defines.INVERTCUBICMAP = (this._reflectionTexture.coordinatesMode === LIB.Texture.INVCUBIC_MODE);
                             defines.REFLECTIONMAP_3D = this._reflectionTexture.isCube;
                             switch (this._reflectionTexture.coordinatesMode) {
-                                case LIB.Texture.CUBIC_MODE:
-                                case LIB.Texture.INVCUBIC_MODE:
-                                    defines.setReflectionMode("REFLECTIONMAP_CUBIC");
-                                    break;
                                 case LIB.Texture.EXPLICIT_MODE:
                                     defines.setReflectionMode("REFLECTIONMAP_EXPLICIT");
                                     break;
@@ -476,7 +481,13 @@
                                 case LIB.Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE:
                                     defines.setReflectionMode("REFLECTIONMAP_MIRROREDEQUIRECTANGULAR_FIXED");
                                     break;
+                                case LIB.Texture.CUBIC_MODE:
+                                case LIB.Texture.INVCUBIC_MODE:
+                                default:
+                                    defines.setReflectionMode("REFLECTIONMAP_CUBIC");
+                                    break;
                             }
+                            defines.USE_LOCAL_REFLECTIONMAP_CUBIC = this._reflectionTexture.boundingBoxSize ? true : false;
                         }
                     }
                     else {
@@ -527,6 +538,7 @@
                             defines.PARALLAX = this._useParallax;
                             defines.PARALLAXOCCLUSION = this._useParallaxOcclusion;
                         }
+                        defines.OBJECTSPACE_NORMALMAP = this._useObjectSpaceNormalMap;
                     }
                     else {
                         defines.BUMP = false;
@@ -567,6 +579,8 @@
                     return false;
                 }
                 this._imageProcessingConfiguration.prepareDefines(defines);
+                defines.IS_REFLECTION_LINEAR = (this.reflectionTexture != null && !this.reflectionTexture.gammaSpace);
+                defines.IS_REFRACTION_LINEAR = (this.refractionTexture != null && !this.refractionTexture.gammaSpace);
             }
             if (defines._areFresnelDirty) {
                 if (StandardMaterial.FresnelEnabled) {
@@ -589,12 +603,12 @@
                 }
             }
             // Misc.
-            LIB.MaterialHelper.PrepareDefinesForMisc(mesh, scene, this._useLogarithmicDepth, this.pointsCloud, this.fogEnabled, defines);
+            LIB.MaterialHelper.PrepareDefinesForMisc(mesh, scene, this._useLogarithmicDepth, this.pointsCloud, this.fogEnabled, this._shouldTurnAlphaTestOn(mesh), defines);
             // Attribs
             LIB.MaterialHelper.PrepareDefinesForAttributes(mesh, defines, true, true, true);
             // Values that need to be evaluated on every frame
             LIB.MaterialHelper.PrepareDefinesForFrameBoundValues(scene, engine, defines, useInstances);
-            // Get correct effect
+            // Get correct effect      
             if (defines.isDirty) {
                 defines.markAsProcessed();
                 scene.resetCachedMaterial();
@@ -668,9 +682,10 @@
                     "vFogInfos", "vFogColor", "pointSize",
                     "vDiffuseInfos", "vAmbientInfos", "vOpacityInfos", "vReflectionInfos", "vEmissiveInfos", "vSpecularInfos", "vBumpInfos", "vLightmapInfos", "vRefractionInfos",
                     "mBones",
-                    "vClipPlane", "diffuseMatrix", "ambientMatrix", "opacityMatrix", "reflectionMatrix", "emissiveMatrix", "specularMatrix", "bumpMatrix", "lightmapMatrix", "refractionMatrix",
+                    "vClipPlane", "diffuseMatrix", "ambientMatrix", "opacityMatrix", "reflectionMatrix", "emissiveMatrix", "specularMatrix", "bumpMatrix", "normalMatrix", "lightmapMatrix", "refractionMatrix",
                     "diffuseLeftColor", "diffuseRightColor", "opacityParts", "reflectionLeftColor", "reflectionRightColor", "emissiveLeftColor", "emissiveRightColor", "refractionLeftColor", "refractionRightColor",
-                    "logarithmicDepthConstant", "vTangentSpaceParams"
+                    "vReflectionPosition", "vReflectionSize",
+                    "logarithmicDepthConstant", "vTangentSpaceParams", "alphaCutOff"
                 ];
                 var samplers = ["diffuseSampler", "ambientSampler", "opacitySampler", "reflectionCubeSampler", "reflection2DSampler", "emissiveSampler", "specularSampler", "bumpSampler", "lightmapSampler", "refractionCubeSampler", "refraction2DSampler"];
                 var uniformBuffers = ["Material", "Scene"];
@@ -722,6 +737,8 @@
             this._uniformBuffer.addUniform("vAmbientInfos", 2);
             this._uniformBuffer.addUniform("vOpacityInfos", 2);
             this._uniformBuffer.addUniform("vReflectionInfos", 2);
+            this._uniformBuffer.addUniform("vReflectionPosition", 3);
+            this._uniformBuffer.addUniform("vReflectionSize", 3);
             this._uniformBuffer.addUniform("vEmissiveInfos", 2);
             this._uniformBuffer.addUniform("vLightmapInfos", 2);
             this._uniformBuffer.addUniform("vSpecularInfos", 2);
@@ -745,11 +762,17 @@
         };
         StandardMaterial.prototype.unbind = function () {
             if (this._activeEffect) {
+                var needFlag = false;
                 if (this._reflectionTexture && this._reflectionTexture.isRenderTarget) {
                     this._activeEffect.setTexture("reflection2DSampler", null);
+                    needFlag = true;
                 }
                 if (this._refractionTexture && this._refractionTexture.isRenderTarget) {
                     this._activeEffect.setTexture("refraction2DSampler", null);
+                    needFlag = true;
+                }
+                if (needFlag) {
+                    this._markAllSubMeshesAsTexturesDirty();
                 }
             }
             _super.prototype.unbind.call(this);
@@ -765,8 +788,13 @@
                 return;
             }
             this._activeEffect = effect;
-            // Matrices
+            // Matrices        
             this.bindOnlyWorldMatrix(world);
+            // Normal Matrix
+            if (defines.OBJECTSPACE_NORMALMAP) {
+                world.toNormalMatrix(this._normalMatrix);
+                this.bindOnlyNormalMatrix(this._normalMatrix);
+            }
             var mustRebind = this._mustRebind(scene, effect, mesh.visibility);
             // Bones
             LIB.MaterialHelper.BindBonesParameters(mesh, effect);
@@ -796,11 +824,14 @@
                             this._uniformBuffer.updateColor4("emissiveRightColor", this.emissiveFresnelParameters.rightColor, this.emissiveFresnelParameters.bias);
                         }
                     }
-                    // Textures
+                    // Textures     
                     if (scene.texturesEnabled) {
                         if (this._diffuseTexture && StandardMaterial.DiffuseTextureEnabled) {
                             this._uniformBuffer.updateFloat2("vDiffuseInfos", this._diffuseTexture.coordinatesIndex, this._diffuseTexture.level);
                             LIB.MaterialHelper.BindTextureMatrix(this._diffuseTexture, this._uniformBuffer, "diffuse");
+                            if (this._diffuseTexture.hasAlpha) {
+                                effect.setFloat("alphaCutOff", this.alphaCutOff);
+                            }
                         }
                         if (this._ambientTexture && StandardMaterial.AmbientTextureEnabled) {
                             this._uniformBuffer.updateFloat2("vAmbientInfos", this._ambientTexture.coordinatesIndex, this._ambientTexture.level);
@@ -813,6 +844,11 @@
                         if (this._reflectionTexture && StandardMaterial.ReflectionTextureEnabled) {
                             this._uniformBuffer.updateFloat2("vReflectionInfos", this._reflectionTexture.level, this.roughness);
                             this._uniformBuffer.updateMatrix("reflectionMatrix", this._reflectionTexture.getReflectionTextureMatrix());
+                            if (this._reflectionTexture.boundingBoxSize) {
+                                var cubeTexture = this._reflectionTexture;
+                                this._uniformBuffer.updateVector3("vReflectionPosition", cubeTexture.boundingBoxPosition);
+                                this._uniformBuffer.updateVector3("vReflectionSize", cubeTexture.boundingBoxSize);
+                            }
                         }
                         if (this._emissiveTexture && StandardMaterial.EmissiveTextureEnabled) {
                             this._uniformBuffer.updateFloat2("vEmissiveInfos", this._emissiveTexture.coordinatesIndex, this._emissiveTexture.level);
@@ -858,7 +894,7 @@
                     // Diffuse
                     this._uniformBuffer.updateColor4("vDiffuseColor", this.diffuseColor, this.alpha * mesh.visibility);
                 }
-                // Textures
+                // Textures     
                 if (scene.texturesEnabled) {
                     if (this._diffuseTexture && StandardMaterial.DiffuseTextureEnabled) {
                         effect.setTexture("diffuseSampler", this._diffuseTexture);
@@ -1245,7 +1281,7 @@
             LIB.serializeAsTexture("diffuseTexture")
         ], StandardMaterial.prototype, "_diffuseTexture", void 0);
         __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], StandardMaterial.prototype, "diffuseTexture", void 0);
         __decorate([
             LIB.serializeAsTexture("ambientTexture")
@@ -1257,7 +1293,7 @@
             LIB.serializeAsTexture("opacityTexture")
         ], StandardMaterial.prototype, "_opacityTexture", void 0);
         __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], StandardMaterial.prototype, "opacityTexture", void 0);
         __decorate([
             LIB.serializeAsTexture("reflectionTexture")
@@ -1347,6 +1383,12 @@
             LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
         ], StandardMaterial.prototype, "disableLighting", void 0);
         __decorate([
+            LIB.serialize("useObjectSpaceNormalMap")
+        ], StandardMaterial.prototype, "_useObjectSpaceNormalMap", void 0);
+        __decorate([
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+        ], StandardMaterial.prototype, "useObjectSpaceNormalMap", void 0);
+        __decorate([
             LIB.serialize("useParallax")
         ], StandardMaterial.prototype, "_useParallax", void 0);
         __decorate([
@@ -1374,6 +1416,9 @@
             LIB.serialize()
         ], StandardMaterial.prototype, "invertRefractionY", void 0);
         __decorate([
+            LIB.serialize()
+        ], StandardMaterial.prototype, "alphaCutOff", void 0);
+        __decorate([
             LIB.serialize("useLightmapAsShadowmap")
         ], StandardMaterial.prototype, "_useLightmapAsShadowmap", void 0);
         __decorate([
@@ -1389,7 +1434,7 @@
             LIB.serializeAsFresnelParameters("opacityFresnelParameters")
         ], StandardMaterial.prototype, "_opacityFresnelParameters", void 0);
         __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsFresnelDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsFresnelAndMiscDirty")
         ], StandardMaterial.prototype, "opacityFresnelParameters", void 0);
         __decorate([
             LIB.serializeAsFresnelParameters("reflectionFresnelParameters")
@@ -1453,4 +1498,5 @@
     LIB.StandardMaterial = StandardMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.standardMaterial.js.map
 //# sourceMappingURL=LIB.standardMaterial.js.map

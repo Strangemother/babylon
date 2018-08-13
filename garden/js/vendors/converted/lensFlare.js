@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var LensFlare = /** @class */ (function () {
         function LensFlare(size, position, color, imgUrl, system) {
@@ -26,4 +28,5 @@
     LIB.LensFlare = LensFlare;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.lensFlare.js.map
 //# sourceMappingURL=LIB.lensFlare.js.map

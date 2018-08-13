@@ -1,14 +1,44 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * The Blur Post Process which blurs an image based on a kernel and direction.
+     * Can be used twice in x and y directions to perform a guassian blur in two passes.
+     */
     var BlurPostProcess = /** @class */ (function (_super) {
         __extends(BlurPostProcess, _super);
-        function BlurPostProcess(name, direction, kernel, options, camera, samplingMode, engine, reusable, textureType) {
+        /**
+         * Creates a new instance BlurPostProcess
+         * @param name The name of the effect.
+         * @param direction The direction in which to blur the image.
+         * @param kernel The size of the kernel to be used when computing the blur. eg. Size of 3 will blur the center pixel by 2 pixels surrounding it.
+         * @param options The required width/height ratio to downsize to before computing the render pass. (Use 1.0 for full size)
+         * @param camera The camera to apply the render pass to.
+         * @param samplingMode The sampling mode to be used when computing the pass. (default: 0)
+         * @param engine The engine which the post process will be applied. (default: current engine)
+         * @param reusable If the post process can be reused on the same frame. (default: false)
+         * @param textureType Type of textures used when performing the post process. (default: 0)
+         * @param blockCompilation If compilation of the shader should not be done in the constructor. The updateEffect method can be used to compile the shader at a later time. (default: false)
+         */
+        function BlurPostProcess(name, /** The direction in which to blur the image. */ direction, kernel, options, camera, samplingMode, engine, reusable, textureType, defines, blockCompilation) {
             if (samplingMode === void 0) { samplingMode = LIB.Texture.BILINEAR_SAMPLINGMODE; }
             if (textureType === void 0) { textureType = LIB.Engine.TEXTURETYPE_UNSIGNED_INT; }
-            var _this = _super.call(this, name, "kernelBlur", ["delta", "direction"], null, options, camera, samplingMode, engine, reusable, null, textureType, "kernelBlur", { varyingCount: 0, depCount: 0 }, true) || this;
+            if (defines === void 0) { defines = ""; }
+            if (blockCompilation === void 0) { blockCompilation = false; }
+            var _this = _super.call(this, name, "kernelBlur", ["delta", "direction", "cameraMinMaxZ"], ["circleOfConfusionSampler"], options, camera, samplingMode, engine, reusable, null, textureType, "kernelBlur", { varyingCount: 0, depCount: 0 }, true) || this;
             _this.direction = direction;
+            _this.blockCompilation = blockCompilation;
             _this._packedFloat = false;
+            _this._staticDefines = "";
+            _this._staticDefines = defines;
             _this.onApplyObservable.add(function (effect) {
-                effect.setFloat2('delta', (1 / _this.width) * _this.direction.x, (1 / _this.height) * _this.direction.y);
+                if (_this._outputTexture) {
+                    effect.setFloat2('delta', (1 / _this._outputTexture.width) * _this.direction.x, (1 / _this._outputTexture.height) * _this.direction.y);
+                }
+                else {
+                    effect.setFloat2('delta', (1 / _this.width) * _this.direction.x, (1 / _this.height) * _this.direction.y);
+                }
             });
             _this.kernel = kernel;
             return _this;
@@ -30,7 +60,9 @@
                 v = Math.max(v, 1);
                 this._idealKernel = v;
                 this._kernel = this._nearestBestKernel(v);
-                this._updateParameters();
+                if (!this.blockCompilation) {
+                    this._updateParameters();
+                }
             },
             enumerable: true,
             configurable: true
@@ -50,12 +82,29 @@
                     return;
                 }
                 this._packedFloat = v;
-                this._updateParameters();
+                if (!this.blockCompilation) {
+                    this._updateParameters();
+                }
             },
             enumerable: true,
             configurable: true
         });
-        BlurPostProcess.prototype._updateParameters = function () {
+        /**
+         * Updates the effect with the current post process compile time values and recompiles the shader.
+         * @param defines Define statements that should be added at the beginning of the shader. (default: null)
+         * @param uniforms Set of uniform variables that will be passed to the shader. (default: null)
+         * @param samplers Set of Texture2D variables that will be passed to the shader. (default: null)
+         * @param indexParameters The index parameters to be used for LIBs include syntax "#include<kernelBlurVaryingDeclaration>[0..varyingCount]". (default: undefined) See usage in LIB.blurPostProcess.ts and kernelBlur.vertex.fx
+         * @param onCompiled Called when the shader has been compiled.
+         * @param onError Called if there is an error when compiling a shader.
+         */
+        BlurPostProcess.prototype.updateEffect = function (defines, uniforms, samplers, indexParameters, onCompiled, onError) {
+            if (defines === void 0) { defines = null; }
+            if (uniforms === void 0) { uniforms = null; }
+            if (samplers === void 0) { samplers = null; }
+            this._updateParameters(onCompiled, onError);
+        };
+        BlurPostProcess.prototype._updateParameters = function (onCompiled, onError) {
             // Generate sampling offsets and weights
             var N = this._kernel;
             var centerIndex = (N - 1) / 2;
@@ -111,6 +160,12 @@
             var freeVaryingVec2 = Math.max(maxVaryingRows, 0.) - 1; // Because of sampleCenter
             var varyingCount = Math.min(offsets.length, freeVaryingVec2);
             var defines = "";
+            defines += this._staticDefines;
+            // The DOF fragment should ignore the center pixel when looping as it is handled manualy in the fragment shader.
+            if (this._staticDefines.indexOf("DOF") != -1) {
+                defines += "#define CENTER_WEIGHT " + this._glslFloat(weights[varyingCount - 1]) + "\r\n";
+                varyingCount--;
+            }
             for (var i = 0; i < varyingCount; i++) {
                 defines += "#define KERNEL_OFFSET" + i + " " + this._glslFloat(offsets[i]) + "\r\n";
                 defines += "#define KERNEL_WEIGHT" + i + " " + this._glslFloat(weights[i]) + "\r\n";
@@ -124,10 +179,11 @@
             if (this.packedFloat) {
                 defines += "#define PACKEDFLOAT 1";
             }
-            this.updateEffect(defines, null, null, {
+            this.blockCompilation = false;
+            _super.prototype.updateEffect.call(this, defines, null, null, {
                 varyingCount: varyingCount,
                 depCount: depCount
-            });
+            }, onCompiled, onError);
         };
         /**
          * Best kernels are odd numbers that when divided by 2, their integer part is even, so 5, 9 or 13.
@@ -181,4 +237,5 @@
     LIB.BlurPostProcess = BlurPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.blurPostProcess.js.map
 //# sourceMappingURL=LIB.blurPostProcess.js.map

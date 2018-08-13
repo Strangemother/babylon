@@ -1,6 +1,11 @@
+
+var LIB;
 (function (LIB) {
     var Debug;
     (function (Debug) {
+        /**
+         * Used to show the physics impostor around the specific mesh.
+         */
         var PhysicsViewer = /** @class */ (function () {
             function PhysicsViewer(scene) {
                 this._impostors = [];
@@ -91,7 +96,7 @@
             };
             PhysicsViewer.prototype._getDebugBoxMesh = function (scene) {
                 if (!this._debugBoxMesh) {
-                    this._debugBoxMesh = LIB.MeshBuilder.CreateBox('physicsBodyBoxViewMesh', { size: 1 }, scene);
+                    this._debugBoxMesh = LIB.MeshBuilder.CreateCube('physicsBodyBoxViewMesh', { size: 1 }, scene);
                     this._debugBoxMesh.renderingGroupId = 1;
                     this._debugBoxMesh.rotationQuaternion = LIB.Quaternion.Identity();
                     this._debugBoxMesh.material = this._getDebugMaterial(scene);
@@ -147,4 +152,5 @@
     })(Debug = LIB.Debug || (LIB.Debug = {}));
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.physicsViewer.js.map
 //# sourceMappingURL=LIB.physicsViewer.js.map

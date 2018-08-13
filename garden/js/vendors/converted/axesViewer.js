@@ -1,6 +1,14 @@
+
+/**
+ * Module Debug contains the (visual) components to debug a scene correctly
+ */
+var LIB;
 (function (LIB) {
     var Debug;
     (function (Debug) {
+        /**
+         * The Axes viewer will show 3 axes in a specific point in space
+         */
         var AxesViewer = /** @class */ (function () {
             function AxesViewer(scene, scaleLines) {
                 if (scaleLines === void 0) { scaleLines = 1; }
@@ -71,4 +79,5 @@
     })(Debug = LIB.Debug || (LIB.Debug = {}));
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.axesViewer.js.map
 //# sourceMappingURL=LIB.axesViewer.js.map

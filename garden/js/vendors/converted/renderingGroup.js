@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var RenderingGroup = /** @class */ (function () {
         /**
@@ -88,10 +90,8 @@
             var engine = this._scene.getEngine();
             // Depth only
             if (this._depthOnlySubMeshes.length !== 0) {
-                engine.setAlphaTesting(true);
                 engine.setColorWrite(false);
                 this._renderAlphaTest(this._depthOnlySubMeshes);
-                engine.setAlphaTesting(false);
                 engine.setColorWrite(true);
             }
             // Opaque
@@ -100,9 +100,7 @@
             }
             // Alpha test
             if (this._alphaTestSubMeshes.length !== 0) {
-                engine.setAlphaTesting(true);
                 this._renderAlphaTest(this._alphaTestSubMeshes);
-                engine.setAlphaTesting(false);
             }
             var stencilState = engine.getStencilBuffer();
             engine.setStencilBuffer(false);
@@ -179,10 +177,8 @@
                     if (material && material.needDepthPrePass) {
                         var engine = material.getScene().getEngine();
                         engine.setColorWrite(false);
-                        engine.setAlphaTesting(true);
                         engine.setAlphaMode(LIB.Engine.ALPHA_DISABLE);
                         subMesh.render(false);
-                        engine.setAlphaTesting(false);
                         engine.setColorWrite(true);
                     }
                 }
@@ -278,17 +274,24 @@
         /**
          * Inserts the submesh in its correct queue depending on its material.
          * @param subMesh The submesh to dispatch
+         * @param [mesh] Optional reference to the submeshes's mesh. Provide if you have an exiting reference to improve performance.
+         * @param [material] Optional reference to the submeshes's material. Provide if you have an exiting reference to improve performance.
          */
-        RenderingGroup.prototype.dispatch = function (subMesh) {
-            var material = subMesh.getMaterial();
-            var mesh = subMesh.getMesh();
-            if (!material) {
+        RenderingGroup.prototype.dispatch = function (subMesh, mesh, material) {
+            // Get mesh and materials if not provided
+            if (mesh === undefined) {
+                mesh = subMesh.getMesh();
+            }
+            if (material === undefined) {
+                material = subMesh.getMaterial();
+            }
+            if (material === null || material === undefined) {
                 return;
             }
-            if (material.needAlphaBlendingForMesh(mesh)) {
+            if (material.needAlphaBlendingForMesh(mesh)) { // Transparent
                 this._transparentSubMeshes.push(subMesh);
             }
-            else if (material.needAlphaTesting()) {
+            else if (material.needAlphaTesting()) { // Alpha test
                 if (material.needDepthPrePass) {
                     this._depthOnlySubMeshes.push(subMesh);
                 }
@@ -300,7 +303,7 @@
                 }
                 this._opaqueSubMeshes.push(subMesh); // Opaque
             }
-            if (mesh._edgesRenderer) {
+            if (mesh._edgesRenderer !== null && mesh._edgesRenderer !== undefined) {
                 this._edgesRenderers.push(mesh._edgesRenderer);
             }
         };
@@ -317,8 +320,8 @@
             // Particles
             var activeCamera = this._scene.activeCamera;
             this._scene.onBeforeParticlesRenderingObservable.notifyObservers(this._scene);
-            for (var particleIndex = 0; particleIndex < this._scene._activeParticleSystems.length; particleIndex++) {
-                var particleSystem = this._scene._activeParticleSystems.data[particleIndex];
+            for (var particleIndex = 0; particleIndex < this._particleSystems.length; particleIndex++) {
+                var particleSystem = this._particleSystems.data[particleIndex];
                 if ((activeCamera && activeCamera.layerMask & particleSystem.layerMask) === 0) {
                     continue;
                 }
@@ -333,7 +336,7 @@
             if (!this._scene.spritesEnabled || this._spriteManagers.length === 0) {
                 return;
             }
-            // Sprites
+            // Sprites       
             var activeCamera = this._scene.activeCamera;
             this._scene.onBeforeSpritesRenderingObservable.notifyObservers(this._scene);
             for (var id = 0; id < this._spriteManagers.length; id++) {
@@ -349,4 +352,5 @@
     LIB.RenderingGroup = RenderingGroup;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.renderingGroup.js.map
 //# sourceMappingURL=LIB.renderingGroup.js.map

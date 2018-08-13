@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraGamepadInput = /** @class */ (function () {
         function ArcRotateCameraGamepadInput() {
@@ -72,4 +75,5 @@
     LIB.CameraInputTypes["ArcRotateCameraGamepadInput"] = ArcRotateCameraGamepadInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraGamepadInput.js.map
 //# sourceMappingURL=LIB.arcRotateCameraGamepadInput.js.map

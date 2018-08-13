@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * This class can be used to get instrumentation data from a LIB engine
@@ -131,4 +133,5 @@
     LIB.EngineInstrumentation = EngineInstrumentation;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.engineInstrumentation.js.map
 //# sourceMappingURL=LIB.engineInstrumentation.js.map

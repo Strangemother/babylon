@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var FilesInput = /** @class */ (function () {
         function FilesInput(engine, scene, sceneLoadedCallback, progressCallback, additionalRenderLoopLogicCallback, textureLoadingCallback, startingProcessingFilesCallback, onReloadCallback, errorCallback) {
@@ -176,8 +178,12 @@
                     this._engine.stopRenderLoop();
                     this._currentScene.dispose();
                 }
-                LIB.SceneLoader.Load("file:", this._sceneFileToLoad, this._engine, function (newScene) {
-                    _this._currentScene = newScene;
+                LIB.SceneLoader.LoadAsync("file:", this._sceneFileToLoad, this._engine, function (progress) {
+                    if (_this._progressCallback) {
+                        _this._progressCallback(progress);
+                    }
+                }).then(function (scene) {
+                    _this._currentScene = scene;
                     if (_this._sceneLoadedCallback) {
                         _this._sceneLoadedCallback(_this._sceneFileToLoad, _this._currentScene);
                     }
@@ -187,14 +193,9 @@
                             _this.renderFunction();
                         });
                     });
-                }, function (progress) {
-                    if (_this._progressCallback) {
-                        _this._progressCallback(progress);
-                    }
-                }, function (scene, message) {
-                    _this._currentScene = scene;
+                }).catch(function (error) {
                     if (_this._errorCallback) {
-                        _this._errorCallback(_this._sceneFileToLoad, _this._currentScene, message);
+                        _this._errorCallback(_this._sceneFileToLoad, _this._currentScene, error.message);
                     }
                 });
             }
@@ -208,4 +209,5 @@
     LIB.FilesInput = FilesInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.filesInput.js.map
 //# sourceMappingURL=LIB.filesInput.js.map

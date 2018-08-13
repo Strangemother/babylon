@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Tags = /** @class */ (function () {
         function Tags() {
@@ -93,11 +95,12 @@
             if (tagsQuery === "") {
                 return Tags.HasTags(obj);
             }
-            return LIB.Internals.AndOrNotEvaluator.Eval(tagsQuery, function (r) { return Tags.HasTags(obj) && obj._tags[r]; });
+            return LIB.AndOrNotEvaluator.Eval(tagsQuery, function (r) { return Tags.HasTags(obj) && obj._tags[r]; });
         };
         return Tags;
     }());
     LIB.Tags = Tags;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.tags.js.map
 //# sourceMappingURL=LIB.tags.js.map

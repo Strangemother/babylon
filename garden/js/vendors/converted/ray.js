@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Ray = /** @class */ (function () {
         function Ray(origin, direction, length) {
@@ -216,27 +218,27 @@
             var sc, sN, sD = D; // sc = sN / sD, default sD = D >= 0
             var tc, tN, tD = D; // tc = tN / tD, default tD = D >= 0
             // compute the line parameters of the two closest points
-            if (D < Ray.smallnum) {
+            if (D < Ray.smallnum) { // the lines are almost parallel
                 sN = 0.0; // force using point P0 on segment S1
                 sD = 1.0; // to prevent possible division by 0.0 later
                 tN = e;
                 tD = c;
             }
-            else {
+            else { // get the closest points on the infinite lines
                 sN = (b * e - c * d);
                 tN = (a * e - b * d);
-                if (sN < 0.0) {
+                if (sN < 0.0) { // sc < 0 => the s=0 edge is visible
                     sN = 0.0;
                     tN = e;
                     tD = c;
                 }
-                else if (sN > sD) {
+                else if (sN > sD) { // sc > 1 => the s=1 edge is visible
                     sN = sD;
                     tN = e + b;
                     tD = c;
                 }
             }
-            if (tN < 0.0) {
+            if (tN < 0.0) { // tc < 0 => the t=0 edge is visible
                 tN = 0.0;
                 // recompute sc for this edge
                 if (-d < 0.0) {
@@ -249,7 +251,7 @@
                     sD = a;
                 }
             }
-            else if (tN > tD) {
+            else if (tN > tD) { // tc > 1 => the t=1 edge is visible
                 tN = tD;
                 // recompute sc for this edge
                 if ((-d + b) < 0.0) {
@@ -330,4 +332,5 @@
     LIB.Ray = Ray;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.ray.js.map
 //# sourceMappingURL=LIB.ray.js.map

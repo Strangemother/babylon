@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     LIB.CameraInputTypes = {};
     var CameraInputsManager = /** @class */ (function () {
@@ -6,6 +8,12 @@
             this.camera = camera;
             this.checkInputs = function () { };
         }
+        /**
+         * Add an input method to a camera.
+         * builtin inputs example: camera.inputs.addGamepad();
+         * custom inputs example: camera.inputs.add(new LIB.FreeCameraGamepadInput());
+         * @param input camera input method
+         */
         CameraInputsManager.prototype.add = function (input) {
             var type = input.getSimpleName();
             if (this.attached[type]) {
@@ -23,6 +31,11 @@
                 input.attachControl(this.attachedElement);
             }
         };
+        /**
+         * Remove a specific input method from a camera
+         * example: camera.inputs.remove(camera.inputs.attached.mouse);
+         * @param inputToRemove camera input method
+         */
         CameraInputsManager.prototype.remove = function (inputToRemove) {
             for (var cam in this.attached) {
                 var input = this.attached[cam];
@@ -91,6 +104,9 @@
                 }
             }
         };
+        /**
+         * Remove all attached input methods from a camera
+         */
         CameraInputsManager.prototype.clear = function () {
             if (this.attachedElement) {
                 this.detachElement(this.attachedElement, true);
@@ -138,4 +154,5 @@
     LIB.CameraInputsManager = CameraInputsManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.cameraInputsManager.js.map
 //# sourceMappingURL=LIB.cameraInputsManager.js.map

@@ -1,15 +1,16 @@
+
+var LIB;
 (function (LIB) {
     var OimoJSPlugin = /** @class */ (function () {
         function OimoJSPlugin(iterations) {
             this.name = "OimoJSPlugin";
             this._tmpImpostorsArray = [];
             this._tmpPositionVector = LIB.Vector3.Zero();
-            this.BJSOIMO = typeof OIMO !== 'undefined' ? OIMO : (typeof require !== 'undefined' ? require('./Oimo') : undefined);
-            this.world = new this.BJSOIMO.World(1 / 60, 2, iterations, true);
-            this.world.worldscale(1);
+            this.BJSOIMO = OIMO;
+            this.world = new this.BJSOIMO.World({
+                iterations: iterations
+            });
             this.world.clear();
-            //making sure no stats are calculated
-            this.world.isNoStat = true;
         }
         OimoJSPlugin.prototype.setGravity = function (gravity) {
             this.world.gravity.copy(gravity);
@@ -51,8 +52,8 @@
             }
         };
         OimoJSPlugin.prototype.applyImpulse = function (impostor, force, contactPoint) {
-            var mass = impostor.physicsBody.massInfo.mass;
-            impostor.physicsBody.applyImpulse(contactPoint.scale(this.BJSOIMO.INV_SCALE), force.scale(this.BJSOIMO.INV_SCALE * mass));
+            var mass = impostor.physicsBody.mass;
+            impostor.physicsBody.applyImpulse(contactPoint.scale(this.world.invScale), force.scale(this.world.invScale * mass));
         };
         OimoJSPlugin.prototype.applyForce = function (impostor, force, contactPoint) {
             LIB.Tools.Warn("Oimo doesn't support applying force. Using impule instead.");
@@ -77,8 +78,13 @@
                     size: [],
                     type: [],
                     pos: [],
+                    posShape: [],
                     rot: [],
+                    rotShape: [],
                     move: impostor.getParam("mass") !== 0,
+                    density: impostor.getParam("mass"),
+                    friction: impostor.getParam("friction"),
+                    restitution: impostor.getParam("restitution"),
                     //Supporting older versions of Oimo
                     world: this.world
                 };
@@ -98,44 +104,47 @@
                     return Math.max(value, LIB.PhysicsEngine.Epsilon);
                 };
                 impostors.forEach(function (i) {
-                    if (!impostor.object.rotationQuaternion) {
+                    if (!i.object.rotationQuaternion) {
                         return;
                     }
                     //get the correct bounding box
                     var oldQuaternion = i.object.rotationQuaternion;
-                    var rot = new _this.BJSOIMO.Euler().setFromQuaternion({
-                        x: impostor.object.rotationQuaternion.x,
-                        y: impostor.object.rotationQuaternion.y,
-                        z: impostor.object.rotationQuaternion.z,
-                        s: impostor.object.rotationQuaternion.w
-                    });
+                    var rot = oldQuaternion.toEulerAngles();
                     var extendSize = i.getObjectExtendSize();
+                    var radToDeg = 57.295779513082320876;
                     if (i === impostor) {
                         var center = impostor.getObjectCenter();
-                        impostor.object.position.subtractToRef(center, _this._tmpPositionVector);
+                        impostor.object.getAbsolutePivotPoint().subtractToRef(center, _this._tmpPositionVector);
+                        _this._tmpPositionVector.divideInPlace(impostor.object.scaling);
                         //Can also use Array.prototype.push.apply
                         bodyConfig.pos.push(center.x);
                         bodyConfig.pos.push(center.y);
                         bodyConfig.pos.push(center.z);
+                        bodyConfig.posShape.push(0, 0, 0);
                         //tmp solution
-                        bodyConfig.rot.push(rot.x / (_this.BJSOIMO.degtorad || _this.BJSOIMO.TO_RAD));
-                        bodyConfig.rot.push(rot.y / (_this.BJSOIMO.degtorad || _this.BJSOIMO.TO_RAD));
-                        bodyConfig.rot.push(rot.z / (_this.BJSOIMO.degtorad || _this.BJSOIMO.TO_RAD));
+                        bodyConfig.rot.push(rot.x * radToDeg);
+                        bodyConfig.rot.push(rot.y * radToDeg);
+                        bodyConfig.rot.push(rot.z * radToDeg);
+                        bodyConfig.rotShape.push(0, 0, 0);
                     }
                     else {
                         var localPosition = i.object.getAbsolutePosition().subtract(impostor.object.getAbsolutePosition());
-                        bodyConfig.pos.push(localPosition.x);
-                        bodyConfig.pos.push(localPosition.y);
-                        bodyConfig.pos.push(localPosition.z);
+                        bodyConfig.posShape.push(localPosition.x);
+                        bodyConfig.posShape.push(localPosition.y);
+                        bodyConfig.posShape.push(localPosition.z);
+                        bodyConfig.pos.push(0, 0, 0);
                         //tmp solution until https://github.com/lo-th/OIMO.js/pull/37 is merged
                         bodyConfig.rot.push(0);
                         bodyConfig.rot.push(0);
                         bodyConfig.rot.push(0);
+                        bodyConfig.rotShape.push(rot.x * radToDeg);
+                        bodyConfig.rotShape.push(rot.y * radToDeg);
+                        bodyConfig.rotShape.push(rot.z * radToDeg);
                     }
                     // register mesh
                     switch (i.type) {
                         case LIB.PhysicsImpostor.ParticleImpostor:
-                            LIB.Tools.Warn("No Particle support in this.BJSOIMO.js. using SphereImpostor instead");
+                            LIB.Tools.Warn("No Particle support in OIMO.js. using SphereImpostor instead");
                         case LIB.PhysicsImpostor.SphereImpostor:
                             var radiusX = extendSize.x;
                             var radiusY = extendSize.y;
@@ -163,15 +172,19 @@
                             var sizeY = checkWithEpsilon_1(extendSize.y);
                             var sizeZ = checkWithEpsilon_1(extendSize.z);
                             bodyConfig.type.push('box');
+                            //if (i === impostor) {
                             bodyConfig.size.push(sizeX);
                             bodyConfig.size.push(sizeY);
                             bodyConfig.size.push(sizeZ);
+                            //} else {
+                            //    bodyConfig.size.push(0,0,0);
+                            //}
                             break;
                     }
                     //actually not needed, but hey...
                     i.object.rotationQuaternion = oldQuaternion;
                 });
-                impostor.physicsBody = new this.BJSOIMO.Body(bodyConfig).body; //this.world.add(bodyConfig);
+                impostor.physicsBody = this.world.add(bodyConfig);
             }
             else {
                 this._tmpPositionVector.copyFromFloats(0, 0, 0);
@@ -213,7 +226,7 @@
                     type = "jointBall";
                     break;
                 case LIB.PhysicsJoint.SpringJoint:
-                    LIB.Tools.Warn("this.BJSOIMO.js doesn't support Spring Constraint. Simulating using DistanceJoint instead");
+                    LIB.Tools.Warn("OIMO.js doesn't support Spring Constraint. Simulating using DistanceJoint instead");
                     var springData = jointData;
                     nativeJointData.min = springData.length || nativeJointData.min;
                     //Max should also be set, just make sure it is at least min
@@ -237,7 +250,7 @@
                     break;
             }
             nativeJointData.type = type;
-            impostorJoint.joint.physicsJoint = new this.BJSOIMO.Link(nativeJointData).joint; //this.world.add(nativeJointData);
+            impostorJoint.joint.physicsJoint = this.world.add(nativeJointData);
         };
         OimoJSPlugin.prototype.removeJoint = function (impostorJoint) {
             //Bug in Oimo prevents us from disposing a joint in the playground
@@ -256,35 +269,32 @@
         OimoJSPlugin.prototype.setTransformationFromPhysicsBody = function (impostor) {
             if (!impostor.physicsBody.sleeping) {
                 //TODO check that
-                if (impostor.physicsBody.shapes.next) {
+                /*if (impostor.physicsBody.shapes.next) {
                     var parentShape = this._getLastShape(impostor.physicsBody);
-                    impostor.object.position.x = parentShape.position.x * this.BJSOIMO.WORLD_SCALE;
-                    impostor.object.position.y = parentShape.position.y * this.BJSOIMO.WORLD_SCALE;
-                    impostor.object.position.z = parentShape.position.z * this.BJSOIMO.WORLD_SCALE;
-                }
-                else {
-                    impostor.object.position.copyFrom(impostor.physicsBody.getPosition());
-                }
+                    impostor.object.position.copyFrom(parentShape.position);
+                    console.log(parentShape.position);
+                } else {*/
+                impostor.object.position.copyFrom(impostor.physicsBody.getPosition());
+                //}
                 if (impostor.object.rotationQuaternion) {
                     impostor.object.rotationQuaternion.copyFrom(impostor.physicsBody.getQuaternion());
-                    impostor.object.rotationQuaternion.normalize();
                 }
             }
         };
         OimoJSPlugin.prototype.setPhysicsBodyTransformation = function (impostor, newPosition, newRotation) {
             var body = impostor.physicsBody;
-            body.position.init(newPosition.x * this.BJSOIMO.INV_SCALE, newPosition.y * this.BJSOIMO.INV_SCALE, newPosition.z * this.BJSOIMO.INV_SCALE);
-            body.orientation.init(newRotation.w, newRotation.x, newRotation.y, newRotation.z);
+            body.position.copy(newPosition);
+            body.orientation.copy(newRotation);
             body.syncShapes();
             body.awake();
         };
-        OimoJSPlugin.prototype._getLastShape = function (body) {
+        /*private _getLastShape(body: any): any {
             var lastShape = body.shapes;
             while (lastShape.next) {
                 lastShape = lastShape.next;
             }
             return lastShape;
-        };
+        }*/
         OimoJSPlugin.prototype.setLinearVelocity = function (impostor, velocity) {
             impostor.physicsBody.linearVelocity.init(velocity.x, velocity.y, velocity.z);
         };
@@ -382,4 +392,5 @@
     LIB.OimoJSPlugin = OimoJSPlugin;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.oimoJSPlugin.js.map
 //# sourceMappingURL=LIB.oimoJSPlugin.js.map

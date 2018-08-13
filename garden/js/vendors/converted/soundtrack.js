@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var SoundTrack = /** @class */ (function () {
         function SoundTrack(scene, options) {
@@ -28,7 +30,7 @@
             }
         };
         SoundTrack.prototype.dispose = function () {
-            if (LIB.Engine.audioEngine.canUseWebAudio) {
+            if (LIB.Engine.audioEngine && LIB.Engine.audioEngine.canUseWebAudio) {
                 if (this._connectedAnalyser) {
                     this._connectedAnalyser.stopDebugCanvas();
                 }
@@ -99,4 +101,5 @@
     LIB.SoundTrack = SoundTrack;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.soundtrack.js.map
 //# sourceMappingURL=LIB.soundtrack.js.map

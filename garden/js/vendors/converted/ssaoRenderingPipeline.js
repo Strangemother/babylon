@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var SSAORenderingPipeline = /** @class */ (function (_super) {
         __extends(SSAORenderingPipeline, _super);
@@ -13,57 +21,47 @@
             // Members
             /**
             * The PassPostProcess id in the pipeline that contains the original scene color
-            * @type {string}
             */
             _this.SSAOOriginalSceneColorEffect = "SSAOOriginalSceneColorEffect";
             /**
             * The SSAO PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAORenderEffect = "SSAORenderEffect";
             /**
             * The horizontal blur PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAOBlurHRenderEffect = "SSAOBlurHRenderEffect";
             /**
             * The vertical blur PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAOBlurVRenderEffect = "SSAOBlurVRenderEffect";
             /**
             * The PostProcess id in the pipeline that combines the SSAO-Blur output with the original scene color (SSAOOriginalSceneColorEffect)
-            * @type {string}
             */
             _this.SSAOCombineRenderEffect = "SSAOCombineRenderEffect";
             /**
             * The output strength of the SSAO post-process. Default value is 1.0.
-            * @type {number}
             */
             _this.totalStrength = 1.0;
             /**
             * The radius around the analyzed pixel used by the SSAO post-process. Default value is 0.0006
-            * @type {number}
             */
             _this.radius = 0.0001;
             /**
             * Related to fallOff, used to interpolate SSAO samples (first interpolate function input) based on the occlusion difference of each pixel
             * Must not be equal to fallOff and superior to fallOff.
             * Default value is 0.975
-            * @type {number}
             */
             _this.area = 0.0075;
             /**
             * Related to area, used to interpolate SSAO samples (second interpolate function input) based on the occlusion difference of each pixel
             * Must not be equal to area and inferior to area.
             * Default value is 0.0
-            * @type {number}
             */
             _this.fallOff = 0.000001;
             /**
             * The base color of the SSAO post-process
             * The final result is "base + ssao" between [0, 1]
-            * @type {number}
             */
             _this.base = 0.5;
             _this._firstUpdate = true;
@@ -217,4 +215,5 @@
     LIB.SSAORenderingPipeline = SSAORenderingPipeline;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.ssaoRenderingPipeline.js.map
 //# sourceMappingURL=LIB.ssaoRenderingPipeline.js.map

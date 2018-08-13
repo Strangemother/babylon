@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Sound = /** @class */ (function () {
         /**
@@ -77,86 +79,101 @@
                 var validParameter = true;
                 // if no parameter is passed, you need to call setAudioBuffer yourself to prepare the sound
                 if (urlOrArrayBuffer) {
-                    if (typeof (urlOrArrayBuffer) === "string")
-                        this._urlType = "String";
-                    if (Array.isArray(urlOrArrayBuffer))
-                        this._urlType = "Array";
-                    if (urlOrArrayBuffer instanceof ArrayBuffer)
-                        this._urlType = "ArrayBuffer";
-                    var urls = [];
-                    var codecSupportedFound = false;
-                    switch (this._urlType) {
-                        case "ArrayBuffer":
-                            if (urlOrArrayBuffer.byteLength > 0) {
-                                codecSupportedFound = true;
-                                this._soundLoaded(urlOrArrayBuffer);
-                            }
-                            break;
-                        case "String":
-                            urls.push(urlOrArrayBuffer);
-                        case "Array":
-                            if (urls.length === 0)
-                                urls = urlOrArrayBuffer;
-                            // If we found a supported format, we load it immediately and stop the loop
-                            for (var i = 0; i < urls.length; i++) {
-                                var url = urls[i];
-                                if (url.indexOf(".mp3", url.length - 4) !== -1 && LIB.Engine.audioEngine.isMP3supported) {
+                    try {
+                        if (typeof (urlOrArrayBuffer) === "string")
+                            this._urlType = "String";
+                        if (Array.isArray(urlOrArrayBuffer))
+                            this._urlType = "Array";
+                        if (urlOrArrayBuffer instanceof ArrayBuffer)
+                            this._urlType = "ArrayBuffer";
+                        var urls = [];
+                        var codecSupportedFound = false;
+                        switch (this._urlType) {
+                            case "ArrayBuffer":
+                                if (urlOrArrayBuffer.byteLength > 0) {
                                     codecSupportedFound = true;
+                                    this._soundLoaded(urlOrArrayBuffer);
                                 }
-                                if (url.indexOf(".ogg", url.length - 4) !== -1 && LIB.Engine.audioEngine.isOGGsupported) {
-                                    codecSupportedFound = true;
-                                }
-                                if (url.indexOf(".wav", url.length - 4) !== -1) {
-                                    codecSupportedFound = true;
-                                }
-                                if (url.indexOf("blob:") !== -1) {
-                                    codecSupportedFound = true;
-                                }
-                                if (codecSupportedFound) {
-                                    // Loading sound using XHR2
-                                    if (!this._streaming) {
-                                        this._scene._loadFile(url, function (data) { _this._soundLoaded(data); }, undefined, true, true);
+                                break;
+                            case "String":
+                                urls.push(urlOrArrayBuffer);
+                            case "Array":
+                                if (urls.length === 0)
+                                    urls = urlOrArrayBuffer;
+                                // If we found a supported format, we load it immediately and stop the loop
+                                for (var i = 0; i < urls.length; i++) {
+                                    var url = urls[i];
+                                    if (url.indexOf(".mp3", url.length - 4) !== -1 && LIB.Engine.audioEngine.isMP3supported) {
+                                        codecSupportedFound = true;
                                     }
-                                    else {
-                                        this._htmlAudioElement = new Audio(url);
-                                        this._htmlAudioElement.controls = false;
-                                        this._htmlAudioElement.loop = this.loop;
-                                        LIB.Tools.SetCorsBehavior(url, this._htmlAudioElement);
-                                        this._htmlAudioElement.preload = "auto";
-                                        this._htmlAudioElement.addEventListener("canplaythrough", function () {
-                                            _this._isReadyToPlay = true;
-                                            if (_this.autoplay) {
-                                                _this.play();
-                                            }
-                                            if (_this._readyToPlayCallback) {
-                                                _this._readyToPlayCallback();
-                                            }
-                                        });
-                                        document.body.appendChild(this._htmlAudioElement);
+                                    if (url.indexOf(".ogg", url.length - 4) !== -1 && LIB.Engine.audioEngine.isOGGsupported) {
+                                        codecSupportedFound = true;
                                     }
-                                    break;
+                                    if (url.indexOf(".wav", url.length - 4) !== -1) {
+                                        codecSupportedFound = true;
+                                    }
+                                    if (url.indexOf("blob:") !== -1) {
+                                        codecSupportedFound = true;
+                                    }
+                                    if (codecSupportedFound) {
+                                        // Loading sound using XHR2
+                                        if (!this._streaming) {
+                                            this._scene._loadFile(url, function (data) {
+                                                _this._soundLoaded(data);
+                                            }, undefined, true, true, function (exception) {
+                                                if (exception) {
+                                                    LIB.Tools.Error("XHR " + exception.status + " error on: " + url + ".");
+                                                }
+                                                LIB.Tools.Error("Sound creation aborted.");
+                                                _this._scene.mainSoundTrack.RemoveSound(_this);
+                                            });
+                                        }
+                                        // Streaming sound using HTML5 Audio tag
+                                        else {
+                                            this._htmlAudioElement = new Audio(url);
+                                            this._htmlAudioElement.controls = false;
+                                            this._htmlAudioElement.loop = this.loop;
+                                            LIB.Tools.SetCorsBehavior(url, this._htmlAudioElement);
+                                            this._htmlAudioElement.preload = "auto";
+                                            this._htmlAudioElement.addEventListener("canplaythrough", function () {
+                                                _this._isReadyToPlay = true;
+                                                if (_this.autoplay) {
+                                                    _this.play();
+                                                }
+                                                if (_this._readyToPlayCallback) {
+                                                    _this._readyToPlayCallback();
+                                                }
+                                            });
+                                            document.body.appendChild(this._htmlAudioElement);
+                                        }
+                                        break;
+                                    }
                                 }
-                            }
-                            break;
-                        default:
-                            validParameter = false;
-                            break;
-                    }
-                    if (!validParameter) {
-                        LIB.Tools.Error("Parameter must be a URL to the sound, an Array of URLs (.mp3 & .ogg) or an ArrayBuffer of the sound.");
-                    }
-                    else {
-                        if (!codecSupportedFound) {
-                            this._isReadyToPlay = true;
-                            // Simulating a ready to play event to avoid breaking code path
-                            if (this._readyToPlayCallback) {
-                                window.setTimeout(function () {
-                                    if (_this._readyToPlayCallback) {
-                                        _this._readyToPlayCallback();
-                                    }
-                                }, 1000);
+                                break;
+                            default:
+                                validParameter = false;
+                                break;
+                        }
+                        if (!validParameter) {
+                            LIB.Tools.Error("Parameter must be a URL to the sound, an Array of URLs (.mp3 & .ogg) or an ArrayBuffer of the sound.");
+                        }
+                        else {
+                            if (!codecSupportedFound) {
+                                this._isReadyToPlay = true;
+                                // Simulating a ready to play event to avoid breaking code path
+                                if (this._readyToPlayCallback) {
+                                    window.setTimeout(function () {
+                                        if (_this._readyToPlayCallback) {
+                                            _this._readyToPlayCallback();
+                                        }
+                                    }, 1000);
+                                }
                             }
                         }
+                    }
+                    catch (ex) {
+                        LIB.Tools.Error("Unexpected error. Sound creation aborted.");
+                        this._scene.mainSoundTrack.RemoveSound(this);
                     }
                 }
             }
@@ -178,7 +195,7 @@
             }
         }
         Sound.prototype.dispose = function () {
-            if (LIB.Engine.audioEngine.canUseWebAudio && this._isReadyToPlay) {
+            if (LIB.Engine.audioEngine.canUseWebAudio) {
                 if (this.isPlaying) {
                     this.stop();
                 }
@@ -274,7 +291,7 @@
         Sound.prototype._updateSpatialParameters = function () {
             if (this.spatialSound && this._soundPanner) {
                 if (this.useCustomAttenuation) {
-                    // Tricks to disable in a way embedded Web Audio attenuation
+                    // Tricks to disable in a way embedded Web Audio attenuation 
                     this._soundPanner.distanceModel = "linear";
                     this._soundPanner.maxDistance = Number.MAX_VALUE;
                     this._soundPanner.refDistance = 1;
@@ -558,6 +575,7 @@
                 setBufferAndRun();
                 return clonedSound;
             }
+            // Can't clone a streaming sound
             else {
                 return null;
             }
@@ -657,4 +675,5 @@
     LIB.Sound = Sound;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.sound.js.map
 //# sourceMappingURL=LIB.sound.js.map

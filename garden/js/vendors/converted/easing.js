@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var EasingFunction = /** @class */ (function () {
         function EasingFunction() {
@@ -248,4 +251,5 @@
     LIB.BezierCurveEase = BezierCurveEase;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.easing.js.map
 //# sourceMappingURL=LIB.easing.js.map

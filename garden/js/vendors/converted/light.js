@@ -1,15 +1,46 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Base class of all the lights in LIB. It groups all the generic information about lights.
+     * Lights are used, as you would expect, to affect how meshes are seen, in terms of both illumination and colour.
+     * All meshes allow light to pass through them unless shadow generation is activated. The default number of lights allowed is four but this can be increased.
+     */
     var Light = /** @class */ (function (_super) {
         __extends(Light, _super);
         /**
          * Creates a Light object in the scene.
          * Documentation : http://doc.LIBjs.com/tutorials/lights
+         * @param name The firendly name of the light
+         * @param scene The scene the light belongs too
          */
         function Light(name, scene) {
             var _this = _super.call(this, name, scene) || this;
+            /**
+             * Diffuse gives the basic color to an object.
+             */
             _this.diffuse = new LIB.Color3(1.0, 1.0, 1.0);
+            /**
+             * Specular produces a highlight color on an object.
+             * Note: This is note affecting PBR materials.
+             */
             _this.specular = new LIB.Color3(1.0, 1.0, 1.0);
+            /**
+             * Strength of the light.
+             * Note: By default it is define in the framework own unit.
+             * Note: In PBR materials the intensityMode can be use to chose what unit the intensity is defined in.
+             */
             _this.intensity = 1.0;
+            /**
+             * Defines how far from the source the light is impacting in scene units.
+             * Note: Unused in PBR material as the distance light falloff is defined following the inverse squared falloff.
+             */
             _this.range = Number.MAX_VALUE;
             /**
              * Cached photometric scale default to 1.0 as the automatic intensity mode defaults to 1.0 for every type
@@ -18,6 +49,10 @@
             _this._photometricScale = 1.0;
             _this._intensityMode = Light.INTENSITYMODE_AUTOMATIC;
             _this._radius = 0.00001;
+            /**
+             * Defines the rendering priority of the lights. It can help in case of fallback or number of lights
+             * exceeding the number allowed of the materials.
+             */
             _this.renderPriority = 0;
             /**
              * Defines wether or not the shadows are enabled for this light. This can help turning off/on shadow without detaching
@@ -27,7 +62,13 @@
             _this._excludeWithLayerMask = 0;
             _this._includeOnlyWithLayerMask = 0;
             _this._lightmapMode = 0;
+            /**
+             * @hidden Internal use only.
+             */
             _this._excludedMeshesIds = new Array();
+            /**
+             * @hidden Internal use only.
+             */
             _this._includedOnlyMeshesIds = new Array();
             _this.getScene().addLight(_this);
             _this._uniformBuffer = new LIB.UniformBuffer(_this.getScene().getEngine());
@@ -53,7 +94,7 @@
         Object.defineProperty(Light, "LIGHTMAP_SPECULAR", {
             /**
              * material.lightmapTexture as only diffuse lighting from this light
-             * adds pnly specular lighting from this light
+             * adds only specular lighting from this light
              * adds dynamic shadows
              */
             get: function () {
@@ -207,9 +248,15 @@
         ;
         ;
         Object.defineProperty(Light.prototype, "includedOnlyMeshes", {
+            /**
+             * Gets the only meshes impacted by this light.
+             */
             get: function () {
                 return this._includedOnlyMeshes;
             },
+            /**
+             * Sets the only meshes impacted by this light.
+             */
             set: function (value) {
                 this._includedOnlyMeshes = value;
                 this._hookArrayForIncludedOnly(value);
@@ -218,9 +265,15 @@
             configurable: true
         });
         Object.defineProperty(Light.prototype, "excludedMeshes", {
+            /**
+             * Gets the meshes not impacted by this light.
+             */
             get: function () {
                 return this._excludedMeshes;
             },
+            /**
+             * Sets the meshes not impacted by this light.
+             */
             set: function (value) {
                 this._excludedMeshes = value;
                 this._hookArrayForExcluded(value);
@@ -229,9 +282,17 @@
             configurable: true
         });
         Object.defineProperty(Light.prototype, "excludeWithLayerMask", {
+            /**
+             * Gets the layer id use to find what meshes are not impacted by the light.
+             * Inactive if 0
+             */
             get: function () {
                 return this._excludeWithLayerMask;
             },
+            /**
+             * Sets the layer id use to find what meshes are not impacted by the light.
+             * Inactive if 0
+             */
             set: function (value) {
                 this._excludeWithLayerMask = value;
                 this._resyncMeshes();
@@ -240,9 +301,17 @@
             configurable: true
         });
         Object.defineProperty(Light.prototype, "includeOnlyWithLayerMask", {
+            /**
+             * Gets the layer id use to find what meshes are impacted by the light.
+             * Inactive if 0
+             */
             get: function () {
                 return this._includeOnlyWithLayerMask;
             },
+            /**
+             * Sets the layer id use to find what meshes are impacted by the light.
+             * Inactive if 0
+             */
             set: function (value) {
                 this._includeOnlyWithLayerMask = value;
                 this._resyncMeshes();
@@ -251,9 +320,15 @@
             configurable: true
         });
         Object.defineProperty(Light.prototype, "lightmapMode", {
+            /**
+             * Gets the lightmap mode of this light (should be one of the constants defined by Light.LIGHTMAP_x)
+             */
             get: function () {
                 return this._lightmapMode;
             },
+            /**
+             * Sets the lightmap mode of this light (should be one of the constants defined by Light.LIGHTMAP_x)
+             */
             set: function (value) {
                 if (this._lightmapMode === value) {
                     return;
@@ -264,17 +339,17 @@
             enumerable: true,
             configurable: true
         });
-        Light.prototype._buildUniformLayout = function () {
-            // Overridden
-        };
         /**
          * Returns the string "Light".
+         * @returns the class name
          */
         Light.prototype.getClassName = function () {
             return "Light";
         };
         /**
-         * @param {boolean} fullDetails - support for multiple levels of logging within scene loading
+         * Converts the light information to a readable string for debug purpose.
+         * @param fullDetails Supports for multiple levels of logging within scene loading
+         * @returns the human readable light info
          */
         Light.prototype.toString = function (fullDetails) {
             var ret = "Name: " + this.name;
@@ -290,32 +365,30 @@
         };
         /**
          * Set the enabled state of this node.
-         * @param {boolean} value - the new enabled state
-         * @see isEnabled
+         * @param value - the new enabled state
          */
         Light.prototype.setEnabled = function (value) {
             _super.prototype.setEnabled.call(this, value);
             this._resyncMeshes();
         };
         /**
-         * Returns the Light associated shadow generator.
+         * Returns the Light associated shadow generator if any.
+         * @return the associated shadow generator.
          */
         Light.prototype.getShadowGenerator = function () {
             return this._shadowGenerator;
         };
         /**
          * Returns a Vector3, the absolute light position in the World.
+         * @returns the world space position of the light
          */
         Light.prototype.getAbsolutePosition = function () {
             return LIB.Vector3.Zero();
         };
-        Light.prototype.transferToEffect = function (effect, lightIndex) {
-        };
-        Light.prototype._getWorldMatrix = function () {
-            return LIB.Matrix.Identity();
-        };
         /**
-         * Boolean : True if the light will affect the passed mesh.
+         * Specifies if the light will affect the passed mesh.
+         * @param mesh The mesh to test against the light
+         * @return true the mesh is affected otherwise, false.
          */
         Light.prototype.canAffectMesh = function (mesh) {
             if (!mesh) {
@@ -336,10 +409,12 @@
             return true;
         };
         /**
-         * Returns the light World matrix.
+         * Computes and Returns the light World matrix.
+         * @returns the world matrix
          */
         Light.prototype.getWorldMatrix = function () {
             this._currentRenderId = this.getScene().getRenderId();
+            this._childRenderId = this._currentRenderId;
             var worldMatrix = this._getWorldMatrix();
             if (this.parent && this.parent.getWorldMatrix) {
                 if (!this._parentedWorldMatrix) {
@@ -357,7 +432,7 @@
          * @param b Second Light object to compare first.
          * @return -1 to reduce's a's index relative to be, 0 for no change, 1 to increase a's index relative to b.
          */
-        Light.compareLightsPriority = function (a, b) {
+        Light.CompareLightsPriority = function (a, b) {
             //shadow-casting lights have priority over non-shadow-casting lights
             //the renderPrioirty is a secondary sort criterion
             if (a.shadowEnabled !== b.shadowEnabled) {
@@ -366,9 +441,12 @@
             return b.renderPriority - a.renderPriority;
         };
         /**
-         * Disposes the light.
+         * Releases resources associated with this node.
+         * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
+         * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
          */
-        Light.prototype.dispose = function () {
+        Light.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
+            if (disposeMaterialAndTextures === void 0) { disposeMaterialAndTextures = false; }
             if (this._shadowGenerator) {
                 this._shadowGenerator.dispose();
                 this._shadowGenerator = null;
@@ -383,22 +461,26 @@
             this._uniformBuffer.dispose();
             // Remove from scene
             this.getScene().removeLight(this);
-            _super.prototype.dispose.call(this);
+            _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
         };
         /**
          * Returns the light type ID (integer).
+         * @returns The light Type id as a constant defines in Light.LIGHTTYPEID_x
          */
         Light.prototype.getTypeID = function () {
             return 0;
         };
         /**
          * Returns the intensity scaled by the Photometric Scale according to the light type and intensity mode.
+         * @returns the scaled intensity in intensity mode unit
          */
         Light.prototype.getScaledIntensity = function () {
             return this._photometricScale * this.intensity;
         };
         /**
          * Returns a new Light object, named "name", from the current one.
+         * @param name The name of the cloned light
+         * @returns the new created light
          */
         Light.prototype.clone = function (name) {
             var constructor = Light.GetConstructorFromName(this.getTypeID(), name, this.getScene());
@@ -409,7 +491,7 @@
         };
         /**
          * Serializes the current light into a Serialization object.
-         * Returns the serialized object.
+         * @returns the serialized object.
          */
         Light.prototype.serialize = function () {
             var serializationObject = LIB.SerializationHelper.Serialize(this);
@@ -432,7 +514,7 @@
                     serializationObject.includedOnlyMeshesIds.push(mesh.id);
                 });
             }
-            // Animations
+            // Animations  
             LIB.Animation.AppendSerializedAnimations(this, serializationObject);
             serializationObject.ranges = this.serializeAnimationRanges();
             return serializationObject;
@@ -440,6 +522,10 @@
         /**
          * Creates a new typed light from the passed type (integer) : point light = 0, directional light = 1, spot light = 2, hemispheric light = 3.
          * This new light is named "name" and added to the passed scene.
+         * @param type Type according to the types available in Light.LIGHTTYPEID_x
+         * @param name The friendly name of the light
+         * @param scene The scene the new light will belong to
+         * @returns the constructor function
          */
         Light.GetConstructorFromName = function (type, name, scene) {
             switch (type) {
@@ -456,6 +542,9 @@
         };
         /**
          * Parses the passed "parsedLight" and returns a new instanced Light from this parsing.
+         * @param parsedLight The JSON representation of the light
+         * @param scene The scene to create the parsed light in
+         * @returns the created light after parsing
          */
         Light.Parse = function (parsedLight, scene) {
             var constructor = Light.GetConstructorFromName(parsedLight.type, parsedLight.name, scene);
@@ -542,6 +631,10 @@
                 mesh._resyncLighSource(this);
             }
         };
+        /**
+         * Forces the meshes to update their light related information in their rendering used effects
+         * @hidden Internal Use Only
+         */
         Light.prototype._markMeshesAsLightDirty = function () {
             for (var _i = 0, _a = this.getScene().meshes; _i < _a.length; _i++) {
                 var mesh = _a[_i];
@@ -612,6 +705,10 @@
             }
             return photometricScale;
         };
+        /**
+         * Reorder the light in the scene according to their defined priority.
+         * @hidden Internal Use Only
+         */
         Light.prototype._reorderLightsInScene = function () {
             var scene = this.getScene();
             if (this._renderPriority != 0) {
@@ -675,4 +772,5 @@
     LIB.Light = Light;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.light.js.map
 //# sourceMappingURL=LIB.light.js.map

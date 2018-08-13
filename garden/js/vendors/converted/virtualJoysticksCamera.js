@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     // We're mainly based on the logic defined into the FreeCamera code
     var VirtualJoysticksCamera = /** @class */ (function (_super) {
@@ -15,4 +18,5 @@
     LIB.VirtualJoysticksCamera = VirtualJoysticksCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.virtualJoysticksCamera.js.map
 //# sourceMappingURL=LIB.virtualJoysticksCamera.js.map

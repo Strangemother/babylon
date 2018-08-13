@@ -1,14 +1,15 @@
+
+var LIB;
 (function (LIB) {
-    (function (Internals) {
-        var MeshLODLevel = /** @class */ (function () {
-            function MeshLODLevel(distance, mesh) {
-                this.distance = distance;
-                this.mesh = mesh;
-            }
-            return MeshLODLevel;
-        }());
-        Internals.MeshLODLevel = MeshLODLevel;
-    })(Internals = LIB.Internals || (LIB.Internals = {}));
+    var MeshLODLevel = /** @class */ (function () {
+        function MeshLODLevel(distance, mesh) {
+            this.distance = distance;
+            this.mesh = mesh;
+        }
+        return MeshLODLevel;
+    }());
+    LIB.MeshLODLevel = MeshLODLevel;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.meshLODLevel.js.map
 //# sourceMappingURL=LIB.meshLODLevel.js.map

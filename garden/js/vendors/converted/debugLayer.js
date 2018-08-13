@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     // load the inspector using require, if not present in the global namespace.
     var DebugLayer = /** @class */ (function () {
@@ -51,4 +53,5 @@
     LIB.DebugLayer = DebugLayer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.debugLayer.js.map
 //# sourceMappingURL=LIB.debugLayer.js.map

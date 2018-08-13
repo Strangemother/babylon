@@ -1,10 +1,24 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to enable access to IndexedDB
+     * @see @https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
+     */
     var Database = /** @class */ (function () {
-        function Database(urlToScene, callbackManifestChecked) {
+        /**
+         * Creates a new Database
+         * @param urlToScene defines the url to load the scene
+         * @param callbackManifestChecked defines the callback to use when manifest is checked
+         * @param disableManifestCheck defines a boolean indicating that we want to skip the manifest validation (it will be considered validated and up to date)
+         */
+        function Database(urlToScene, callbackManifestChecked, disableManifestCheck) {
+            if (disableManifestCheck === void 0) { disableManifestCheck = false; }
+            var _this = this;
             // Handling various flavors of prefixed version of IndexedDB
             this.idbFactory = (window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB);
             this.callbackManifestChecked = callbackManifestChecked;
-            this.currentSceneUrl = Database.ReturnFullUrlLocation(urlToScene);
+            this.currentSceneUrl = Database._ReturnFullUrlLocation(urlToScene);
             this.db = null;
             this._enableSceneOffline = false;
             this._enableTexturesOffline = false;
@@ -15,10 +29,23 @@
                 this.callbackManifestChecked(true);
             }
             else {
-                this.checkManifestFile();
+                if (disableManifestCheck) {
+                    this._enableSceneOffline = true;
+                    this._enableTexturesOffline = true;
+                    this.manifestVersionFound = 1;
+                    LIB.Tools.SetImmediate(function () {
+                        _this.callbackManifestChecked(true);
+                    });
+                }
+                else {
+                    this._checkManifestFile();
+                }
             }
         }
         Object.defineProperty(Database.prototype, "enableSceneOffline", {
+            /**
+             * Gets a boolean indicating if scene must be saved in the database
+             */
             get: function () {
                 return this._enableSceneOffline;
             },
@@ -26,13 +53,16 @@
             configurable: true
         });
         Object.defineProperty(Database.prototype, "enableTexturesOffline", {
+            /**
+             * Gets a boolean indicating if textures must be saved in the database
+             */
             get: function () {
                 return this._enableTexturesOffline;
             },
             enumerable: true,
             configurable: true
         });
-        Database.prototype.checkManifestFile = function () {
+        Database.prototype._checkManifestFile = function () {
             var _this = this;
             var noManifestFile = function () {
                 _this._enableSceneOffline = false;
@@ -45,7 +75,7 @@
             if (navigator.onLine) {
                 // Adding a timestamp to by-pass browsers' cache
                 timeStampUsed = true;
-                manifestURL = manifestURL + (manifestURL.match(/\?/) == null ? "?" : "&") + (new Date()).getTime();
+                manifestURL = manifestURL + (manifestURL.match(/\?/) == null ? "?" : "&") + Date.now();
             }
             xhr.open("GET", manifestURL, true);
             xhr.addEventListener("load", function () {
@@ -90,6 +120,11 @@
                 this.callbackManifestChecked(false);
             }
         };
+        /**
+         * Open the database and make it available
+         * @param successCallback defines the callback to call on success
+         * @param errorCallback defines the callback to call on error
+         */
         Database.prototype.openAsync = function (successCallback, errorCallback) {
             var _this = this;
             var handleError = function () {
@@ -139,20 +174,28 @@
                         }
                     };
                 }
+                // DB has already been created and opened
                 else {
                     if (successCallback)
                         successCallback();
                 }
             }
         };
+        /**
+         * Loads an image from the database
+         * @param url defines the url to load from
+         * @param image defines the target DOM image
+         */
         Database.prototype.loadImageFromDB = function (url, image) {
             var _this = this;
-            var completeURL = Database.ReturnFullUrlLocation(url);
+            var completeURL = Database._ReturnFullUrlLocation(url);
             var saveAndLoadImage = function () {
                 if (!_this.hasReachedQuota && _this.db !== null) {
                     // the texture is not yet in the DB, let's try to save it
                     _this._saveImageIntoDBAsync(completeURL, image);
                 }
+                // If the texture is not in the DB and we've reached the DB quota limit
+                // let's load it directly from the web
                 else {
                     image.src = url;
                 }
@@ -160,6 +203,7 @@
             if (!this.mustUpdateRessources) {
                 this._loadImageFromDBAsync(completeURL, image, saveAndLoadImage);
             }
+            // First time we're download the images or update requested in the manifest file by a version change
             else {
                 saveAndLoadImage();
             }
@@ -220,7 +264,7 @@
                         image.src = blobTextureURL;
                     }
                 };
-                if (Database.IsUASupportingBlobStorage) {
+                if (Database.IsUASupportingBlobStorage) { // Create XHR
                     var xhr = new XMLHttpRequest(), blob;
                     xhr.open("GET", url, true);
                     xhr.responseType = "blob";
@@ -298,8 +342,8 @@
                     var transaction = this.db.transaction(["versions"]);
                     transaction.oncomplete = function (event) {
                         if (version) {
-                            // If the version in the JSON file is > than the version in DB
-                            if (_this.manifestVersionFound > version.data) {
+                            // If the version in the JSON file is different from the version in DB
+                            if (_this.manifestVersionFound !== version.data) {
                                 _this.mustUpdateRessources = true;
                                 updateInDBCallback();
                             }
@@ -307,6 +351,7 @@
                                 callback(version.data);
                             }
                         }
+                        // version was not found in DB
                         else {
                             _this.mustUpdateRessources = true;
                             updateInDBCallback();
@@ -342,7 +387,7 @@
                     var transaction = this.db.transaction(["versions"], "readwrite");
                     // the transaction could abort because of a QuotaExceededError error
                     transaction.onabort = function (event) {
-                        try {
+                        try { //backwards compatibility with ts 1.0, srcElement doesn't have an "error" according to ts 1.3
                             var error = event.srcElement['error'];
                             if (error && error.name === "QuotaExceededError") {
                                 _this.hasReachedQuota = true;
@@ -372,9 +417,17 @@
                 callback(-1);
             }
         };
+        /**
+         * Loads a file from database
+         * @param url defines the URL to load from
+         * @param sceneLoaded defines a callback to call on success
+         * @param progressCallBack defines a callback to call when progress changed
+         * @param errorCallback defines a callback to call on error
+         * @param useArrayBuffer defines a boolean to use array buffer instead of text string
+         */
         Database.prototype.loadFileFromDB = function (url, sceneLoaded, progressCallBack, errorCallback, useArrayBuffer) {
             var _this = this;
-            var completeUrl = Database.ReturnFullUrlLocation(url);
+            var completeUrl = Database._ReturnFullUrlLocation(url);
             var saveAndLoadFile = function () {
                 // the scene is not yet in the DB, let's try to save it
                 _this._saveFileIntoDBAsync(completeUrl, sceneLoaded, progressCallBack);
@@ -410,6 +463,7 @@
                     if (file) {
                         callback(file.data);
                     }
+                    // file was not found in DB
                     else {
                         notInDBCallback();
                     }
@@ -513,9 +567,11 @@
                 callback();
             }
         };
+        /** Gets a boolean indicating if the user agent supports blob storage (this value will be updated after creating the first Database object) */
         Database.IsUASupportingBlobStorage = true;
+        /** Gets a boolean indicating if Database storate is enabled */
         Database.IDBStorageEnabled = true;
-        Database.parseURL = function (url) {
+        Database._ParseURL = function (url) {
             var a = document.createElement('a');
             a.href = url;
             var urlWithoutHash = url.substring(0, url.lastIndexOf("#"));
@@ -523,9 +579,9 @@
             var absLocation = url.substring(0, url.indexOf(fileName, 0));
             return absLocation;
         };
-        Database.ReturnFullUrlLocation = function (url) {
+        Database._ReturnFullUrlLocation = function (url) {
             if (url.indexOf("http:/") === -1 && url.indexOf("https:/") === -1) {
-                return (Database.parseURL(window.location.href) + url);
+                return (Database._ParseURL(window.location.href) + url);
             }
             else {
                 return url;
@@ -536,4 +592,5 @@
     LIB.Database = Database;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.database.js.map
 //# sourceMappingURL=LIB.database.js.map

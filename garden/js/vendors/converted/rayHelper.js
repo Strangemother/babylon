@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var RayHelper = /** @class */ (function () {
         function RayHelper(ray) {
@@ -114,4 +116,5 @@
     LIB.RayHelper = RayHelper;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.rayHelper.js.map
 //# sourceMappingURL=LIB.rayHelper.js.map

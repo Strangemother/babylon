@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var AudioEngine = /** @class */ (function () {
         function AudioEngine() {
@@ -73,7 +75,7 @@
             try {
                 if (this.canUseWebAudio) {
                     this._audioContext = new AudioContext();
-                    // create a global volume gain node
+                    // create a global volume gain node 
                     this.masterGain = this._audioContext.createGain();
                     this.masterGain.gain.value = 1;
                     this.masterGain.connect(this._audioContext.destination);
@@ -126,4 +128,5 @@
     LIB.AudioEngine = AudioEngine;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.audioEngine.js.map
 //# sourceMappingURL=LIB.audioEngine.js.map

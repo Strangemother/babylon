@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var InterpolateValueAction = /** @class */ (function (_super) {
         __extends(InterpolateValueAction, _super);
@@ -79,4 +82,5 @@
     LIB.InterpolateValueAction = InterpolateValueAction;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.interpolateValueAction.js.map
 //# sourceMappingURL=LIB.interpolateValueAction.js.map

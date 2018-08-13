@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * This represents a color grading texture. This acts as a lookup table LUT, useful during post process
@@ -207,4 +210,5 @@
     LIB.ColorGradingTexture = ColorGradingTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.colorGradingTexture.js.map
 //# sourceMappingURL=LIB.colorGradingTexture.js.map

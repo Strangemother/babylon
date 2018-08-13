@@ -1,6 +1,12 @@
+
+
+var LIB;
 (function (LIB) {
     var Debug;
     (function (Debug) {
+        /**
+         * The BoneAxesViewer will attach 3 axes to a specific bone of a specific mesh
+         */
         var BoneAxesViewer = /** @class */ (function (_super) {
             __extends(BoneAxesViewer, _super);
             function BoneAxesViewer(scene, bone, mesh, scaleLines) {
@@ -38,4 +44,5 @@
     })(Debug = LIB.Debug || (LIB.Debug = {}));
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boneAxesViewer.js.map
 //# sourceMappingURL=LIB.boneAxesViewer.js.map

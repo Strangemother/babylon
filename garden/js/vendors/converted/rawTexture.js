@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var RawTexture = /** @class */ (function (_super) {
         __extends(RawTexture, _super);
@@ -55,4 +58,5 @@
     LIB.RawTexture = RawTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.rawTexture.js.map
 //# sourceMappingURL=LIB.rawTexture.js.map

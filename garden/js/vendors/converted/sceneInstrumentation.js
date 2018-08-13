@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * This class can be used to get instrumentation data from a LIB engine
@@ -155,19 +157,19 @@
                 }
                 this._captureRenderTargetsRenderTime = value;
                 if (value) {
-                    this._onBeforeRenderTargetsRenderObserver = this.scene.OnBeforeRenderTargetsRenderObservable.add(function () {
+                    this._onBeforeRenderTargetsRenderObserver = this.scene.onBeforeRenderTargetsRenderObservable.add(function () {
                         LIB.Tools.StartPerformanceCounter("Render targets rendering");
                         _this._renderTargetsRenderTime.beginMonitoring();
                     });
-                    this._onAfterRenderTargetsRenderObserver = this.scene.OnAfterRenderTargetsRenderObservable.add(function () {
+                    this._onAfterRenderTargetsRenderObserver = this.scene.onAfterRenderTargetsRenderObservable.add(function () {
                         LIB.Tools.EndPerformanceCounter("Render targets rendering");
                         _this._renderTargetsRenderTime.endMonitoring(false);
                     });
                 }
                 else {
-                    this.scene.OnBeforeRenderTargetsRenderObservable.remove(this._onBeforeRenderTargetsRenderObserver);
+                    this.scene.onBeforeRenderTargetsRenderObservable.remove(this._onBeforeRenderTargetsRenderObserver);
                     this._onBeforeRenderTargetsRenderObserver = null;
-                    this.scene.OnAfterRenderTargetsRenderObservable.remove(this._onAfterRenderTargetsRenderObserver);
+                    this.scene.onAfterRenderTargetsRenderObservable.remove(this._onAfterRenderTargetsRenderObserver);
                     this._onAfterRenderTargetsRenderObserver = null;
                 }
             },
@@ -476,9 +478,9 @@
             this._onBeforeActiveMeshesEvaluationObserver = null;
             this.scene.onAfterActiveMeshesEvaluationObservable.remove(this._onAfterActiveMeshesEvaluationObserver);
             this._onAfterActiveMeshesEvaluationObserver = null;
-            this.scene.OnBeforeRenderTargetsRenderObservable.remove(this._onBeforeRenderTargetsRenderObserver);
+            this.scene.onBeforeRenderTargetsRenderObservable.remove(this._onBeforeRenderTargetsRenderObserver);
             this._onBeforeRenderTargetsRenderObserver = null;
-            this.scene.OnAfterRenderTargetsRenderObservable.remove(this._onAfterRenderTargetsRenderObserver);
+            this.scene.onAfterRenderTargetsRenderObservable.remove(this._onAfterRenderTargetsRenderObserver);
             this._onAfterRenderTargetsRenderObserver = null;
             this.scene.onBeforeAnimationsObservable.remove(this._onBeforeAnimationsObserver);
             this._onBeforeAnimationsObserver = null;
@@ -507,4 +509,5 @@
     LIB.SceneInstrumentation = SceneInstrumentation;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.sceneInstrumentation.js.map
 //# sourceMappingURL=LIB.sceneInstrumentation.js.map

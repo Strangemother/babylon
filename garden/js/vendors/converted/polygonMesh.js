@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var IndexedVector2 = /** @class */ (function (_super) {
         __extends(IndexedVector2, _super);
@@ -109,6 +112,9 @@
             this._addToepoint(points);
             this._points.add(points);
             this._outlinepoints.add(points);
+            if (typeof earcut === 'undefined') {
+                LIB.Tools.Warn("Earcut was not found, the polygon will not be built.");
+            }
         }
         PolygonMeshBuilder.prototype._addToepoint = function (points) {
             for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
@@ -140,7 +146,7 @@
                 uvs.push((p.x - bounds.min.x) / bounds.width, (p.y - bounds.min.y) / bounds.height);
             });
             var indices = new Array();
-            var res = Earcut.earcut(this._epoints, this._eholes, 2);
+            var res = earcut(this._epoints, this._eholes, 2);
             for (var i = 0; i < res.length; i++) {
                 indices.push(res[i]);
             }
@@ -232,4 +238,5 @@
     LIB.PolygonMeshBuilder = PolygonMeshBuilder;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.polygonMesh.js.map
 //# sourceMappingURL=LIB.polygonMesh.js.map

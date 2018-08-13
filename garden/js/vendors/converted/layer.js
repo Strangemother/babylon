@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Layer = /** @class */ (function () {
         function Layer(name, imgUrl, scene, isBackground, color) {
@@ -10,17 +12,14 @@
             // Events
             /**
             * An event triggered when the layer is disposed.
-            * @type {LIB.Observable}
             */
             this.onDisposeObservable = new LIB.Observable();
             /**
             * An event triggered before rendering the scene
-            * @type {LIB.Observable}
             */
             this.onBeforeRenderObservable = new LIB.Observable();
             /**
             * An event triggered after rendering the scene
-            * @type {LIB.Observable}
             */
             this.onAfterRenderObservable = new LIB.Observable();
             this.texture = imgUrl ? new LIB.Texture(imgUrl, scene, true) : null;
@@ -150,4 +149,5 @@
     LIB.Layer = Layer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.layer.js.map
 //# sourceMappingURL=LIB.layer.js.map

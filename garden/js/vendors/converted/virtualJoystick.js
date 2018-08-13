@@ -1,11 +1,29 @@
+
+// Mainly based on these 2 articles : 
+// Creating an universal virtual touch joystick working for all Touch models thanks to Hand.JS : http://blogs.msdn.com/b/davrous/archive/2013/02/22/creating-an-universal-virtual-touch-joystick-working-for-all-touch-models-thanks-to-hand-js.aspx
+// & on Seb Lee-Delisle original work: http://seb.ly/2011/04/multi-touch-game-controller-in-javascripthtml5-for-ipad/ 
+var LIB;
 (function (LIB) {
+    /**
+     * Defines the potential axis of a Joystick
+     */
     var JoystickAxis;
     (function (JoystickAxis) {
+        /** X axis */
         JoystickAxis[JoystickAxis["X"] = 0] = "X";
+        /** Y axis */
         JoystickAxis[JoystickAxis["Y"] = 1] = "Y";
+        /** Z axis */
         JoystickAxis[JoystickAxis["Z"] = 2] = "Z";
     })(JoystickAxis = LIB.JoystickAxis || (LIB.JoystickAxis = {}));
+    /**
+     * Class used to define virtual joystick (used in touch mode)
+     */
     var VirtualJoystick = /** @class */ (function () {
+        /**
+         * Creates a new virtual joystick
+         * @param leftJoystick defines that the joystick is for left hand (false by default)
+         */
         function VirtualJoystick(leftJoystick) {
             var _this = this;
             if (leftJoystick) {
@@ -91,6 +109,10 @@
             }, false);
             requestAnimationFrame(function () { _this._drawVirtualJoystick(); });
         }
+        /**
+         * Defines joystick sensibility (ie. the ratio beteen a physical move and virtual joystick position change)
+         * @param newJoystickSensibility defines the new sensibility
+         */
         VirtualJoystick.prototype.setJoystickSensibility = function (newJoystickSensibility) {
             this._joystickSensibility = newJoystickSensibility;
             this._inversedSensibility = 1 / (this._joystickSensibility / 1000);
@@ -190,10 +212,17 @@
         VirtualJoystick.prototype.setJoystickColor = function (newColor) {
             this._joystickColor = newColor;
         };
+        /**
+         * Defines a callback to call when the joystick is touched
+         * @param action defines the callback
+         */
         VirtualJoystick.prototype.setActionOnTouch = function (action) {
             this._action = action;
         };
-        // Define which axis you'd like to control for left & right
+        /**
+         * Defines which axis you'd like to control for left & right
+         * @param axis defines the axis to use
+         */
         VirtualJoystick.prototype.setAxisForLeftRight = function (axis) {
             switch (axis) {
                 case JoystickAxis.X:
@@ -206,7 +235,10 @@
                     break;
             }
         };
-        // Define which axis you'd like to control for up & down
+        /**
+         * Defines which axis you'd like to control for up & down
+         * @param axis defines the axis to use
+         */
         VirtualJoystick.prototype.setAxisForUpDown = function (axis) {
             switch (axis) {
                 case JoystickAxis.X:
@@ -263,6 +295,9 @@
             }
             requestAnimationFrame(function () { _this._drawVirtualJoystick(); });
         };
+        /**
+         * Release internal HTML canvas
+         */
         VirtualJoystick.prototype.releaseCanvas = function () {
             if (VirtualJoystick.vjCanvas) {
                 VirtualJoystick.vjCanvas.removeEventListener('pointerdown', this._onPointerDownHandlerRef);
@@ -281,4 +316,5 @@
     LIB.VirtualJoystick = VirtualJoystick;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.virtualJoystick.js.map
 //# sourceMappingURL=LIB.virtualJoystick.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var FreeCameraVirtualJoystickInput = /** @class */ (function () {
         function FreeCameraVirtualJoystickInput() {
@@ -52,4 +54,5 @@
     LIB.CameraInputTypes["FreeCameraVirtualJoystickInput"] = FreeCameraVirtualJoystickInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraVirtualJoystickInput.js.map
 //# sourceMappingURL=LIB.freeCameraVirtualJoystickInput.js.map

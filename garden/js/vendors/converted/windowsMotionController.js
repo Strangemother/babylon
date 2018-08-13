@@ -1,13 +1,32 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Defines the LoadedMeshInfo object that describes information about the loaded webVR controller mesh
+     */
     var LoadedMeshInfo = /** @class */ (function () {
         function LoadedMeshInfo() {
+            /**
+             * Map of the button meshes contained in the controller
+             */
             this.buttonMeshes = {};
+            /**
+             * Map of the axis meshes contained in the controller
+             */
             this.axisMeshes = {};
         }
         return LoadedMeshInfo;
     }());
+    /**
+     * Defines the WindowsMotionController object that the state of the windows motion controller
+     */
     var WindowsMotionController = /** @class */ (function (_super) {
         __extends(WindowsMotionController, _super);
+        /**
+         * Creates a new WindowsMotionController from a gamepad
+         * @param vrGamepad the gamepad that the controller should be created from
+         */
         function WindowsMotionController(vrGamepad) {
             var _this = _super.call(this, vrGamepad) || this;
             _this._mapping = {
@@ -32,7 +51,7 @@
                 },
                 // A mapping of the axis name to glTF model node name
                 // that should be transformed by axis value.
-                // This array mirrors the browserGamepad.axes array, such that
+                // This array mirrors the browserGamepad.axes array, such that 
                 // the mesh corresponding to axis 0 is in this array index 0.
                 axisMeshNames: [
                     'THUMBSTICK_X',
@@ -40,16 +59,28 @@
                     'TOUCHPAD_TOUCH_X',
                     'TOUCHPAD_TOUCH_Y'
                 ],
-                pointingPoseMeshName: 'POINTING_POSE'
+                pointingPoseMeshName: LIB.PoseEnabledController.POINTING_POSE
             };
+            /**
+             * Fired when the trackpad on this controller is clicked
+             */
             _this.onTrackpadChangedObservable = new LIB.Observable();
+            /**
+             * Fired when the trackpad on this controller is modified
+             */
             _this.onTrackpadValuesChangedObservable = new LIB.Observable();
+            /**
+             * The current x and y values of this controller's trackpad
+             */
             _this.trackpad = { x: 0, y: 0 };
             _this.controllerType = LIB.PoseEnabledControllerType.WINDOWS;
             _this._loadedMeshInfo = null;
             return _this;
         }
         Object.defineProperty(WindowsMotionController.prototype, "onTriggerButtonStateChangedObservable", {
+            /**
+             * Fired when the trigger on this controller is modified
+             */
             get: function () {
                 return this.onTriggerStateChangedObservable;
             },
@@ -57,6 +88,9 @@
             configurable: true
         });
         Object.defineProperty(WindowsMotionController.prototype, "onMenuButtonStateChangedObservable", {
+            /**
+             * Fired when the menu button on this controller is modified
+             */
             get: function () {
                 return this.onSecondaryButtonStateChangedObservable;
             },
@@ -64,6 +98,9 @@
             configurable: true
         });
         Object.defineProperty(WindowsMotionController.prototype, "onGripButtonStateChangedObservable", {
+            /**
+             * Fired when the grip button on this controller is modified
+             */
             get: function () {
                 return this.onMainButtonStateChangedObservable;
             },
@@ -71,6 +108,9 @@
             configurable: true
         });
         Object.defineProperty(WindowsMotionController.prototype, "onThumbstickButtonStateChangedObservable", {
+            /**
+             * Fired when the thumbstick button on this controller is modified
+             */
             get: function () {
                 return this.onPadStateChangedObservable;
             },
@@ -78,6 +118,9 @@
             configurable: true
         });
         Object.defineProperty(WindowsMotionController.prototype, "onTouchpadButtonStateChangedObservable", {
+            /**
+             * Fired when the touchpad button on this controller is modified
+             */
             get: function () {
                 return this.onTrackpadChangedObservable;
             },
@@ -85,6 +128,9 @@
             configurable: true
         });
         Object.defineProperty(WindowsMotionController.prototype, "onTouchpadValuesChangedObservable", {
+            /**
+             * Fired when the touchpad values on this controller are modified
+             */
             get: function () {
                 return this.onTrackpadValuesChangedObservable;
             },
@@ -96,16 +142,16 @@
          */
         WindowsMotionController.prototype.update = function () {
             _super.prototype.update.call(this);
-            // Only need to animate axes if there is a loaded mesh
-            if (this._loadedMeshInfo) {
-                if (this.browserGamepad.axes) {
-                    if (this.browserGamepad.axes[2] != this.trackpad.x || this.browserGamepad.axes[3] != this.trackpad.y) {
-                        this.trackpad.x = this.browserGamepad["axes"][2];
-                        this.trackpad.y = this.browserGamepad["axes"][3];
-                        this.onTrackpadValuesChangedObservable.notifyObservers(this.trackpad);
-                    }
+            if (this.browserGamepad.axes) {
+                if (this.browserGamepad.axes[2] != this.trackpad.x || this.browserGamepad.axes[3] != this.trackpad.y) {
+                    this.trackpad.x = this.browserGamepad["axes"][2];
+                    this.trackpad.y = this.browserGamepad["axes"][3];
+                    this.onTrackpadValuesChangedObservable.notifyObservers(this.trackpad);
+                }
+                // Only need to animate axes if there is a loaded mesh
+                if (this._loadedMeshInfo) {
                     for (var axis = 0; axis < this._mapping.axisMeshNames.length; axis++) {
-                        this.lerpAxisTransform(axis, this.browserGamepad.axes[axis]);
+                        this._lerpAxisTransform(axis, this.browserGamepad.axes[axis]);
                     }
                 }
             }
@@ -116,7 +162,7 @@
          * @param state New state of the button
          * @param changes Which properties on the state changed since last frame
          */
-        WindowsMotionController.prototype.handleButtonChange = function (buttonIdx, state, changes) {
+        WindowsMotionController.prototype._handleButtonChange = function (buttonIdx, state, changes) {
             var buttonName = this._mapping.buttons[buttonIdx];
             if (!buttonName) {
                 return;
@@ -126,9 +172,14 @@
             if (observable) {
                 observable.notifyObservers(state);
             }
-            this.lerpButtonTransform(buttonName, state.value);
+            this._lerpButtonTransform(buttonName, state.value);
         };
-        WindowsMotionController.prototype.lerpButtonTransform = function (buttonName, buttonValue) {
+        /**
+         * Moves the buttons on the controller mesh based on their current state
+         * @param buttonName the name of the button to move
+         * @param buttonValue the value of the button which determines the buttons new position
+         */
+        WindowsMotionController.prototype._lerpButtonTransform = function (buttonName, buttonValue) {
             // If there is no loaded mesh, there is nothing to transform.
             if (!this._loadedMeshInfo) {
                 return;
@@ -140,7 +191,13 @@
             LIB.Quaternion.SlerpToRef(meshInfo.unpressed.rotationQuaternion, meshInfo.pressed.rotationQuaternion, buttonValue, meshInfo.value.rotationQuaternion);
             LIB.Vector3.LerpToRef(meshInfo.unpressed.position, meshInfo.pressed.position, buttonValue, meshInfo.value.position);
         };
-        WindowsMotionController.prototype.lerpAxisTransform = function (axis, axisValue) {
+        /**
+         * Moves the axis on the controller mesh based on its current state
+         * @param axis the index of the axis
+         * @param axisValue the value of the axis which determines the meshes new position
+         * @hidden
+         */
+        WindowsMotionController.prototype._lerpAxisTransform = function (axis, axisValue) {
             if (!this._loadedMeshInfo) {
                 return;
             }
@@ -178,7 +235,7 @@
                 if (this.hand === 'left') {
                     filename = WindowsMotionController.MODEL_LEFT_FILENAME;
                 }
-                else {
+                else { // Right is the default if no hand is specified
                     filename = WindowsMotionController.MODEL_RIGHT_FILENAME;
                 }
                 path = WindowsMotionController.MODEL_BASE_URL + device + '/';
@@ -323,6 +380,11 @@
                 return node.getChildMeshes(true, function (n) { return n.name == name; })[0];
             }
         };
+        /**
+         * Gets the ray of the controller in the direction the controller is pointing
+         * @param length the length the resulting ray should be
+         * @returns a ray in the direction the controller is pointing
+         */
         WindowsMotionController.prototype.getForwardRay = function (length) {
             if (length === void 0) { length = 100; }
             if (!(this._loadedMeshInfo && this._loadedMeshInfo.pointingPoseNode)) {
@@ -335,18 +397,37 @@
             var direction = LIB.Vector3.Normalize(forwardWorld);
             return new LIB.Ray(origin, direction, length);
         };
+        /**
+        * Disposes of the controller
+        */
         WindowsMotionController.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
             this.onTrackpadChangedObservable.clear();
         };
+        /**
+         * The base url used to load the left and right controller models
+         */
         WindowsMotionController.MODEL_BASE_URL = 'https://controllers.LIBjs.com/microsoft/';
+        /**
+         * The name of the left controller model file
+         */
         WindowsMotionController.MODEL_LEFT_FILENAME = 'left.glb';
+        /**
+         * The name of the right controller model file
+         */
         WindowsMotionController.MODEL_RIGHT_FILENAME = 'right.glb';
+        /**
+         * The controller name prefix for this controller type
+         */
         WindowsMotionController.GAMEPAD_ID_PREFIX = 'Spatial Controller (Spatial Interaction Source) ';
+        /**
+         * The controller id pattern for this controller type
+         */
         WindowsMotionController.GAMEPAD_ID_PATTERN = /([0-9a-zA-Z]+-[0-9a-zA-Z]+)$/;
         return WindowsMotionController;
     }(LIB.WebVRController));
     LIB.WindowsMotionController = WindowsMotionController;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.windowsMotionController.js.map
 //# sourceMappingURL=LIB.windowsMotionController.js.map

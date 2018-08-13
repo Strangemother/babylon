@@ -1,8 +1,12 @@
+
+
+var LIB;
 (function (LIB) {
     var PushMaterial = /** @class */ (function (_super) {
         __extends(PushMaterial, _super);
         function PushMaterial(name, scene) {
             var _this = _super.call(this, name, scene) || this;
+            _this._normalMatrix = new LIB.Matrix();
             _this.storeEffectOnSubMeshes = true;
             return _this;
         }
@@ -18,8 +22,21 @@
             }
             return this.isReadyForSubMesh(mesh, mesh.subMeshes[0], useInstances);
         };
+        /**
+        * Binds the given world matrix to the active effect
+        *
+        * @param world the matrix to bind
+        */
         PushMaterial.prototype.bindOnlyWorldMatrix = function (world) {
             this._activeEffect.setMatrix("world", world);
+        };
+        /**
+         * Binds the given normal matrix to the active effect
+         *
+         * @param normalMatrix the matrix to bind
+         */
+        PushMaterial.prototype.bindOnlyNormalMatrix = function (normalMatrix) {
+            this._activeEffect.setMatrix("normalMatrix", normalMatrix);
         };
         PushMaterial.prototype.bind = function (world, mesh) {
             if (!mesh) {
@@ -41,4 +58,5 @@
     LIB.PushMaterial = PushMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pushMaterial.js.map
 //# sourceMappingURL=LIB.pushMaterial.js.map

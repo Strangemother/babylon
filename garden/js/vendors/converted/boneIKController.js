@@ -1,10 +1,37 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to apply inverse kinematics to bones
+     * @see http://doc.LIBjs.com/how_to/how_to_use_bones_and_skeletons#boneikcontroller
+     */
     var BoneIKController = /** @class */ (function () {
+        /**
+         * Creates a new BoneIKController
+         * @param mesh defines the mesh to control
+         * @param bone defines the bone to control
+         * @param options defines options to set up the controller
+         */
         function BoneIKController(mesh, bone, options) {
+            /**
+             * Gets or sets the target position
+             */
             this.targetPosition = LIB.Vector3.Zero();
+            /**
+             * Gets or sets the pole target position
+             */
             this.poleTargetPosition = LIB.Vector3.Zero();
+            /**
+             * Gets or sets the pole target local offset
+             */
             this.poleTargetLocalOffset = LIB.Vector3.Zero();
+            /**
+             * Gets or sets the pole angle
+             */
             this.poleAngle = 0;
+            /**
+             * The amount to slerp (spherical linear interpolation) to the target.  Set this to a value between 0 and 1 (a value of 1 disables slerp)
+             */
             this.slerpAmount = 1;
             this._bone1Quat = LIB.Quaternion.Identity();
             this._bone1Mat = LIB.Matrix.Identity();
@@ -80,6 +107,9 @@
             }
         }
         Object.defineProperty(BoneIKController.prototype, "maxAngle", {
+            /**
+             * Gets or sets maximum allowed angle
+             */
             get: function () {
                 return this._maxAngle;
             },
@@ -101,6 +131,9 @@
             var b = this._bone2Length;
             this._maxReach = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(ang));
         };
+        /**
+         * Force the controller to update the bones
+         */
         BoneIKController.prototype.update = function () {
             var bone1 = this._bone1;
             if (!bone1) {
@@ -208,4 +241,5 @@
     LIB.BoneIKController = BoneIKController;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boneIKController.js.map
 //# sourceMappingURL=LIB.boneIKController.js.map

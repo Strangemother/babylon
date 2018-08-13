@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraVRDeviceOrientationInput = /** @class */ (function () {
         function ArcRotateCameraVRDeviceOrientationInput() {
@@ -47,4 +49,5 @@
     LIB.CameraInputTypes["ArcRotateCameraVRDeviceOrientationInput"] = ArcRotateCameraVRDeviceOrientationInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraVRDeviceOrientationInput.js.map
 //# sourceMappingURL=LIB.arcRotateCameraVRDeviceOrientationInput.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * Performance monitor tracks rolling average frame-time and frame-time variance over a user defined sliding-window
@@ -219,4 +221,5 @@
     LIB.RollingAverage = RollingAverage;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.performanceMonitor.js.map
 //# sourceMappingURL=LIB.performanceMonitor.js.map

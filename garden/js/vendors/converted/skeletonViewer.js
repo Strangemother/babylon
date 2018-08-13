@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Debug;
     (function (Debug) {
@@ -132,4 +134,5 @@
     })(Debug = LIB.Debug || (LIB.Debug = {}));
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.skeletonViewer.js.map
 //# sourceMappingURL=LIB.skeletonViewer.js.map

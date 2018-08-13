@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var OutlineRenderer = /** @class */ (function () {
         function OutlineRenderer(scene) {
@@ -88,7 +90,7 @@
                 attribs.push("world2");
                 attribs.push("world3");
             }
-            // Get correct effect
+            // Get correct effect      
             var join = defines.join("\n");
             if (this._cachedDefines !== join) {
                 this._cachedDefines = join;
@@ -101,4 +103,5 @@
     LIB.OutlineRenderer = OutlineRenderer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.outlineRenderer.js.map
 //# sourceMappingURL=LIB.outlineRenderer.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     // We're mainly based on the logic defined into the FreeCamera code
     var UniversalCamera = /** @class */ (function (_super) {
@@ -47,4 +50,5 @@
     LIB.UniversalCamera = UniversalCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.universalCamera.js.map
 //# sourceMappingURL=LIB.universalCamera.js.map

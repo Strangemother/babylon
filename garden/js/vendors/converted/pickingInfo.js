@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var IntersectionInfo = /** @class */ (function () {
         function IntersectionInfo(bu, bv, distance) {
@@ -83,4 +85,5 @@
     LIB.PickingInfo = PickingInfo;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pickingInfo.js.map
 //# sourceMappingURL=LIB.pickingInfo.js.map

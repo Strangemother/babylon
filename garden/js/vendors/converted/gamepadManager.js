@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var GamepadManager = /** @class */ (function () {
         function GamepadManager(_scene) {
@@ -117,6 +119,7 @@
             if (xboxOne || gamepad.id.search("Xbox 360") !== -1 || gamepad.id.search("xinput") !== -1) {
                 newGamepad = new LIB.Xbox360Pad(gamepad.id, gamepad.index, gamepad, xboxOne);
             }
+            // if pose is supported, use the (WebVR) pose enabled controller
             else if (gamepad.pose) {
                 newGamepad = LIB.PoseEnabledControllerHelper.InitiateController(gamepad);
             }
@@ -158,14 +161,15 @@
         GamepadManager.prototype._updateGamepadObjects = function () {
             var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
             for (var i = 0; i < gamepads.length; i++) {
-                if (gamepads[i]) {
-                    if (!this._LIBGamepads[gamepads[i].index]) {
-                        var newGamepad = this._addNewGamepad(gamepads[i]);
+                var gamepad = gamepads[i];
+                if (gamepad) {
+                    if (!this._LIBGamepads[gamepad.index]) {
+                        var newGamepad = this._addNewGamepad(gamepad);
                         this.onGamepadConnectedObservable.notifyObservers(newGamepad);
                     }
                     else {
                         // Forced to copy again this object for Chrome for unknown reason
-                        this._LIBGamepads[i].browserGamepad = gamepads[i];
+                        this._LIBGamepads[i].browserGamepad = gamepad;
                         if (!this._LIBGamepads[i].isConnected) {
                             this._LIBGamepads[i]._isConnected = true;
                             this.onGamepadConnectedObservable.notifyObservers(this._LIBGamepads[i]);
@@ -179,4 +183,5 @@
     LIB.GamepadManager = GamepadManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.gamepadManager.js.map
 //# sourceMappingURL=LIB.gamepadManager.js.map

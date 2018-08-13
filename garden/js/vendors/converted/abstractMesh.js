@@ -1,12 +1,23 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to store all common mesh properties
+     */
     var AbstractMesh = /** @class */ (function (_super) {
         __extends(AbstractMesh, _super);
         // Constructor
+        /**
+         * Creates a new AbstractMesh
+         * @param name defines the name of the mesh
+         * @param scene defines the hosting scene
+         */
         function AbstractMesh(name, scene) {
             if (scene === void 0) { scene = null; }
             var _this = _super.call(this, name, scene, false) || this;
             _this._facetNb = 0; // facet number
-            _this._partitioningSubdivisions = 10; // number of subdivisions per axis in the partioning space
+            _this._partitioningSubdivisions = 10; // number of subdivisions per axis in the partioning space  
             _this._partitioningBBoxRatio = 1.01; // the partioning array space is by default 1% bigger than the bounding box
             _this._facetDataEnabled = false; // is the facet data feature enabled on this mesh ?
             _this._facetParameters = {}; // keep a reference to the object parameters to avoid memory re-allocation
@@ -22,106 +33,159 @@
             // Events
             /**
             * An event triggered when this mesh collides with another one
-            * @type {LIB.Observable}
             */
             _this.onCollideObservable = new LIB.Observable();
             /**
             * An event triggered when the collision's position changes
-            * @type {LIB.Observable}
             */
             _this.onCollisionPositionChangeObservable = new LIB.Observable();
             /**
             * An event triggered when material is changed
-            * @type {LIB.Observable}
             */
             _this.onMaterialChangedObservable = new LIB.Observable();
             // Properties
-            _this.definedFacingForward = true; // orientation for POV movement & rotation
+            /**
+             * Gets or sets the orientation for POV movement & rotation
+             */
+            _this.definedFacingForward = true;
             /**
             * This property determines the type of occlusion query algorithm to run in WebGl, you can use:
-
-            * AbstractMesh.OCCLUSION_ALGORITHM_TYPE_ACCURATE which is mapped to GL_ANY_SAMPLES_PASSED.
-
-            * or
-
-            * AbstractMesh.OCCLUSION_ALGORITHM_TYPE_CONSERVATIVE (Default Value) which is mapped to GL_ANY_SAMPLES_PASSED_CONSERVATIVE which is a false positive algorithm that is faster than GL_ANY_SAMPLES_PASSED but less accurate.
-
-            * for more info check WebGl documentations
+            * * AbstractMesh.OCCLUSION_ALGORITHM_TYPE_ACCURATE which is mapped to GL_ANY_SAMPLES_PASSED.
+            * * AbstractMesh.OCCLUSION_ALGORITHM_TYPE_CONSERVATIVE (Default Value) which is mapped to GL_ANY_SAMPLES_PASSED_CONSERVATIVE which is a false positive algorithm that is faster than GL_ANY_SAMPLES_PASSED but less accurate.
+            * @see http://doc.LIBjs.com/features/occlusionquery
             */
             _this.occlusionQueryAlgorithmType = AbstractMesh.OCCLUSION_ALGORITHM_TYPE_CONSERVATIVE;
             /**
-             * This property is responsible for starting the occlusion query within the Mesh or not, this property is also used     to determine what should happen when the occlusionRetryCount is reached. It has supports 3 values:
-
-            * OCCLUSION_TYPE_NONE (Default Value): this option means no occlusion query whith the Mesh.
-
-            * OCCLUSION_TYPE_OPTIMISTIC: this option is means use occlusion query and if occlusionRetryCount is reached and the query is broken show the mesh.
-
-                * OCCLUSION_TYPE_STRICT: this option is means use occlusion query and if occlusionRetryCount is reached and the query is broken restore the last state of the mesh occlusion if the mesh was visible then show the mesh if was hidden then hide don't show.
+             * This property is responsible for starting the occlusion query within the Mesh or not, this property is also used to determine what should happen when the occlusionRetryCount is reached. It has supports 3 values:
+             * * OCCLUSION_TYPE_NONE (Default Value): this option means no occlusion query whith the Mesh.
+             * * OCCLUSION_TYPE_OPTIMISTIC: this option is means use occlusion query and if occlusionRetryCount is reached and the query is broken show the mesh.
+             * * OCCLUSION_TYPE_STRICT: this option is means use occlusion query and if occlusionRetryCount is reached and the query is broken restore the last state of the mesh occlusion if the mesh was visible then show the mesh if was hidden then hide don't show.
+             * @see http://doc.LIBjs.com/features/occlusionquery
              */
             _this.occlusionType = AbstractMesh.OCCLUSION_TYPE_NONE;
             /**
-            * This number indicates the number of allowed retries before stop the occlusion query, this is useful if the        occlusion query is taking long time before to the query result is retireved, the query result indicates if the object is visible within the scene or not and based on that LIB.Js engine decideds to show or hide the object.
-
-            * The default value is -1 which means don't break the query and wait till the result.
+            * This number indicates the number of allowed retries before stop the occlusion query, this is useful if the occlusion query is taking long time before to the query result is retireved, the query result indicates if the object is visible within the scene or not and based on that LIB.Js engine decideds to show or hide the object.
+            * The default value is -1 which means don't break the query and wait till the result
+            * @see http://doc.LIBjs.com/features/occlusionquery
             */
             _this.occlusionRetryCount = -1;
             _this._occlusionInternalRetryCounter = 0;
             _this._isOccluded = false;
             _this._isOcclusionQueryInProgress = false;
-            _this.visibility = 1.0;
+            _this._visibility = 1.0;
+            /** Gets or sets the alpha index used to sort transparent meshes
+             * @see http://doc.LIBjs.com/resources/transparency_and_how_meshes_are_rendered#alpha-index
+             */
             _this.alphaIndex = Number.MAX_VALUE;
+            /**
+             * Gets or sets a boolean indicating if the mesh is visible (renderable). Default is true
+             */
             _this.isVisible = true;
+            /**
+             * Gets or sets a boolean indicating if the mesh can be picked (by scene.pick for instance or through actions). Default is true
+             */
             _this.isPickable = true;
+            /**
+             * Gets or sets a boolean indicating if the bounding box must be rendered as well (false by default)
+             */
             _this.showBoundingBox = false;
+            /** Gets or sets a boolean indicating that bounding boxes of subMeshes must be rendered as well (false by default) */
             _this.showSubMeshesBoundingBox = false;
+            /** Gets or sets a boolean indicating if the mesh must be considered as a ray blocker for lens flares (false by default)
+             * @see http://doc.LIBjs.com/how_to/how_to_use_lens_flares
+             */
             _this.isBlocker = false;
+            /**
+             * Gets or sets a boolean indicating that pointer move events must be supported on this mesh (false by default)
+             */
             _this.enablePointerMoveEvents = false;
+            /**
+             * Specifies the rendering group id for this mesh (0 by default)
+             * @see http://doc.LIBjs.com/resources/transparency_and_how_meshes_are_rendered#rendering-groups
+             */
             _this.renderingGroupId = 0;
             _this._receiveShadows = false;
+            /**
+             * Gets or sets a boolean indicating if the outline must be rendered as well
+             * @see https://www.LIBjs-playground.com/#10WJ5S#3
+             */
             _this.renderOutline = false;
+            /** Defines color to use when rendering outline */
             _this.outlineColor = LIB.Color3.Red();
+            /** Define width to use when rendering outline */
             _this.outlineWidth = 0.02;
+            /**
+             * Gets or sets a boolean indicating if the overlay must be rendered as well
+             * @see https://www.LIBjs-playground.com/#10WJ5S#2
+             */
             _this.renderOverlay = false;
+            /** Defines color to use when rendering overlay */
             _this.overlayColor = LIB.Color3.Red();
+            /** Defines alpha to use when rendering overlay */
             _this.overlayAlpha = 0.5;
             _this._hasVertexAlpha = false;
             _this._useVertexColors = true;
             _this._computeBonesUsingShaders = true;
             _this._numBoneInfluencers = 4;
             _this._applyFog = true;
+            /** Gets or sets a boolean indicating that internal octree (if available) can be used to boost submeshes selection (true by default) */
             _this.useOctreeForRenderingSelection = true;
+            /** Gets or sets a boolean indicating that internal octree (if available) can be used to boost submeshes picking (true by default) */
             _this.useOctreeForPicking = true;
+            /** Gets or sets a boolean indicating that internal octree (if available) can be used to boost submeshes collision (true by default) */
             _this.useOctreeForCollisions = true;
             _this._layerMask = 0x0FFFFFFF;
             /**
-             * True if the mesh must be rendered in any case.
+             * True if the mesh must be rendered in any case (this will shortcut the frustum clipping phase)
              */
             _this.alwaysSelectAsActiveMesh = false;
             /**
-             * This scene's action manager
-             * @type {LIB.ActionManager}
-            */
+             * Gets or sets the current action manager
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions
+             */
             _this.actionManager = null;
-            // Physics
+            /**
+             * Gets or sets impostor used for physic simulation
+             * @see http://doc.LIBjs.com/features/physics_engine
+             */
             _this.physicsImpostor = null;
             // Collisions
             _this._checkCollisions = false;
             _this._collisionMask = -1;
             _this._collisionGroup = -1;
+            /**
+             * Gets or sets the ellipsoid used to impersonate this mesh when using collision engine (default is (0.5, 1, 0.5))
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
+             */
             _this.ellipsoid = new LIB.Vector3(0.5, 1, 0.5);
+            /**
+             * Gets or sets the ellipsoid offset used to impersonate this mesh when using collision engine (default is (0, 0, 0))
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
+             */
             _this.ellipsoidOffset = new LIB.Vector3(0, 0, 0);
             _this._oldPositionForCollisions = new LIB.Vector3(0, 0, 0);
             _this._diffPositionForCollisions = new LIB.Vector3(0, 0, 0);
             // Edges
+            /**
+             * Defines edge width used when edgesRenderer is enabled
+             * @see https://www.LIBjs-playground.com/#10OJSG#13
+             */
             _this.edgesWidth = 1;
+            /**
+             * Defines edge color used when edgesRenderer is enabled
+             * @see https://www.LIBjs-playground.com/#10OJSG#13
+             */
             _this.edgesColor = new LIB.Color4(1, 0, 0, 1);
             // Cache
             _this._collisionsTransformMatrix = LIB.Matrix.Zero();
             _this._collisionsScalingMatrix = LIB.Matrix.Zero();
-            _this._isDisposed = false;
+            /** @hidden */
             _this._renderId = 0;
+            /** @hidden */
             _this._intersectionsInProgress = new Array();
+            /** @hidden */
             _this._unIndexed = false;
+            /** @hidden */
             _this._lightSources = new Array();
             _this._onCollisionPositionChange = function (collisionId, newPosition, collidedMesh) {
                 if (collidedMesh === void 0) { collidedMesh = null; }
@@ -142,6 +206,9 @@
             return _this;
         }
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_NONE", {
+            /**
+             * No billboard
+             */
             get: function () {
                 return LIB.TransformNode.BILLBOARDMODE_NONE;
             },
@@ -149,6 +216,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_X", {
+            /** Billboard on X axis */
             get: function () {
                 return LIB.TransformNode.BILLBOARDMODE_X;
             },
@@ -156,6 +224,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_Y", {
+            /** Billboard on Y axis */
             get: function () {
                 return LIB.TransformNode.BILLBOARDMODE_Y;
             },
@@ -163,6 +232,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_Z", {
+            /** Billboard on Z axis */
             get: function () {
                 return LIB.TransformNode.BILLBOARDMODE_Z;
             },
@@ -170,6 +240,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh, "BILLBOARDMODE_ALL", {
+            /** Billboard on all axes */
             get: function () {
                 return LIB.TransformNode.BILLBOARDMODE_ALL;
             },
@@ -178,7 +249,8 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "facetNb", {
             /**
-             * Read-only : the number of facets in the mesh
+             * Gets the number of facets in the mesh
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#what-is-a-mesh-facet
              */
             get: function () {
                 return this._facetNb;
@@ -188,7 +260,8 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "partitioningSubdivisions", {
             /**
-             * The number (integer) of subdivisions per axis in the partioning space
+             * Gets or set the number (integer) of subdivisions per axis in the partioning space
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#tweaking-the-partitioning
              */
             get: function () {
                 return this._partitioningSubdivisions;
@@ -202,7 +275,8 @@
         Object.defineProperty(AbstractMesh.prototype, "partitioningBBoxRatio", {
             /**
              * The ratio (float) to apply to the bouding box size to set to the partioning space.
-             * Ex : 1.01 (default) the partioning space is 1% bigger than the bounding box.
+             * Ex : 1.01 (default) the partioning space is 1% bigger than the bounding box
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#tweaking-the-partitioning
              */
             get: function () {
                 return this._partitioningBBoxRatio;
@@ -215,9 +289,10 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "mustDepthSortFacets", {
             /**
-             * Boolean : must the facet be depth sorted on next call to `updateFacetData()` ?
+             * Gets or sets a boolean indicating that the facets must be depth sorted on next call to `updateFacetData()`.
              * Works only for updatable meshes.
-             * Doesn't work with multi-materials.
+             * Doesn't work with multi-materials
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#facet-depth-sort
              */
             get: function () {
                 return this._facetDepthSort;
@@ -232,7 +307,8 @@
             /**
              * The location (Vector3) where the facet depth sort must be computed from.
              * By default, the active camera position.
-             * Used only when facet depth sort is enabled.
+             * Used only when facet depth sort is enabled
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#facet-depth-sort
              */
             get: function () {
                 return this._facetDepthSortFrom;
@@ -245,7 +321,8 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "isFacetDataEnabled", {
             /**
-             * Read-only boolean : is the feature facetData enabled ?
+             * gets a boolean indicating if facetData is enabled
+             * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata#what-is-a-mesh-facet
              */
             get: function () {
                 return this._facetDataEnabled;
@@ -253,6 +330,7 @@
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         AbstractMesh.prototype._updateNonUniformScalingState = function (value) {
             if (!_super.prototype._updateNonUniformScalingState.call(this, value)) {
                 return false;
@@ -261,6 +339,7 @@
             return true;
         };
         Object.defineProperty(AbstractMesh.prototype, "onCollide", {
+            /** Set a function to call when this mesh collides with another one */
             set: function (callback) {
                 if (this._onCollideObserver) {
                     this.onCollideObservable.remove(this._onCollideObserver);
@@ -271,6 +350,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "onCollisionPositionChange", {
+            /** Set a function to call when the collision's position changes */
             set: function (callback) {
                 if (this._onCollisionPositionChangeObserver) {
                     this.onCollisionPositionChangeObservable.remove(this._onCollisionPositionChangeObserver);
@@ -282,7 +362,8 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "isOccluded", {
             /**
-            * Property isOccluded : Gets or sets whether the mesh is occluded or not, it is used also to set the intial state of the mesh to be occluded or not.
+            * Gets or sets whether the mesh is occluded or not, it is used also to set the intial state of the mesh to be occluded or not
+            * @see http://doc.LIBjs.com/features/occlusionquery
             */
             get: function () {
                 return this._isOccluded;
@@ -295,15 +376,37 @@
         });
         Object.defineProperty(AbstractMesh.prototype, "isOcclusionQueryInProgress", {
             /**
-            * Flag to check the progress status of the query
-            */
+             * Flag to check the progress status of the query
+             * @see http://doc.LIBjs.com/features/occlusionquery
+             */
             get: function () {
                 return this._isOcclusionQueryInProgress;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(AbstractMesh.prototype, "visibility", {
+            /**
+             * Gets or sets mesh visibility between 0 and 1 (default is 1)
+             */
+            get: function () {
+                return this._visibility;
+            },
+            /**
+             * Gets or sets mesh visibility between 0 and 1 (default is 1)
+             */
+            set: function (value) {
+                if (this._visibility === value) {
+                    return;
+                }
+                this._visibility = value;
+                this._markSubMeshesAsMiscDirty();
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(AbstractMesh.prototype, "material", {
+            /** Gets or sets current material */
             get: function () {
                 return this._material;
             },
@@ -318,15 +421,16 @@
                 if (!this.subMeshes) {
                     return;
                 }
-                for (var _i = 0, _a = this.subMeshes; _i < _a.length; _i++) {
-                    var subMesh = _a[_i];
-                    subMesh.setEffect(null);
-                }
+                this._unBindEffect();
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "receiveShadows", {
+            /**
+             * Gets or sets a boolean indicating that this mesh can receive realtime shadows
+             * @see http://doc.LIBjs.com/LIB101/shadows
+             */
             get: function () {
                 return this._receiveShadows;
             },
@@ -341,6 +445,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "hasVertexAlpha", {
+            /** Gets or sets a boolean indicating that this mesh contains vertex color data with alpha values */
             get: function () {
                 return this._hasVertexAlpha;
             },
@@ -350,11 +455,13 @@
                 }
                 this._hasVertexAlpha = value;
                 this._markSubMeshesAsAttributesDirty();
+                this._markSubMeshesAsMiscDirty();
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "useVertexColors", {
+            /** Gets or sets a boolean indicating that this mesh needs to use vertex color data to render (if this kind of vertex data is available in the geometry) */
             get: function () {
                 return this._useVertexColors;
             },
@@ -369,6 +476,9 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "computeBonesUsingShaders", {
+            /**
+             * Gets or sets a boolean indicating that bone animations must be computed by the CPU (false by default)
+             */
             get: function () {
                 return this._computeBonesUsingShaders;
             },
@@ -383,6 +493,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "numBoneInfluencers", {
+            /** Gets or sets the number of allowed bone influences per vertex (4 by default) */
             get: function () {
                 return this._numBoneInfluencers;
             },
@@ -397,6 +508,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "applyFog", {
+            /** Gets or sets a boolean indicating that this mesh will allow fog to be rendered on it (true by default) */
             get: function () {
                 return this._applyFog;
             },
@@ -411,6 +523,10 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "layerMask", {
+            /**
+             * Gets or sets the current layer mask (default is 0x0FFFFFFF)
+             * @see http://doc.LIBjs.com/how_to/layermasks_and_multi-cam_textures
+             */
             get: function () {
                 return this._layerMask;
             },
@@ -425,6 +541,10 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "collisionMask", {
+            /**
+             * Gets or sets a collision mask used to mask collisions (default is -1).
+             * A collision between A and B will happen if A.collisionGroup & b.collisionMask !== 0
+             */
             get: function () {
                 return this._collisionMask;
             },
@@ -435,6 +555,10 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "collisionGroup", {
+            /**
+             * Gets or sets the current collision group mask (-1 by default).
+             * A collision between A and B will happen if A.collisionGroup & b.collisionMask !== 0
+             */
             get: function () {
                 return this._collisionGroup;
             },
@@ -445,6 +569,7 @@
             configurable: true
         });
         Object.defineProperty(AbstractMesh.prototype, "_positions", {
+            /** @hidden */
             get: function () {
                 return null;
             },
@@ -455,6 +580,10 @@
             get: function () {
                 return this._skeleton;
             },
+            /**
+             * Gets or sets a skeleton to apply skining transformations
+             * @see http://doc.LIBjs.com/how_to/how_to_use_bones_and_skeletons
+             */
             set: function (value) {
                 if (this._skeleton && this._skeleton.needInitialSkinMatrix) {
                     this._skeleton._unregisterMeshWithPoseMatrix(this);
@@ -472,19 +601,16 @@
             configurable: true
         });
         /**
-         * Boolean : true if the mesh has been disposed.
-         */
-        AbstractMesh.prototype.isDisposed = function () {
-            return this._isDisposed;
-        };
-        /**
          * Returns the string "AbstractMesh"
+         * @returns "AbstractMesh"
          */
         AbstractMesh.prototype.getClassName = function () {
             return "AbstractMesh";
         };
         /**
-         * @param {boolean} fullDetails - support for multiple levels of logging within scene loading
+         * Gets a string representation of the current mesh
+         * @param fullDetails defines a boolean indicating if full details must be included
+         * @returns a string representation of the current mesh
          */
         AbstractMesh.prototype.toString = function (fullDetails) {
             var ret = "Name: " + this.name + ", isInstance: " + (this instanceof LIB.InstancedMesh ? "YES" : "NO");
@@ -498,6 +624,7 @@
             }
             return ret;
         };
+        /** @hidden */
         AbstractMesh.prototype._rebuild = function () {
             if (this._occlusionQuery) {
                 this._occlusionQuery = null;
@@ -513,6 +640,7 @@
                 subMesh._rebuild();
             }
         };
+        /** @hidden */
         AbstractMesh.prototype._resyncLightSources = function () {
             this._lightSources.length = 0;
             for (var _i = 0, _a = this.getScene().lights; _i < _a.length; _i++) {
@@ -526,6 +654,7 @@
             }
             this._markSubMeshesAsLightDirty();
         };
+        /** @hidden */
         AbstractMesh.prototype._resyncLighSource = function (light) {
             var isIn = light.isEnabled() && light.canAffectMesh(this);
             var index = this._lightSources.indexOf(light);
@@ -543,12 +672,21 @@
             }
             this._markSubMeshesAsLightDirty();
         };
+        /** @hidden */
+        AbstractMesh.prototype._unBindEffect = function () {
+            for (var _i = 0, _a = this.subMeshes; _i < _a.length; _i++) {
+                var subMesh = _a[_i];
+                subMesh.setEffect(null);
+            }
+        };
+        /** @hidden */
         AbstractMesh.prototype._removeLightSource = function (light) {
             var index = this._lightSources.indexOf(light);
             if (index === -1) {
                 return;
             }
             this._lightSources.splice(index, 1);
+            this._markSubMeshesAsLightDirty();
         };
         AbstractMesh.prototype._markSubMeshesAsDirty = function (func) {
             if (!this.subMeshes) {
@@ -561,12 +699,15 @@
                 }
             }
         };
+        /** @hidden */
         AbstractMesh.prototype._markSubMeshesAsLightDirty = function () {
             this._markSubMeshesAsDirty(function (defines) { return defines.markAsLightDirty(); });
         };
+        /** @hidden */
         AbstractMesh.prototype._markSubMeshesAsAttributesDirty = function () {
             this._markSubMeshesAsDirty(function (defines) { return defines.markAsAttributesDirty(); });
         };
+        /** @hidden */
         AbstractMesh.prototype._markSubMeshesAsMiscDirty = function () {
             if (!this.subMeshes) {
                 return;
@@ -581,16 +722,11 @@
         };
         Object.defineProperty(AbstractMesh.prototype, "scaling", {
             /**
-            * Scaling property : a Vector3 depicting the mesh scaling along each local axis X, Y, Z.
-            * Default : (1.0, 1.0, 1.0)
+            * Gets or sets a Vector3 depicting the mesh scaling along each local axis X, Y, Z.  Default is (1.0, 1.0, 1.0)
             */
             get: function () {
                 return this._scaling;
             },
-            /**
-             * Scaling property : a Vector3 depicting the mesh scaling along each local axis X, Y, Z.
-             * Default : (1.0, 1.0, 1.0)
-             */
             set: function (newScaling) {
                 this._scaling = newScaling;
                 if (this.physicsImpostor) {
@@ -602,8 +738,8 @@
         });
         // Methods
         /**
-         * Disables the mesh edger rendering mode.
-         * Returns the AbstractMesh.
+         * Disables the mesh edge rendering mode
+         * @returns the currentAbstractMesh
          */
         AbstractMesh.prototype.disableEdgesRendering = function () {
             if (this._edgesRenderer) {
@@ -614,8 +750,11 @@
         };
         /**
          * Enables the edge rendering mode on the mesh.
-         * This mode makes the mesh edges visible.
-         * Returns the AbstractMesh.
+         * This mode makes the mesh edges visible
+         * @param epsilon defines the maximal distance between two angles to detect a face
+         * @param checkVerticesInsteadOfIndices indicates that we should check vertex list directly instead of faces
+         * @returns the currentAbstractMesh
+         * @see https://www.LIBjs-playground.com/#19O9TU#0
          */
         AbstractMesh.prototype.enableEdgesRendering = function (epsilon, checkVerticesInsteadOfIndices) {
             if (epsilon === void 0) { epsilon = 0.95; }
@@ -626,8 +765,7 @@
         };
         Object.defineProperty(AbstractMesh.prototype, "isBlocked", {
             /**
-             * Returns true if the mesh is blocked. Used by the class Mesh.
-             * Returns the boolean `false` by default.
+             * Returns true if the mesh is blocked. Implemented by child classes
              */
             get: function () {
                 return false;
@@ -636,29 +774,31 @@
             configurable: true
         });
         /**
-         * Returns the mesh itself by default, used by the class Mesh.
-         * Returned type : AbstractMesh
+         * Returns the mesh itself by default. Implemented by child classes
+         * @param camera defines the camera to use to pick the right LOD level
+         * @returns the currentAbstractMesh
          */
         AbstractMesh.prototype.getLOD = function (camera) {
             return this;
         };
         /**
-         * Returns 0 by default, used by the class Mesh.
-         * Returns an integer.
+         * Returns 0 by default. Implemented by child classes
+         * @returns an integer
          */
         AbstractMesh.prototype.getTotalVertices = function () {
             return 0;
         };
         /**
-         * Returns null by default, used by the class Mesh.
-         * Returned type : integer array
+         * Returns null by default. Implemented by child classes
+         * @returns null
          */
         AbstractMesh.prototype.getIndices = function () {
             return null;
         };
         /**
-         * Returns the array of the requested vertex data kind. Used by the class Mesh. Returns null here.
-         * Returned type : float array or Float32Array
+         * Returns the array of the requested vertex data kind. Implemented by child classes
+         * @param kind defines the vertex data kind to use
+         * @returns null
          */
         AbstractMesh.prototype.getVerticesData = function (kind) {
             return null;
@@ -666,27 +806,25 @@
         /**
          * Sets the vertex data of the mesh geometry for the requested `kind`.
          * If the mesh has no geometry, a new Geometry object is set to the mesh and then passed this vertex data.
-         * The `data` are either a numeric array either a Float32Array.
-         * The parameter `updatable` is passed as is to the underlying Geometry object constructor (if initianilly none) or updater.
-         * The parameter `stride` is an optional positive integer, it is usually automatically deducted from the `kind` (3 for positions or normals, 2 for UV, etc).
          * Note that a new underlying VertexBuffer object is created each call.
          * If the `kind` is the `PositionKind`, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
-         *
-         * Possible `kind` values :
-         * - LIB.VertexBuffer.PositionKind
-         * - LIB.VertexBuffer.UVKind
-         * - LIB.VertexBuffer.UV2Kind
-         * - LIB.VertexBuffer.UV3Kind
-         * - LIB.VertexBuffer.UV4Kind
-         * - LIB.VertexBuffer.UV5Kind
-         * - LIB.VertexBuffer.UV6Kind
-         * - LIB.VertexBuffer.ColorKind
-         * - LIB.VertexBuffer.MatricesIndicesKind
-         * - LIB.VertexBuffer.MatricesIndicesExtraKind
-         * - LIB.VertexBuffer.MatricesWeightsKind
-         * - LIB.VertexBuffer.MatricesWeightsExtraKind
-         *
-         * Returns the Mesh.
+         * @param kind defines vertex data kind:
+         * * LIB.VertexBuffer.PositionKind
+         * * LIB.VertexBuffer.UVKind
+         * * LIB.VertexBuffer.UV2Kind
+         * * LIB.VertexBuffer.UV3Kind
+         * * LIB.VertexBuffer.UV4Kind
+         * * LIB.VertexBuffer.UV5Kind
+         * * LIB.VertexBuffer.UV6Kind
+         * * LIB.VertexBuffer.ColorKind
+         * * LIB.VertexBuffer.MatricesIndicesKind
+         * * LIB.VertexBuffer.MatricesIndicesExtraKind
+         * * LIB.VertexBuffer.MatricesWeightsKind
+         * * LIB.VertexBuffer.MatricesWeightsExtraKind
+         * @param data defines the data source
+         * @param updatable defines if the data must be flagged as updatable (or static)
+         * @param stride defines the vertex stride (size of an entire vertex). Can be null and in this case will be deduced from vertex data kind
+         * @returns the current mesh
          */
         AbstractMesh.prototype.setVerticesData = function (kind, data, updatable, stride) {
             return this;
@@ -694,49 +832,48 @@
         /**
          * Updates the existing vertex data of the mesh geometry for the requested `kind`.
          * If the mesh has no geometry, it is simply returned as it is.
-         * The `data` are either a numeric array either a Float32Array.
-         * No new underlying VertexBuffer object is created.
-         * If the `kind` is the `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
-         * If the parameter `makeItUnique` is true, a new global geometry is created from this positions and is set to the mesh.
-         *
-         * Possible `kind` values :
-         * - LIB.VertexBuffer.PositionKind
-         * - LIB.VertexBuffer.UVKind
-         * - LIB.VertexBuffer.UV2Kind
-         * - LIB.VertexBuffer.UV3Kind
-         * - LIB.VertexBuffer.UV4Kind
-         * - LIB.VertexBuffer.UV5Kind
-         * - LIB.VertexBuffer.UV6Kind
-         * - LIB.VertexBuffer.ColorKind
-         * - LIB.VertexBuffer.MatricesIndicesKind
-         * - LIB.VertexBuffer.MatricesIndicesExtraKind
-         * - LIB.VertexBuffer.MatricesWeightsKind
-         * - LIB.VertexBuffer.MatricesWeightsExtraKind
-         *
-         * Returns the Mesh.
+         * @param kind defines vertex data kind:
+         * * LIB.VertexBuffer.PositionKind
+         * * LIB.VertexBuffer.UVKind
+         * * LIB.VertexBuffer.UV2Kind
+         * * LIB.VertexBuffer.UV3Kind
+         * * LIB.VertexBuffer.UV4Kind
+         * * LIB.VertexBuffer.UV5Kind
+         * * LIB.VertexBuffer.UV6Kind
+         * * LIB.VertexBuffer.ColorKind
+         * * LIB.VertexBuffer.MatricesIndicesKind
+         * * LIB.VertexBuffer.MatricesIndicesExtraKind
+         * * LIB.VertexBuffer.MatricesWeightsKind
+         * * LIB.VertexBuffer.MatricesWeightsExtraKind
+         * @param data defines the data source
+         * @param updateExtends If `kind` is `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed
+         * @param makeItUnique If true, a new global geometry is created from this data and is set to the mesh
+         * @returns the current mesh
          */
         AbstractMesh.prototype.updateVerticesData = function (kind, data, updateExtends, makeItUnique) {
             return this;
         };
         /**
-         * Sets the mesh indices.
-         * Expects an array populated with integers or a typed array (Int32Array, Uint32Array, Uint16Array).
+         * Sets the mesh indices,
          * If the mesh has no geometry, a new Geometry object is created and set to the mesh.
-         * This method creates a new index buffer each call.
-         * Returns the Mesh.
+         * @param indices Expects an array populated with integers or a typed array (Int32Array, Uint32Array, Uint16Array)
+         * @param totalVertices Defines the total number of vertices
+         * @returns the current mesh
          */
         AbstractMesh.prototype.setIndices = function (indices, totalVertices) {
             return this;
         };
-        /** Returns false by default, used by the class Mesh.
-         *  Returns a boolean
-        */
+        /**
+         * Gets a boolean indicating if specific vertex data is present
+         * @param kind defines the vertex data kind to use
+         * @returns true is data kind is present
+         */
         AbstractMesh.prototype.isVerticesDataPresent = function (kind) {
             return false;
         };
         /**
-         * Returns the mesh BoundingInfo object or creates a new one and returns it if undefined.
-         * Returns a BoundingInfo
+         * Returns the mesh BoundingInfo object or creates a new one and returns if it was undefined
+         * @returns a BoundingInfo
          */
         AbstractMesh.prototype.getBoundingInfo = function () {
             if (this._masterMesh) {
@@ -750,8 +887,9 @@
             return this._boundingInfo;
         };
         /**
-         * Uniformly scales the mesh to fit inside of a unit cube (1 X 1 X 1 units).
-         * @param includeDescendants Take the hierarchy's bounding box instead of the mesh's bounding box.
+         * Uniformly scales the mesh to fit inside of a unit cube (1 X 1 X 1 units)
+         * @param includeDescendants Use the hierarchy's bounding box instead of the mesh's bounding box
+         * @returns the current mesh
          */
         AbstractMesh.prototype.normalizeToUnitCube = function (includeDescendants) {
             if (includeDescendants === void 0) { includeDescendants = true; }
@@ -766,30 +904,35 @@
             return this;
         };
         /**
-         * Sets a mesh new object BoundingInfo.
-         * Returns the AbstractMesh.
+         * Overwrite the current bounding info
+         * @param boundingInfo defines the new bounding info
+         * @returns the current mesh
          */
         AbstractMesh.prototype.setBoundingInfo = function (boundingInfo) {
             this._boundingInfo = boundingInfo;
             return this;
         };
         Object.defineProperty(AbstractMesh.prototype, "useBones", {
+            /** Gets a boolean indicating if this mesh has skinning data and an attached skeleton */
             get: function () {
                 return (this.skeleton && this.getScene().skeletonsEnabled && this.isVerticesDataPresent(LIB.VertexBuffer.MatricesIndicesKind) && this.isVerticesDataPresent(LIB.VertexBuffer.MatricesWeightsKind));
             },
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         AbstractMesh.prototype._preActivate = function () {
         };
+        /** @hidden */
         AbstractMesh.prototype._preActivateForIntermediateRendering = function (renderId) {
         };
+        /** @hidden */
         AbstractMesh.prototype._activate = function (renderId) {
             this._renderId = renderId;
         };
         /**
-         * Returns the latest update of the World matrix
-         * Returns a Matrix.
+         * Gets the current world matrix
+         * @returns a Matrix
          */
         AbstractMesh.prototype.getWorldMatrix = function () {
             if (this._masterMesh) {
@@ -797,9 +940,7 @@
             }
             return _super.prototype.getWorldMatrix.call(this);
         };
-        /**
-         * Returns the latest update of the World matrix determinant.
-         */
+        /** @hidden */
         AbstractMesh.prototype._getWorldMatrixDeterminant = function () {
             if (this._masterMesh) {
                 return this._masterMesh._getWorldMatrixDeterminant();
@@ -810,12 +951,11 @@
         /**
          * Perform relative position change from the point of view of behind the front of the mesh.
          * This is performed taking into account the meshes current rotation, so you do not have to care.
-         * Supports definition of mesh facing forward or backward.
-         * @param {number} amountRight
-         * @param {number} amountUp
-         * @param {number} amountForward
-         *
-         * Returns the AbstractMesh.
+         * Supports definition of mesh facing forward or backward
+         * @param amountRight defines the distance on the right axis
+         * @param amountUp defines the distance on the up axis
+         * @param amountForward defines the distance on the forward axis
+         * @returns the current mesh
          */
         AbstractMesh.prototype.movePOV = function (amountRight, amountUp, amountForward) {
             this.position.addInPlace(this.calcMovePOV(amountRight, amountUp, amountForward));
@@ -824,12 +964,11 @@
         /**
          * Calculate relative position change from the point of view of behind the front of the mesh.
          * This is performed taking into account the meshes current rotation, so you do not have to care.
-         * Supports definition of mesh facing forward or backward.
-         * @param {number} amountRight
-         * @param {number} amountUp
-         * @param {number} amountForward
-         *
-         * Returns a new Vector3.
+         * Supports definition of mesh facing forward or backward
+         * @param amountRight defines the distance on the right axis
+         * @param amountUp defines the distance on the up axis
+         * @param amountForward defines the distance on the forward axis
+         * @returns the new displacement vector
          */
         AbstractMesh.prototype.calcMovePOV = function (amountRight, amountUp, amountForward) {
             var rotMatrix = new LIB.Matrix();
@@ -843,12 +982,11 @@
         // ================================== Point of View Rotation =================================
         /**
          * Perform relative rotation change from the point of view of behind the front of the mesh.
-         * Supports definition of mesh facing forward or backward.
-         * @param {number} flipBack
-         * @param {number} twirlClockwise
-         * @param {number} tiltRight
-         *
-         * Returns the AbstractMesh.
+         * Supports definition of mesh facing forward or backward
+         * @param flipBack defines the flip
+         * @param twirlClockwise defines the twirl
+         * @param tiltRight defines the tilt
+         * @returns the current mesh
          */
         AbstractMesh.prototype.rotatePOV = function (flipBack, twirlClockwise, tiltRight) {
             this.rotation.addInPlace(this.calcRotatePOV(flipBack, twirlClockwise, tiltRight));
@@ -857,11 +995,10 @@
         /**
          * Calculate relative rotation change from the point of view of behind the front of the mesh.
          * Supports definition of mesh facing forward or backward.
-         * @param {number} flipBack
-         * @param {number} twirlClockwise
-         * @param {number} tiltRight
-         *
-         * Returns a new Vector3.
+         * @param flipBack defines the flip
+         * @param twirlClockwise defines the twirl
+         * @param tiltRight defines the tilt
+         * @returns the new rotation vector
          */
         AbstractMesh.prototype.calcRotatePOV = function (flipBack, twirlClockwise, tiltRight) {
             var defForwardMult = this.definedFacingForward ? 1 : -1;
@@ -869,10 +1006,13 @@
         };
         /**
          * Return the minimum and maximum world vectors of the entire hierarchy under current mesh
-         * @param includeDescendants Include bounding info from descendants as well (true by default).
+         * @param includeDescendants Include bounding info from descendants as well (true by default)
+         * @returns the new bounding vectors
          */
         AbstractMesh.prototype.getHierarchyBoundingVectors = function (includeDescendants) {
             if (includeDescendants === void 0) { includeDescendants = true; }
+            // Ensures that all world matrix will be recomputed.
+            this.getScene().incrementRenderId();
             this.computeWorldMatrix(true);
             var min;
             var max;
@@ -908,20 +1048,14 @@
                 max: max
             };
         };
-        /**
-         * Updates the mesh BoundingInfo object and all its children BoundingInfo objects also.
-         * Returns the AbstractMesh.
-         */
+        /** @hidden */
         AbstractMesh.prototype._updateBoundingInfo = function () {
             this._boundingInfo = this._boundingInfo || new LIB.BoundingInfo(this.absolutePosition, this.absolutePosition);
             this._boundingInfo.update(this.worldMatrixFromCache);
             this._updateSubMeshesBoundingInfo(this.worldMatrixFromCache);
             return this;
         };
-        /**
-         * Update a mesh's children BoundingInfo objects only.
-         * Returns the AbstractMesh.
-         */
+        /** @hidden */
         AbstractMesh.prototype._updateSubMeshesBoundingInfo = function (matrix) {
             if (!this.subMeshes) {
                 return this;
@@ -934,14 +1068,16 @@
             }
             return this;
         };
+        /** @hidden */
         AbstractMesh.prototype._afterComputeWorldMatrix = function () {
             // Bounding info
             this._updateBoundingInfo();
         };
         /**
          * Returns `true` if the mesh is within the frustum defined by the passed array of planes.
-         * A mesh is in the frustum if its bounding box intersects the frustum.
-         * Boolean returned.
+         * A mesh is in the frustum if its bounding box intersects the frustum
+         * @param frustumPlanes defines the frustum to test
+         * @returns true if the mesh is in the frustum planes
          */
         AbstractMesh.prototype.isInFrustum = function (frustumPlanes) {
             return this._boundingInfo !== null && this._boundingInfo.isInFrustum(frustumPlanes);
@@ -949,17 +1085,18 @@
         /**
          * Returns `true` if the mesh is completely in the frustum defined be the passed array of planes.
          * A mesh is completely in the frustum if its bounding box it completely inside the frustum.
-         * Boolean returned.
+         * @param frustumPlanes defines the frustum to test
+         * @returns true if the mesh is completely in the frustum planes
          */
         AbstractMesh.prototype.isCompletelyInFrustum = function (frustumPlanes) {
             return this._boundingInfo !== null && this._boundingInfo.isCompletelyInFrustum(frustumPlanes);
-            ;
         };
         /**
-         * True if the mesh intersects another mesh or a SolidParticle object.
-         * Unless the parameter `precise` is set to `true` the intersection is computed according to Axis Aligned Bounding Boxes (AABB), else according to OBB (Oriented BBoxes)
-         * includeDescendants can be set to true to test if the mesh defined in parameters intersects with the current mesh or any child meshes
-         * Returns a boolean.
+         * True if the mesh intersects another mesh or a SolidParticle object
+         * @param mesh defines a target mesh or SolidParticle to test
+         * @param precise Unless the parameter `precise` is set to `true` the intersection is computed according to Axis Aligned Bounding Boxes (AABB), else according to OBB (Oriented BBoxes)
+         * @param includeDescendants Can be set to true to test if the mesh defined in parameters intersects with the current mesh or any child meshes
+         * @returns true if there is an intersection
          */
         AbstractMesh.prototype.intersectsMesh = function (mesh, precise, includeDescendants) {
             if (precise === void 0) { precise = false; }
@@ -980,8 +1117,9 @@
             return false;
         };
         /**
-         * Returns true if the passed point (Vector3) is inside the mesh bounding box.
-         * Returns a boolean.
+         * Returns true if the passed point (Vector3) is inside the mesh bounding box
+         * @param point defines the point to test
+         * @returns true if there is an intersection
          */
         AbstractMesh.prototype.intersectsPoint = function (point) {
             if (!this._boundingInfo) {
@@ -989,9 +1127,19 @@
             }
             return this._boundingInfo.intersectsPoint(point);
         };
+        /**
+         * Gets the current physics impostor
+         * @see http://doc.LIBjs.com/features/physics_engine
+         * @returns a physics impostor or null
+         */
         AbstractMesh.prototype.getPhysicsImpostor = function () {
             return this.physicsImpostor;
         };
+        /**
+         * Gets the position of the current mesh in camera space
+         * @param camera defines the camera to use
+         * @returns a position
+         */
         AbstractMesh.prototype.getPositionInCameraSpace = function (camera) {
             if (camera === void 0) { camera = null; }
             if (!camera) {
@@ -1000,8 +1148,9 @@
             return LIB.Vector3.TransformCoordinates(this.absolutePosition, camera.getViewMatrix());
         };
         /**
-         * Returns the distance from the mesh to the active camera.
-         * Returns a float.
+         * Returns the distance from the mesh to the active camera
+         * @param camera defines the camera to use
+         * @returns the distance
          */
         AbstractMesh.prototype.getDistanceToCamera = function (camera) {
             if (camera === void 0) { camera = null; }
@@ -1010,6 +1159,13 @@
             }
             return this.absolutePosition.subtract(camera.position).length();
         };
+        /**
+         * Apply a physic impulse to the mesh
+         * @param force defines the force to apply
+         * @param contactPoint defines where to apply the force
+         * @returns the current mesh
+         * @see http://doc.LIBjs.com/how_to/using_the_physics_engine
+         */
         AbstractMesh.prototype.applyImpulse = function (force, contactPoint) {
             if (!this.physicsImpostor) {
                 return this;
@@ -1017,6 +1173,15 @@
             this.physicsImpostor.applyImpulse(force, contactPoint);
             return this;
         };
+        /**
+         * Creates a physic joint between two meshes
+         * @param otherMesh defines the other mesh to use
+         * @param pivot1 defines the pivot to use on this mesh
+         * @param pivot2 defines the pivot to use on the other mesh
+         * @param options defines additional options (can be plugin dependent)
+         * @returns the current mesh
+         * @see https://www.LIBjs-playground.com/#0BS5U0#0
+         */
         AbstractMesh.prototype.setPhysicsLinkWith = function (otherMesh, pivot1, pivot2, options) {
             if (!this.physicsImpostor || !otherMesh.physicsImpostor) {
                 return this;
@@ -1031,8 +1196,8 @@
         Object.defineProperty(AbstractMesh.prototype, "checkCollisions", {
             // Collisions
             /**
-             * Property checkCollisions : Boolean, whether the camera should check the collisions against the mesh.
-             * Default `false`.
+             * Gets or sets a boolean indicating that this mesh can be used in the collision engine
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
              */
             get: function () {
                 return this._checkCollisions;
@@ -1049,6 +1214,7 @@
         Object.defineProperty(AbstractMesh.prototype, "collider", {
             /**
              * Gets Collider object used to compute collisions (not physics)
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
              */
             get: function () {
                 return this._collider;
@@ -1056,6 +1222,12 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Move the mesh using collision engine
+         * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
+         * @param displacement defines the requested displacement vector
+         * @returns the current mesh
+         */
         AbstractMesh.prototype.moveWithCollisions = function (displacement) {
             var globalPosition = this.getAbsolutePosition();
             globalPosition.addToRef(this.ellipsoidOffset, this._oldPositionForCollisions);
@@ -1069,8 +1241,12 @@
         // Submeshes octree
         /**
         * This function will create an octree to help to select the right submeshes for rendering, picking and collision computations.
-        * Please note that you must have a decent number of submeshes to get performance improvements when using an octree.
-        * Returns an Octree of submeshes.
+        * Please note that you must have a decent number of submeshes to get performance improvements when using an octree
+        * @param maxCapacity defines the maximum size of each block (64 by default)
+        * @param maxDepth defines the maximum depth to use (no more than 2 levels by default)
+        * @returns the new octree
+        * @see https://www.LIBjs-playground.com/#NA4OQ#12
+        * @see http://doc.LIBjs.com/how_to/optimizing_your_scene_with_octrees
         */
         AbstractMesh.prototype.createOrUpdateSubmeshesOctree = function (maxCapacity, maxDepth) {
             if (maxCapacity === void 0) { maxCapacity = 64; }
@@ -1086,6 +1262,7 @@
             return this._submeshesOctree;
         };
         // Collisions
+        /** @hidden */
         AbstractMesh.prototype._collideForSubMesh = function (subMesh, transformMatrix, collider) {
             this._generatePointsArray();
             if (!this._positions) {
@@ -1109,6 +1286,7 @@
             }
             return this;
         };
+        /** @hidden */
         AbstractMesh.prototype._processCollisionsForSubMeshes = function (collider, transformMatrix) {
             var subMeshes;
             var len;
@@ -1132,6 +1310,7 @@
             }
             return this;
         };
+        /** @hidden */
         AbstractMesh.prototype._checkCollision = function (collider) {
             // Bounding box test
             if (!this._boundingInfo || !this._boundingInfo._checkCollision(collider))
@@ -1143,12 +1322,16 @@
             return this;
         };
         // Picking
+        /** @hidden */
         AbstractMesh.prototype._generatePointsArray = function () {
             return false;
         };
         /**
-         * Checks if the passed Ray intersects with the mesh.
-         * Returns an object PickingInfo.
+         * Checks if the passed Ray intersects with the mesh
+         * @param ray defines the ray to use
+         * @param fastCheck defines if fast mode (but less precise) must be used (false by default)
+         * @returns the picking info
+         * @see http://doc.LIBjs.com/LIB101/intersect_collisions_-_mesh
          */
         AbstractMesh.prototype.intersects = function (ray, fastCheck) {
             var pickingInfo = new LIB.PickingInfo();
@@ -1210,15 +1393,18 @@
             return pickingInfo;
         };
         /**
-         * Clones the mesh, used by the class Mesh.
-         * Just returns `null` for an AbstractMesh.
+         * Clones the current mesh
+         * @param name defines the mesh name
+         * @param newParent defines the new mesh parent
+         * @param doNotCloneChildren defines a boolean indicating that children must not be cloned (false by default)
+         * @returns the new mesh
          */
         AbstractMesh.prototype.clone = function (name, newParent, doNotCloneChildren) {
             return null;
         };
         /**
-         * Disposes all the mesh submeshes.
-         * Returns the AbstractMesh.
+         * Disposes all the submeshes of the current meshnp
+         * @returns the current mesh
          */
         AbstractMesh.prototype.releaseSubMeshes = function () {
             if (this.subMeshes) {
@@ -1232,24 +1418,27 @@
             return this;
         };
         /**
-         * Disposes the AbstractMesh.
-         * By default, all the mesh children are also disposed unless the parameter `doNotRecurse` is set to `true`.
-         * Returns nothing.
+         * Releases resources associated with this abstract mesh.
+         * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
+         * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
          */
         AbstractMesh.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
             var _this = this;
             if (disposeMaterialAndTextures === void 0) { disposeMaterialAndTextures = false; }
             var index;
+            // Smart Array Retainers.
+            this.getScene().freeActiveMeshes();
+            this.getScene().freeRenderingGroups();
             // Action manager
-            if (this.actionManager) {
+            if (this.actionManager !== undefined && this.actionManager !== null) {
                 this.actionManager.dispose();
                 this.actionManager = null;
             }
             // Skeleton
-            this.skeleton = null;
+            this._skeleton = null;
             // Physics
             if (this.physicsImpostor) {
-                this.physicsImpostor.dispose();
+                this.physicsImpostor.dispose( /*!doNotRecurse*/);
             }
             // Intersections in progress
             for (index = 0; index < this._intersectionsInProgress.length; index++) {
@@ -1292,7 +1481,7 @@
             }
             // Octree
             var sceneOctree = this.getScene().selectionOctree;
-            if (sceneOctree) {
+            if (sceneOctree !== undefined && sceneOctree !== null) {
                 var index = sceneOctree.dynamicContent.indexOf(this);
                 if (index !== -1) {
                     sceneOctree.dynamicContent.splice(index, 1);
@@ -1330,30 +1519,28 @@
             this.onAfterWorldMatrixUpdateObservable.clear();
             this.onCollideObservable.clear();
             this.onCollisionPositionChangeObservable.clear();
-            this._isDisposed = true;
-            _super.prototype.dispose.call(this, doNotRecurse);
+            _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
         };
         /**
-         * Adds the passed mesh as a child to the current mesh.
-         * Returns the AbstractMesh.
+         * Adds the passed mesh as a child to the current mesh
+         * @param mesh defines the child mesh
+         * @returns the current mesh
          */
         AbstractMesh.prototype.addChild = function (mesh) {
             mesh.setParent(this);
             return this;
         };
         /**
-         * Removes the passed mesh from the current mesh children list.
-         * Returns the AbstractMesh.
+         * Removes the passed mesh from the current mesh children list
+         * @param mesh defines the child mesh
+         * @returns the current mesh
          */
         AbstractMesh.prototype.removeChild = function (mesh) {
             mesh.setParent(null);
             return this;
         };
         // Facet data
-        /**
-         *  Initialize the facet data arrays : facetNormals, facetPositions and facetPartitioning.
-         * Returns the AbstractMesh.
-         */
+        /** @hidden */
         AbstractMesh.prototype._initFacetData = function () {
             if (!this._facetNormals) {
                 this._facetNormals = new Array();
@@ -1377,8 +1564,9 @@
         /**
          * Updates the mesh facetData arrays and the internal partitioning when the mesh is morphed or updated.
          * This method can be called within the render loop.
-         * You don't need to call this method by yourself in the render loop when you update/morph a mesh with the methods CreateXXX() as they automatically manage this computation.
-         * Returns the AbstractMesh.
+         * You don't need to call this method by yourself in the render loop when you update/morph a mesh with the methods CreateXXX() as they automatically manage this computation
+         * @returns the current mesh
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.updateFacetData = function () {
             if (!this._facetDataEnabled) {
@@ -1471,7 +1659,9 @@
         };
         /**
          * Returns the facetLocalNormals array.
-         * The normals are expressed in the mesh local space.
+         * The normals are expressed in the mesh local spac
+         * @returns an array of Vector3
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetLocalNormals = function () {
             if (!this._facetNormals) {
@@ -1481,7 +1671,9 @@
         };
         /**
          * Returns the facetLocalPositions array.
-         * The facet positions are expressed in the mesh local space.
+         * The facet positions are expressed in the mesh local space
+         * @returns an array of Vector3
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetLocalPositions = function () {
             if (!this._facetPositions) {
@@ -1490,7 +1682,9 @@
             return this._facetPositions;
         };
         /**
-         * Returns the facetLocalPartioning array.
+         * Returns the facetLocalPartioning array
+         * @returns an array of array of numbers
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetLocalPartitioning = function () {
             if (!this._facetPartitioning) {
@@ -1500,7 +1694,10 @@
         };
         /**
          * Returns the i-th facet position in the world system.
-         * This method allocates a new Vector3 per call.
+         * This method allocates a new Vector3 per call
+         * @param i defines the facet index
+         * @returns a new Vector3
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetPosition = function (i) {
             var pos = LIB.Vector3.Zero();
@@ -1508,8 +1705,11 @@
             return pos;
         };
         /**
-         * Sets the reference Vector3 with the i-th facet position in the world system.
-         * Returns the AbstractMesh.
+         * Sets the reference Vector3 with the i-th facet position in the world system
+         * @param i defines the facet index
+         * @param ref defines the target vector
+         * @returns the current mesh
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetPositionToRef = function (i, ref) {
             var localPos = (this.getFacetLocalPositions())[i];
@@ -1519,7 +1719,10 @@
         };
         /**
          * Returns the i-th facet normal in the world system.
-         * This method allocates a new Vector3 per call.
+         * This method allocates a new Vector3 per call
+         * @param i defines the facet index
+         * @returns a new Vector3
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetNormal = function (i) {
             var norm = LIB.Vector3.Zero();
@@ -1527,8 +1730,11 @@
             return norm;
         };
         /**
-         * Sets the reference Vector3 with the i-th facet normal in the world system.
-         * Returns the AbstractMesh.
+         * Sets the reference Vector3 with the i-th facet normal in the world system
+         * @param i defines the facet index
+         * @param ref defines the target vector
+         * @returns the current mesh
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetNormalToRef = function (i, ref) {
             var localNorm = (this.getFacetLocalNormals())[i];
@@ -1536,7 +1742,12 @@
             return this;
         };
         /**
-         * Returns the facets (in an array) in the same partitioning block than the one the passed coordinates are located (expressed in the mesh local system).
+         * Returns the facets (in an array) in the same partitioning block than the one the passed coordinates are located (expressed in the mesh local system)
+         * @param x defines x coordinate
+         * @param y defines y coordinate
+         * @param z defines z coordinate
+         * @returns the array of facet indexes
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetsAtLocalCoordinates = function (x, y, z) {
             var bInfo = this.getBoundingInfo();
@@ -1549,11 +1760,15 @@
             return this._facetPartitioning[ox + this._subDiv.max * oy + this._subDiv.max * this._subDiv.max * oz];
         };
         /**
-         * Returns the closest mesh facet index at (x,y,z) World coordinates, null if not found.
-         * If the parameter projected (vector3) is passed, it is set as the (x,y,z) World projection on the facet.
-         * If checkFace is true (default false), only the facet "facing" to (x,y,z) or only the ones "turning their backs", according to the parameter "facing" are returned.
-         * If facing and checkFace are true, only the facet "facing" to (x, y, z) are returned : positive dot (x, y, z) * facet position.
-         * If facing si false and checkFace is true, only the facet "turning their backs" to (x, y, z) are returned : negative dot (x, y, z) * facet position.
+         * Returns the closest mesh facet index at (x,y,z) World coordinates, null if not found
+         * @param projected sets as the (x,y,z) world projection on the facet
+         * @param checkFace if true (default false), only the facet "facing" to (x,y,z) or only the ones "turning their backs", according to the parameter "facing" are returned
+         * @param facing if facing and checkFace are true, only the facet "facing" to (x, y, z) are returned : positive dot (x, y, z) * facet position. If facing si false and checkFace is true, only the facet "turning their backs" to (x, y, z) are returned : negative dot (x, y, z) * facet position
+         * @param x defines x coordinate
+         * @param y defines y coordinate
+         * @param z defines z coordinate
+         * @returns the face index if found (or null instead)
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getClosestFacetAtCoordinates = function (x, y, z, projected, checkFace, facing) {
             if (checkFace === void 0) { checkFace = false; }
@@ -1571,11 +1786,15 @@
             return closest;
         };
         /**
-         * Returns the closest mesh facet index at (x,y,z) local coordinates, null if not found.
-         * If the parameter projected (vector3) is passed, it is set as the (x,y,z) local projection on the facet.
-         * If checkFace is true (default false), only the facet "facing" to (x,y,z) or only the ones "turning their backs", according to the parameter "facing" are returned.
-         * If facing and checkFace are true, only the facet "facing" to (x, y, z) are returned : positive dot (x, y, z) * facet position.
-         * If facing si false and checkFace is true, only the facet "turning their backs"  to (x, y, z) are returned : negative dot (x, y, z) * facet position.
+         * Returns the closest mesh facet index at (x,y,z) local coordinates, null if not found
+         * @param projected sets as the (x,y,z) local projection on the facet
+         * @param checkFace if true (default false), only the facet "facing" to (x,y,z) or only the ones "turning their backs", according to the parameter "facing" are returned
+         * @param facing if facing and checkFace are true, only the facet "facing" to (x, y, z) are returned : positive dot (x, y, z) * facet position. If facing si false and checkFace is true, only the facet "turning their backs" to (x, y, z) are returned : negative dot (x, y, z) * facet position
+         * @param x defines x coordinate
+         * @param y defines y coordinate
+         * @param z defines z coordinate
+         * @returns the face index if found (or null instead)
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getClosestFacetAtLocalCoordinates = function (x, y, z, projected, checkFace, facing) {
             if (checkFace === void 0) { checkFace = false; }
@@ -1619,7 +1838,7 @@
                     tmpy = projy - y;
                     tmpz = projz - z;
                     tmpDistance = tmpx * tmpx + tmpy * tmpy + tmpz * tmpz; // compute length between (x, y, z) and its projection on the facet
-                    if (tmpDistance < shortest) {
+                    if (tmpDistance < shortest) { // just keep the closest facet to (x, y, z)
                         shortest = tmpDistance;
                         closest = fib;
                         if (projected) {
@@ -1634,13 +1853,16 @@
         };
         /**
          * Returns the object "parameter" set with all the expected parameters for facetData computation by ComputeNormals()
+         * @returns the parameters
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.getFacetDataParameters = function () {
             return this._facetParameters;
         };
         /**
-         * Disables the feature FacetData and frees the related memory.
-         * Returns the AbstractMesh.
+         * Disables the feature FacetData and frees the related memory
+         * @returns the current mesh
+         * @see http://doc.LIBjs.com/how_to/how_to_use_facetdata
          */
         AbstractMesh.prototype.disableFacetData = function () {
             if (this._facetDataEnabled) {
@@ -1654,19 +1876,17 @@
             return this;
         };
         /**
-         * Updates the AbstractMesh indices array. Actually, used by the Mesh object.
-         * Returns the mesh.
+         * Updates the AbstractMesh indices array
+         * @param indices defines the data source
+         * @returns the current mesh
          */
         AbstractMesh.prototype.updateIndices = function (indices) {
             return this;
         };
         /**
-         * The mesh Geometry. Actually used by the Mesh object.
-         * Returns a blank geometry object.
-         */
-        /**
-         * Creates new normals data for the mesh.
-         * @param updatable.
+         * Creates new normals data for the mesh
+         * @param updatable defines if the normal vertex buffer must be flagged as updatable
+         * @returns the current mesh
          */
         AbstractMesh.prototype.createNormals = function (updatable) {
             var positions = this.getVerticesData(LIB.VertexBuffer.PositionKind);
@@ -1680,10 +1900,13 @@
             }
             LIB.VertexData.ComputeNormals(positions, indices, normals, { useRightHandedSystem: this.getScene().useRightHandedSystem });
             this.setVerticesData(LIB.VertexBuffer.NormalKind, normals, updatable);
+            return this;
         };
         /**
-         * Align the mesh with a normal.
-         * Returns the mesh.
+         * Align the mesh with a normal
+         * @param normal defines the normal to use
+         * @param upDirection can be used to redefined the up vector to use (will use the (0, 1, 0) by default)
+         * @returns the current mesh
          */
         AbstractMesh.prototype.alignWithNormal = function (normal, upDirection) {
             if (!upDirection) {
@@ -1701,7 +1924,8 @@
             }
             return this;
         };
-        AbstractMesh.prototype.checkOcclusionQuery = function () {
+        /** @hidden */
+        AbstractMesh.prototype._checkOcclusionQuery = function () {
             var engine = this.getEngine();
             if (engine.webGLVersion < 2 || this.occlusionType === AbstractMesh.OCCLUSION_TYPE_NONE) {
                 this._isOccluded = false;
@@ -1739,14 +1963,20 @@
             engine.endOcclusionQuery(this.occlusionQueryAlgorithmType);
             this._isOcclusionQueryInProgress = true;
         };
+        /** No occlusion */
         AbstractMesh.OCCLUSION_TYPE_NONE = 0;
+        /** Occlusion set to optimisitic */
         AbstractMesh.OCCLUSION_TYPE_OPTIMISTIC = 1;
+        /** Occlusion set to strict */
         AbstractMesh.OCCLUSION_TYPE_STRICT = 2;
+        /** Use an accurante occlusion algorithm */
         AbstractMesh.OCCLUSION_ALGORITHM_TYPE_ACCURATE = 0;
+        /** Use a conservative occlusion algorithm */
         AbstractMesh.OCCLUSION_ALGORITHM_TYPE_CONSERVATIVE = 1;
         return AbstractMesh;
     }(LIB.TransformNode));
     LIB.AbstractMesh = AbstractMesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.abstractMesh.js.map
 //# sourceMappingURL=LIB.abstractMesh.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var serializedGeometries = [];
     var serializeGeometry = function (geometry, serializationGeometries) {
@@ -7,28 +9,28 @@
         if (geometry.doNotSerialize) {
             return;
         }
-        if (geometry instanceof LIB.Geometry.Primitives.Box) {
+        if (geometry instanceof LIB.BoxGeometry) {
             serializationGeometries.boxes.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.Sphere) {
+        else if (geometry instanceof LIB.SphereGeometry) {
             serializationGeometries.spheres.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.Cylinder) {
+        else if (geometry instanceof LIB.CylinderGeometry) {
             serializationGeometries.cylinders.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.Torus) {
+        else if (geometry instanceof LIB.TorusGeometry) {
             serializationGeometries.toruses.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.Ground) {
+        else if (geometry instanceof LIB.GroundGeometry) {
             serializationGeometries.grounds.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.Plane) {
+        else if (geometry instanceof LIB.Plane) {
             serializationGeometries.planes.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives.TorusKnot) {
+        else if (geometry instanceof LIB.TorusKnotGeometry) {
             serializationGeometries.torusKnots.push(geometry.serialize());
         }
-        else if (geometry instanceof LIB.Geometry.Primitives._Primitive) {
+        else if (geometry instanceof LIB._PrimitiveGeometry) {
             throw new Error("Unknown primitive type");
         }
         else {
@@ -38,7 +40,7 @@
     };
     var serializeMesh = function (mesh, serializationScene) {
         var serializationObject = {};
-        // Geometry
+        // Geometry      
         var geometry = mesh._geometry;
         if (geometry) {
             if (!mesh.getScene().getGeometryByID(geometry.id)) {
@@ -182,10 +184,17 @@
                 var multiMaterial = scene.multiMaterials[index];
                 serializationObject.multiMaterials.push(multiMaterial.serialize());
             }
+            // Environment texture
+            if (scene.environmentTexture) {
+                serializationObject.environmentTexture = scene.environmentTexture.name;
+            }
             // Skeletons
             serializationObject.skeletons = [];
             for (index = 0; index < scene.skeletons.length; index++) {
-                serializationObject.skeletons.push(scene.skeletons[index].serialize());
+                var skeleton = scene.skeletons[index];
+                if (!skeleton.doNotSerialize) {
+                    serializationObject.skeletons.push(skeleton.serialize());
+                }
             }
             // Transform nodes
             serializationObject.transformNodes = [];
@@ -254,6 +263,14 @@
                     serializationObject.sounds.push(soundtrack.soundCollection[soundId].serialize());
                 }
             }
+            // Effect layers
+            serializationObject.effectLayers = [];
+            for (index = 0; index < scene.effectLayers.length; index++) {
+                var layer = scene.effectLayers[index];
+                if (layer.serialize) {
+                    serializationObject.effectLayers.push(layer.serialize());
+                }
+            }
             return serializationObject;
         };
         SceneSerializer.SerializeMesh = function (toSerialize /* Mesh || Mesh[] */, withParents, withChildren) {
@@ -288,4 +305,5 @@
     LIB.SceneSerializer = SceneSerializer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.sceneSerializer.js.map
 //# sourceMappingURL=LIB.sceneSerializer.js.map

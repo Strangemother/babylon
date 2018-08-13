@@ -1,8 +1,17 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var TargetCamera = /** @class */ (function (_super) {
         __extends(TargetCamera, _super);
-        function TargetCamera(name, position, scene) {
-            var _this = _super.call(this, name, position, scene) || this;
+        function TargetCamera(name, position, scene, setActiveOnSceneIfNoneActive) {
+            if (setActiveOnSceneIfNoneActive === void 0) { setActiveOnSceneIfNoneActive = true; }
+            var _this = _super.call(this, name, position, scene, setActiveOnSceneIfNoneActive) || this;
             _this.cameraDirection = new LIB.Vector3(0, 0, 0);
             _this.cameraRotation = new LIB.Vector2(0, 0);
             _this.rotation = new LIB.Vector3(0, 0, 0);
@@ -17,11 +26,12 @@
             _this._referencePoint = new LIB.Vector3(0, 0, 1);
             _this._currentUpVector = new LIB.Vector3(0, 1, 0);
             _this._transformedReferencePoint = LIB.Vector3.Zero();
-            _this._lookAtTemp = LIB.Matrix.Zero();
-            _this._tempMatrix = LIB.Matrix.Zero();
+            _this._globalCurrentTarget = LIB.Vector3.Zero();
+            _this._globalCurrentUpVector = LIB.Vector3.Zero();
             return _this;
         }
         TargetCamera.prototype.getFrontPosition = function (distance) {
+            this.getWorldMatrix();
             var direction = this.getTarget().subtract(this.position);
             direction.normalize();
             direction.scaleInPlace(distance);
@@ -215,13 +225,28 @@
             LIB.Vector3.TransformCoordinatesToRef(this._referencePoint, this._cameraRotationMatrix, this._transformedReferencePoint);
             // Computing target and final matrix
             this.position.addToRef(this._transformedReferencePoint, this._currentTarget);
-            if (this.getScene().useRightHandedSystem) {
-                LIB.Matrix.LookAtRHToRef(this.position, this._currentTarget, this._currentUpVector, this._viewMatrix);
+            this._computeViewMatrix(this.position, this._currentTarget, this._currentUpVector);
+            return this._viewMatrix;
+        };
+        TargetCamera.prototype._computeViewMatrix = function (position, target, up) {
+            if (this.parent) {
+                var parentWorldMatrix = this.parent.getWorldMatrix();
+                LIB.Vector3.TransformCoordinatesToRef(this.position, parentWorldMatrix, this._globalPosition);
+                LIB.Vector3.TransformCoordinatesToRef(target, parentWorldMatrix, this._globalCurrentTarget);
+                LIB.Vector3.TransformNormalToRef(up, parentWorldMatrix, this._globalCurrentUpVector);
+                this._markSyncedWithParent();
             }
             else {
-                LIB.Matrix.LookAtLHToRef(this.position, this._currentTarget, this._currentUpVector, this._viewMatrix);
+                this._globalPosition.copyFrom(this.position);
+                this._globalCurrentTarget.copyFrom(target);
+                this._globalCurrentUpVector.copyFrom(up);
             }
-            return this._viewMatrix;
+            if (this.getScene().useRightHandedSystem) {
+                LIB.Matrix.LookAtRHToRef(this._globalPosition, this._globalCurrentTarget, this._globalCurrentUpVector, this._viewMatrix);
+            }
+            else {
+                LIB.Matrix.LookAtLHToRef(this._globalPosition, this._globalCurrentTarget, this._globalCurrentUpVector, this._viewMatrix);
+            }
         };
         /**
          * @override
@@ -302,4 +327,5 @@
     LIB.TargetCamera = TargetCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.targetCamera.js.map
 //# sourceMappingURL=LIB.targetCamera.js.map

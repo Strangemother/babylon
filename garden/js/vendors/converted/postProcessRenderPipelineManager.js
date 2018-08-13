@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var PostProcessRenderPipelineManager = /** @class */ (function () {
         function PostProcessRenderPipelineManager() {
@@ -35,20 +37,6 @@
             }
             renderPipeline._disableEffect(renderEffectName, cameras);
         };
-        PostProcessRenderPipelineManager.prototype.enableDisplayOnlyPassInPipeline = function (renderPipelineName, passName, cameras) {
-            var renderPipeline = this._renderPipelines[renderPipelineName];
-            if (!renderPipeline) {
-                return;
-            }
-            renderPipeline._enableDisplayOnlyPass(passName, cameras);
-        };
-        PostProcessRenderPipelineManager.prototype.disableDisplayOnlyPassInPipeline = function (renderPipelineName, cameras) {
-            var renderPipeline = this._renderPipelines[renderPipelineName];
-            if (!renderPipeline) {
-                return;
-            }
-            renderPipeline._disableDisplayOnlyPass(cameras);
-        };
         PostProcessRenderPipelineManager.prototype.update = function () {
             for (var renderPipelineName in this._renderPipelines) {
                 if (this._renderPipelines.hasOwnProperty(renderPipelineName)) {
@@ -84,4 +72,5 @@
     LIB.PostProcessRenderPipelineManager = PostProcessRenderPipelineManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.postProcessRenderPipelineManager.js.map
 //# sourceMappingURL=LIB.postProcessRenderPipelineManager.js.map

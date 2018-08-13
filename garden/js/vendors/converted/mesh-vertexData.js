@@ -1,7 +1,17 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * This class contains the various kinds of data on every vertex of a mesh used in determining its shape and appearance
+     */
     var VertexData = /** @class */ (function () {
         function VertexData() {
         }
+        /**
+         * Uses the passed data array to set the set the values for the specified kind of data
+         * @param data a linear array of floating numbers
+         * @param kind the type of data that is being set, eg positions, colors etc
+         */
         VertexData.prototype.set = function (data, kind) {
             switch (kind) {
                 case LIB.VertexBuffer.PositionKind:
@@ -50,8 +60,10 @@
         };
         /**
          * Associates the vertexData to the passed Mesh.
-         * Sets it as updatable or not (default `false`).
-         * Returns the VertexData.
+         * Sets it as updatable or not (default `false`)
+         * @param mesh the mesh the vertexData is applied to
+         * @param updatable when used and having the value true allows new data to update the vertexData
+         * @returns the VertexData
          */
         VertexData.prototype.applyToMesh = function (mesh, updatable) {
             this._applyTo(mesh, updatable);
@@ -59,24 +71,32 @@
         };
         /**
          * Associates the vertexData to the passed Geometry.
-         * Sets it as updatable or not (default `false`).
-         * Returns the VertexData.
+         * Sets it as updatable or not (default `false`)
+         * @param geometry the geometry the vertexData is applied to
+         * @param updatable when used and having the value true allows new data to update the vertexData
+         * @returns VertexData
          */
         VertexData.prototype.applyToGeometry = function (geometry, updatable) {
             this._applyTo(geometry, updatable);
             return this;
         };
         /**
-         * Updates the associated mesh.
-         * Returns the VertexData.
+         * Updates the associated mesh
+         * @param mesh the mesh to be updated
+         * @param updateExtends when true the mesh BoundingInfo will be renewed when and if position kind is updated, optional with default false
+         * @param makeItUnique when true, and when and if position kind is updated, a new global geometry will be  created from these positions and set to the mesh, optional with default false
+         * @returns VertexData
          */
         VertexData.prototype.updateMesh = function (mesh, updateExtends, makeItUnique) {
             this._update(mesh);
             return this;
         };
         /**
-         * Updates the associated geometry.
-         * Returns the VertexData.
+         * Updates the associated geometry
+         * @param geometry the geometry to be updated
+         * @param updateExtends when true BoundingInfo will be renewed when and if position kind is updated, optional with default false
+         * @param makeItUnique when true, and when and if position kind is updated, a new global geometry will be created from these positions and set to the mesh, optional with default false
+         * @returns VertexData.
          */
         VertexData.prototype.updateGeometry = function (geometry, updateExtends, makeItUnique) {
             this._update(geometry);
@@ -180,8 +200,9 @@
             return this;
         };
         /**
-         * Transforms each position and each normal of the vertexData according to the passed Matrix.
-         * Returns the VertexData.
+         * Transforms each position and each normal of the vertexData according to the passed Matrix
+         * @param matrix the transforming matrix
+         * @returns the VertexData
          */
         VertexData.prototype.transform = function (matrix) {
             var transformed = LIB.Vector3.Zero();
@@ -221,11 +242,28 @@
             return this;
         };
         /**
-         * Merges the passed VertexData into the current one.
-         * Returns the modified VertexData.
+         * Merges the passed VertexData into the current one
+         * @param other the VertexData to be merged into the current one
+         * @returns the modified VertexData
          */
-        VertexData.prototype.merge = function (other, options) {
-            options = options || {};
+        VertexData.prototype.merge = function (other) {
+            this._validate();
+            other._validate();
+            if (!this.normals !== !other.normals ||
+                !this.tangents !== !other.tangents ||
+                !this.uvs !== !other.uvs ||
+                !this.uvs2 !== !other.uvs2 ||
+                !this.uvs3 !== !other.uvs3 ||
+                !this.uvs4 !== !other.uvs4 ||
+                !this.uvs5 !== !other.uvs5 ||
+                !this.uvs6 !== !other.uvs6 ||
+                !this.colors !== !other.colors ||
+                !this.matricesIndices !== !other.matricesIndices ||
+                !this.matricesWeights !== !other.matricesWeights ||
+                !this.matricesIndicesExtra !== !other.matricesIndicesExtra ||
+                !this.matricesWeightsExtra !== !other.matricesWeightsExtra) {
+                throw new Error("Cannot merge vertex data that do not have the same set of attributes");
+            }
             if (other.indices) {
                 if (!this.indices) {
                     this.indices = [];
@@ -237,43 +275,27 @@
                 }
             }
             this.positions = this._mergeElement(this.positions, other.positions);
-            if (!this.positions) {
-                return this;
-            }
-            var count = this.positions.length / 3;
-            this.normals = this._mergeElement(this.normals, other.normals, count * 3);
-            this.tangents = this._mergeElement(this.tangents, other.tangents, count * (options.tangentLength || 4));
-            this.uvs = this._mergeElement(this.uvs, other.uvs, count * 2);
-            this.uvs2 = this._mergeElement(this.uvs2, other.uvs2, count * 2);
-            this.uvs3 = this._mergeElement(this.uvs3, other.uvs3, count * 2);
-            this.uvs4 = this._mergeElement(this.uvs4, other.uvs4, count * 2);
-            this.uvs5 = this._mergeElement(this.uvs5, other.uvs5, count * 2);
-            this.uvs6 = this._mergeElement(this.uvs6, other.uvs6, count * 2);
-            this.colors = this._mergeElement(this.colors, other.colors, count * 4, 1);
-            this.matricesIndices = this._mergeElement(this.matricesIndices, other.matricesIndices, count * 4);
-            this.matricesWeights = this._mergeElement(this.matricesWeights, other.matricesWeights, count * 4);
-            this.matricesIndicesExtra = this._mergeElement(this.matricesIndicesExtra, other.matricesIndicesExtra, count * 4);
-            this.matricesWeightsExtra = this._mergeElement(this.matricesWeightsExtra, other.matricesWeightsExtra, count * 4);
+            this.normals = this._mergeElement(this.normals, other.normals);
+            this.tangents = this._mergeElement(this.tangents, other.tangents);
+            this.uvs = this._mergeElement(this.uvs, other.uvs);
+            this.uvs2 = this._mergeElement(this.uvs2, other.uvs2);
+            this.uvs3 = this._mergeElement(this.uvs3, other.uvs3);
+            this.uvs4 = this._mergeElement(this.uvs4, other.uvs4);
+            this.uvs5 = this._mergeElement(this.uvs5, other.uvs5);
+            this.uvs6 = this._mergeElement(this.uvs6, other.uvs6);
+            this.colors = this._mergeElement(this.colors, other.colors);
+            this.matricesIndices = this._mergeElement(this.matricesIndices, other.matricesIndices);
+            this.matricesWeights = this._mergeElement(this.matricesWeights, other.matricesWeights);
+            this.matricesIndicesExtra = this._mergeElement(this.matricesIndicesExtra, other.matricesIndicesExtra);
+            this.matricesWeightsExtra = this._mergeElement(this.matricesWeightsExtra, other.matricesWeightsExtra);
             return this;
         };
-        VertexData.prototype._mergeElement = function (source, other, length, defaultValue) {
-            if (length === void 0) { length = 0; }
-            if (defaultValue === void 0) { defaultValue = 0; }
-            if (!other && !source) {
-                return null;
+        VertexData.prototype._mergeElement = function (source, other) {
+            if (!source) {
+                return other;
             }
             if (!other) {
-                var padding = new Float32Array(source.length);
-                padding.fill(defaultValue);
-                return this._mergeElement(source, padding, length);
-            }
-            if (!source) {
-                if (length === 0 || length === other.length) {
-                    return other;
-                }
-                var padding = new Float32Array(length - other.length);
-                padding.fill(defaultValue);
-                return this._mergeElement(padding, other, length);
+                return source;
             }
             var len = other.length + source.length;
             var isSrcTypedArray = source instanceof Float32Array;
@@ -298,9 +320,54 @@
                 return ret;
             }
         };
+        VertexData.prototype._validate = function () {
+            if (!this.positions) {
+                throw new Error("Positions are required");
+            }
+            var getElementCount = function (kind, values) {
+                var stride = LIB.VertexBuffer.DeduceStride(kind);
+                if ((values.length % stride) !== 0) {
+                    throw new Error("The " + kind + "s array count must be a multiple of " + stride);
+                }
+                return values.length / stride;
+            };
+            var positionsElementCount = getElementCount(LIB.VertexBuffer.PositionKind, this.positions);
+            var validateElementCount = function (kind, values) {
+                var elementCount = getElementCount(kind, values);
+                if (elementCount !== positionsElementCount) {
+                    throw new Error("The " + kind + "s element count (" + elementCount + ") does not match the positions count (" + positionsElementCount + ")");
+                }
+            };
+            if (this.normals)
+                validateElementCount(LIB.VertexBuffer.NormalKind, this.normals);
+            if (this.tangents)
+                validateElementCount(LIB.VertexBuffer.TangentKind, this.tangents);
+            if (this.uvs)
+                validateElementCount(LIB.VertexBuffer.UVKind, this.uvs);
+            if (this.uvs2)
+                validateElementCount(LIB.VertexBuffer.UV2Kind, this.uvs2);
+            if (this.uvs3)
+                validateElementCount(LIB.VertexBuffer.UV3Kind, this.uvs3);
+            if (this.uvs4)
+                validateElementCount(LIB.VertexBuffer.UV4Kind, this.uvs4);
+            if (this.uvs5)
+                validateElementCount(LIB.VertexBuffer.UV5Kind, this.uvs5);
+            if (this.uvs6)
+                validateElementCount(LIB.VertexBuffer.UV6Kind, this.uvs6);
+            if (this.colors)
+                validateElementCount(LIB.VertexBuffer.ColorKind, this.colors);
+            if (this.matricesIndices)
+                validateElementCount(LIB.VertexBuffer.MatricesIndicesKind, this.matricesIndices);
+            if (this.matricesWeights)
+                validateElementCount(LIB.VertexBuffer.MatricesWeightsKind, this.matricesWeights);
+            if (this.matricesIndicesExtra)
+                validateElementCount(LIB.VertexBuffer.MatricesIndicesExtraKind, this.matricesIndicesExtra);
+            if (this.matricesWeightsExtra)
+                validateElementCount(LIB.VertexBuffer.MatricesWeightsExtraKind, this.matricesWeightsExtra);
+        };
         /**
-         * Serializes the VertexData.
-         * Returns a serialized object.
+         * Serializes the VertexData
+         * @returns a serialized object
          */
         VertexData.prototype.serialize = function () {
             var serializationObject = this.serialize();
@@ -353,13 +420,21 @@
         };
         // Statics
         /**
-         * Returns the object VertexData associated to the passed mesh.
+         * Extracts the vertexData from a mesh
+         * @param mesh the mesh from which to extract the VertexData
+         * @param copyWhenShared defines if the VertexData must be cloned when shared between multiple meshes, optional, default false
+         * @param forceCopy indicating that the VertexData must be cloned, optional, default false
+         * @returns the object VertexData associated to the passed mesh
          */
         VertexData.ExtractFromMesh = function (mesh, copyWhenShared, forceCopy) {
             return VertexData._ExtractFrom(mesh, copyWhenShared, forceCopy);
         };
         /**
-         * Returns the object VertexData associated to the passed geometry.
+         * Extracts the vertexData from the geometry
+         * @param geometry the geometry from which to extract the VertexData
+         * @param copyWhenShared defines if the VertexData must be cloned when the geometrty is shared between multiple meshes, optional, default false
+         * @param forceCopy indicating that the VertexData must be cloned, optional, default false
+         * @returns the object VertexData associated to the passed mesh
          */
         VertexData.ExtractFromGeometry = function (geometry, copyWhenShared, forceCopy) {
             return VertexData._ExtractFrom(geometry, copyWhenShared, forceCopy);
@@ -412,7 +487,19 @@
             return result;
         };
         /**
-         * Creates the vertexData of the Ribbon.
+         * Creates the VertexData for a Ribbon
+         * @param options an object used to set the following optional parameters for the ribbon, required but can be empty
+          * * pathArray array of paths, each of which an array of successive Vector3
+          * * closeArray creates a seam between the first and the last paths of the pathArray, optional, default false
+          * * closePath creates a seam between the first and the last points of each path of the path array, optional, default false
+          * * offset a positive integer, only used when pathArray contains a single path (offset = 10 means the point 1 is joined to the point 11), default rounded half size of the pathArray length
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+          * * invertUV swaps in the U and V coordinates when applying a texture, optional, default false
+          * * uvs a linear array, of length 2 * number of vertices, of custom UV values, optional
+          * * colors a linear array, of length 4 * number of vertices, of custom color values, optional
+         * @returns the VertexData of the ribbon
          */
         VertexData.CreateRibbon = function (options) {
             var pathArray = options.pathArray;
@@ -474,7 +561,7 @@
                     }
                     j++;
                 }
-                if (closePath) {
+                if (closePath) { // an extra hidden vertex is added in the "positions" array
                     j--;
                     positions.push(path[0].x, path[0].y, path[0].z);
                     vectlg = path[j].subtract(path[0]).length();
@@ -497,7 +584,7 @@
                 for (p = 0; p < pathArray.length - 1; p++) {
                     path1 = pathArray[p];
                     path2 = pathArray[p + 1];
-                    if (i === minlg) {
+                    if (i === minlg) { // closePath
                         vertex1 = path1[0];
                         vertex2 = path2[0];
                     }
@@ -513,7 +600,7 @@
                 if (closeArray && vertex2 && vertex1) {
                     path1 = pathArray[p];
                     path2 = pathArray[0];
-                    if (i === minlg) {
+                    if (i === minlg) { // closePath
                         vertex2 = path2[0];
                     }
                     vectlg = vertex2.subtract(vertex1).length();
@@ -550,15 +637,15 @@
             var l2 = lg[p + 1] - 1; // path2 length
             var min = (l1 < l2) ? l1 : l2; // current path stop index
             var shft = idx[1] - idx[0]; // shift
-            var path1nb = closeArray ? lg.length : lg.length - 1; // number of path1 to iterate on
-            while (pi <= min && p < path1nb) {
+            var path1nb = closeArray ? lg.length : lg.length - 1; // number of path1 to iterate	on
+            while (pi <= min && p < path1nb) { //  stay under min and don't go over next to last path
                 // draw two triangles between path1 (p1) and path2 (p2) : (p1.pi, p2.pi, p1.pi+1) and (p2.pi+1, p1.pi+1, p2.pi) clockwise
                 indices.push(pi, pi + shft, pi + 1);
                 indices.push(pi + shft + 1, pi + 1, pi + shft);
                 pi += 1;
-                if (pi === min) {
+                if (pi === min) { // if end of one of two consecutive paths reached, go to next existing path
                     p++;
-                    if (p === lg.length - 1) {
+                    if (p === lg.length - 1) { // last path of pathArray reached <=> closeArray == true
                         shft = idx[0] - idx[p];
                         l1 = lg[p] - 1;
                         l2 = lg[0] - 1;
@@ -574,7 +661,7 @@
             }
             // normals
             VertexData.ComputeNormals(positions, indices, normals);
-            if (closePath) {
+            if (closePath) { // update both the first and last vertex normals to their average value
                 var indexFirst = 0;
                 var indexLast = 0;
                 for (p = 0; p < pathArray.length; p++) {
@@ -624,9 +711,20 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Box.
+         * Creates the VertexData for a box
+         * @param options an object used to set the following optional parameters for the box, required but can be empty
+          * * size sets the width, height and depth of the box to the value of size, optional default 1
+          * * width sets the width (x direction) of the box, overwrites the width set by size, optional, default size
+          * * height sets the height (y direction) of the box, overwrites the height set by size, optional, default size
+          * * depth sets the depth (z direction) of the box, overwrites the depth set by size, optional, default size
+          * * faceUV an array of 6 Vector4 elements used to set different images to each box side
+          * * faceColors an array of 6 Color3 elements used to set different colors to each box side
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the box
          */
-        VertexData.CreateBox = function (options) {
+        VertexData.CreateCube = function (options) {
             var normalsSource = [
                 new LIB.Vector3(0, 0, 1),
                 new LIB.Vector3(0, 0, -1),
@@ -715,7 +813,19 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Sphere.
+         * Creates the VertexData for an ellipsoid, defaults to a sphere
+         * @param options an object used to set the following optional parameters for the box, required but can be empty
+          * * segments sets the number of horizontal strips optional, default 32
+          * * diameter sets the axes dimensions, diameterX, diameterY and diameterZ to the value of diameter, optional default 1
+          * * diameterX sets the diameterX (x direction) of the ellipsoid, overwrites the diameterX set by diameter, optional, default diameter
+          * * diameterY sets the diameterY (y direction) of the ellipsoid, overwrites the diameterY set by diameter, optional, default diameter
+          * * diameterZ sets the diameterZ (z direction) of the ellipsoid, overwrites the diameterZ set by diameter, optional, default diameter
+          * * arc a number from 0 to 1, to create an unclosed ellipsoid based on the fraction of the circumference (latitude) given by the arc value, optional, default 1
+          * * slice a number from 0 to 1, to create an unclosed ellipsoid based on the fraction of the height (latitude) given by the arc value, optional, default 1
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the ellipsoid
          */
         VertexData.CreateSphere = function (options) {
             var segments = options.segments || 32;
@@ -771,7 +881,23 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Cylinder or Cone.
+         * Creates the VertexData for a cylinder, cone or prism
+         * @param options an object used to set the following optional parameters for the box, required but can be empty
+          * * height sets the height (y direction) of the cylinder, optional, default 2
+          * * diameterTop sets the diameter of the top of the cone, overwrites diameter,  optional, default diameter
+          * * diameterBottom sets the diameter of the bottom of the cone, overwrites diameter,  optional, default diameter
+          * * diameter sets the diameter of the top and bottom of the cone, optional default 1
+          * * tessellation the number of prism sides, 3 for a triangular prism, optional, default 24
+          * * subdivisions` the number of rings along the cylinder height, optional, default 1
+          * * arc a number from 0 to 1, to create an unclosed cylinder based on the fraction of the circumference given by the arc value, optional, default 1
+          * * faceColors an array of Color3 elements used to set different colors to the top, rings and bottom respectively
+          * * faceUV an array of Vector4 elements used to set different images to the top, rings and bottom respectively
+          * * hasRings when true makes each subdivision independantly treated as a face for faceUV and faceColors, optional, default false
+          * * enclose when true closes an open cylinder by adding extra flat faces between the height axis and vertical edges, think cut cake
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the cylinder, cone or prism
          */
         VertexData.CreateCylinder = function (options) {
             var height = options.height || 2;
@@ -929,7 +1055,7 @@
                     indices.push(i0, i1, i2);
                     indices.push(i3, i2, i1);
                 }
-                if (arc !== 1 && enclose) {
+                if (arc !== 1 && enclose) { // if enclose, add two quads
                     indices.push(i0 + 2, i1 + 2, i2 + 2);
                     indices.push(i3 + 2, i2 + 2, i1 + 2);
                     indices.push(i0 + 4, i1 + 4, i2 + 4);
@@ -1006,7 +1132,15 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Torus.
+         * Creates the VertexData for a torus
+         * @param options an object used to set the following optional parameters for the box, required but can be empty
+          * * diameter the diameter of the torus, optional default 1
+          * * thickness the diameter of the tube forming the torus, optional default 0.5
+          * * tessellation the number of prism sides, 3 for a triangular prism, optional, default 24
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the torus
          */
         VertexData.CreateTorus = function (options) {
             var indices = [];
@@ -1058,7 +1192,11 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the LineSystem.
+         * Creates the VertexData of the LineSystem
+         * @param options an object used to set the following optional parameters for the LineSystem, required but can be empty
+         *  - lines an array of lines, each line being an array of successive Vector3
+         *  - colors an array of line colors, each of the line colors being an array of successive Color4, one per line point
+         * @returns the VertexData of the LineSystem
          */
         VertexData.CreateLineSystem = function (options) {
             var indices = [];
@@ -1091,7 +1229,13 @@
             return vertexData;
         };
         /**
-         * Create the VertexData of the DashedLines.
+         * Create the VertexData for a DashedLines
+         * @param options an object used to set the following optional parameters for the DashedLines, required but can be empty
+         *  - points an array successive Vector3
+         *  - dashSize the size of the dashes relative to the dash number, optional, default 3
+         *  - gapSize the size of the gap between two successive dashes relative to the dash number, optional, default 1
+         *  - dashNb the intended total number of dashes, optional, default 200
+         * @returns the VertexData for the DashedLines
          */
         VertexData.CreateDashedLines = function (options) {
             var dashSize = options.dashSize || 3;
@@ -1133,7 +1277,12 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Ground.
+         * Creates the VertexData for a Ground
+         * @param options an object used to set the following optional parameters for the Ground, required but can be empty
+         *  - width the width (x direction) of the ground, optional, default 1
+         *  - height the height (z direction) of the ground, optional, default 1
+         *  - subdivisions the number of subdivisions per side, optional, default 1
+         * @returns the VertexData of the Ground
          */
         VertexData.CreateGround = function (options) {
             var indices = [];
@@ -1173,13 +1322,21 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the TiledGround.
+         * Creates the VertexData for a TiledGround by subdividing the ground into tiles
+         * @param options an object used to set the following optional parameters for the Ground, required but can be empty
+          * * xmin the ground minimum X coordinate, optional, default -1
+          * * zmin the ground minimum Z coordinate, optional, default -1
+          * * xmax the ground maximum X coordinate, optional, default 1
+          * * zmax the ground maximum Z coordinate, optional, default 1
+          * * subdivisions a javascript object {w: positive integer, h: positive integer}, `w` and `h` are the numbers of subdivisions on the ground width and height creating 'tiles', default {w: 6, h: 6}
+          * * precision a javascript object {w: positive integer, h: positive integer}, `w` and `h` are the numbers of subdivisions on the tile width and height, default {w: 2, h: 2}
+         * @returns the VertexData of the TiledGround
          */
         VertexData.CreateTiledGround = function (options) {
-            var xmin = options.xmin || -1.0;
-            var zmin = options.zmin || -1.0;
-            var xmax = options.xmax || 1.0;
-            var zmax = options.zmax || 1.0;
+            var xmin = (options.xmin !== undefined && options.xmin !== null) ? options.xmin : -1.0;
+            var zmin = (options.zmin !== undefined && options.zmin !== null) ? options.zmin : -1.0;
+            var xmax = (options.xmax !== undefined && options.xmax !== null) ? options.xmax : 1.0;
+            var zmax = (options.zmax !== undefined && options.zmax !== null) ? options.zmax : 1.0;
             var subdivisions = options.subdivisions || { w: 1, h: 1 };
             var precision = options.precision || { w: 1, h: 1 };
             var indices = new Array();
@@ -1243,7 +1400,18 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Ground designed from a heightmap.
+         * Creates the VertexData of the Ground designed from a heightmap
+         * @param options an object used to set the following parameters for the Ground, required and provided by MeshBuilder.CreateGroundFromHeightMap
+          * * width the width (x direction) of the ground
+          * * height the height (z direction) of the ground
+          * * subdivisions the number of subdivisions per side
+          * * minHeight the minimum altitude on the ground, optional, default 0
+          * * maxHeight the maximum altitude on the ground, optional default 1
+          * * colorFilter the filter to apply to the image pixel colors to compute the height, optional Color3, default (0.3, 0.59, 0.11)
+          * * buffer the array holding the image color data
+          * * bufferWidth the width of image
+          * * bufferHeight the height of image
+         * @returns the VertexData of the Ground designed from a heightmap
          */
         VertexData.CreateGroundFromHeightMap = function (options) {
             var indices = [];
@@ -1293,7 +1461,15 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Plane.
+         * Creates the VertexData for a Plane
+         * @param options an object used to set the following optional parameters for the plane, required but can be empty
+          * * size sets the width and height of the plane to the value of size, optional default 1
+          * * width sets the width (x direction) of the plane, overwrites the width set by size, optional, default size
+          * * height sets the height (y direction) of the plane, overwrites the height set by size, optional, default size
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the box
          */
         VertexData.CreatePlane = function (options) {
             var indices = [];
@@ -1336,7 +1512,15 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the Disc or regular Polygon.
+         * Creates the VertexData of the Disc or regular Polygon
+         * @param options an object used to set the following optional parameters for the disc, required but can be empty
+          * * radius the radius of the disc, optional default 0.5
+          * * tessellation the number of polygon sides, optional, default 64
+          * * arc a number from 0 to 1, to create an unclosed polygon based on the fraction of the circumference given by the arc value, optional, default 1
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the box
          */
         VertexData.CreateDisc = function (options) {
             var positions = new Array();
@@ -1380,7 +1564,15 @@
             return vertexData;
         };
         /**
-         * Re-creates the VertexData of the Polygon for sideOrientation.
+         * Creates the VertexData for an irregular Polygon in the XoZ plane using a mesh built by polygonTriangulation.build()
+         * All parameters are provided by MeshBuilder.CreatePolygon as needed
+         * @param polygon a mesh built from polygonTriangulation.build()
+         * @param sideOrientation takes the values LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+         * @param fUV an array of Vector4 elements used to set different images to the top, rings and bottom respectively
+         * @param fColors an array of Color3 elements used to set different colors to the top, rings and bottom respectively
+         * @param frontUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+         * @param backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the Polygon
          */
         VertexData.CreatePolygon = function (polygon, sideOrientation, fUV, fColors, frontUVs, backUVs) {
             var faceUV = fUV || new Array(3);
@@ -1437,7 +1629,18 @@
             return vertexData;
         };
         /**
-         * Creates the VertexData of the IcoSphere.
+         * Creates the VertexData of the IcoSphere
+         * @param options an object used to set the following optional parameters for the IcoSphere, required but can be empty
+          * * radius the radius of the IcoSphere, optional default 1
+          * * radiusX allows stretching in the x direction, optional, default radius
+          * * radiusY allows stretching in the y direction, optional, default radius
+          * * radiusZ allows stretching in the z direction, optional, default radius
+          * * flat when true creates a flat shaded mesh, optional, default true
+          * * subdivisions increasing the subdivisions increases the number of faces, optional, default 4
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the IcoSphere
          */
         VertexData.CreateIcoSphere = function (options) {
             var sideOrientation = options.sideOrientation || LIB.Mesh.DEFAULTSIDE;
@@ -1675,7 +1878,24 @@
         };
         // inspired from // http://stemkoski.github.io/Three.js/Polyhedra.html
         /**
-         * Creates the VertexData of the Polyhedron.
+         * Creates the VertexData for a Polyhedron
+         * @param options an object used to set the following optional parameters for the polyhedron, required but can be empty
+         * * type provided types are:
+         *  * 0 : Tetrahedron, 1 : Octahedron, 2 : Dodecahedron, 3 : Icosahedron, 4 : Rhombicuboctahedron, 5 : Triangular Prism, 6 : Pentagonal Prism, 7 : Hexagonal Prism, 8 : Square Pyramid (J1)
+         *  * 9 : Pentagonal Pyramid (J2), 10 : Triangular Dipyramid (J12), 11 : Pentagonal Dipyramid (J13), 12 : Elongated Square Dipyramid (J15), 13 : Elongated Pentagonal Dipyramid (J16), 14 : Elongated Pentagonal Cupola (J20)
+         * * size the size of the IcoSphere, optional default 1
+         * * sizeX allows stretching in the x direction, optional, default size
+         * * sizeY allows stretching in the y direction, optional, default size
+         * * sizeZ allows stretching in the z direction, optional, default size
+         * * custom a number that overwrites the type to create from an extended set of polyhedron from https://www.LIBjs-playground.com/#21QRSK#15 with minimised editor
+         * * faceUV an array of Vector4 elements used to set different images to the top, rings and bottom respectively
+         * * faceColors an array of Color3 elements used to set different colors to the top, rings and bottom respectively
+         * * flat when true creates a flat shaded mesh, optional, default true
+         * * subdivisions increasing the subdivisions increases the number of faces, optional, default 4
+         * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+         * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+         * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the Polyhedron
          */
         VertexData.CreatePolyhedron = function (options) {
             // provided polyhedron types :
@@ -1798,7 +2018,18 @@
         };
         // based on http://code.google.com/p/away3d/source/browse/trunk/fp10/Away3D/src/away3d/primitives/TorusKnot.as?spec=svn2473&r=2473
         /**
-         * Creates the VertexData of the Torus Knot.
+         * Creates the VertexData for a TorusKnot
+         * @param options an object used to set the following optional parameters for the TorusKnot, required but can be empty
+          * * radius the radius of the torus knot, optional, default 2
+          * * tube the thickness of the tube, optional, default 0.5
+          * * radialSegments the number of sides on each tube segments, optional, default 32
+          * * tubularSegments the number of tubes to decompose the knot into, optional, default 32
+          * * p the number of windings around the z axis, optional,  default 2
+          * * q the number of windings around the x axis, optional,  default 3
+          * * sideOrientation optional and takes the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
+          * * frontUvs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the front side, optional, default vector4 (0, 0, 1, 1)
+          * * backUVs only usable when you create a double-sided mesh, used to choose what parts of the texture image to crop and apply on the back side, optional, default vector4 (0, 0, 1, 1)
+         * @returns the VertexData of the Torus Knot
          */
         VertexData.CreateTorusKnot = function (options) {
             var indices = new Array();
@@ -1878,21 +2109,22 @@
         };
         // Tools
         /**
-         * @param {any} - positions (number[] or Float32Array)
-         * @param {any} - indices   (number[] or Uint16Array)
-         * @param {any} - normals   (number[] or Float32Array)
-         * options (optional) :
-         * facetPositions : optional array of facet positions (vector3)
-         * facetNormals : optional array of facet normals (vector3)
-         * facetPartitioning : optional partitioning array. facetPositions is required for facetPartitioning computation
-         * subDiv : optional partitioning data about subdivsions on  each axis (int), required for facetPartitioning computation
-         * ratio : optional partitioning ratio / bounding box, required for facetPartitioning computation
-         * bbSize : optional bounding box size data, required for facetPartitioning computation
-         * bInfo : optional bounding info, required for facetPartitioning computation
-         * useRightHandedSystem: optional boolean to for right handed system computation
-         * depthSort : optional boolean to enable the facet depth sort computation
-         * distanceTo : optional Vector3 to compute the facet depth from this location
-         * depthSortedFacets : optional array of depthSortedFacets to store the facet distances from the reference location
+         * Compute normals for given positions and indices
+         * @param positions an array of vertex positions, [...., x, y, z, ......]
+         * @param indices an array of indices in groups of three for each triangular facet, [...., i, j, k, ......]
+         * @param normals an array of vertex normals, [...., x, y, z, ......]
+         * @param options an object used to set the following optional parameters for the TorusKnot, optional
+          * * facetNormals : optional array of facet normals (vector3)
+          * * facetPositions : optional array of facet positions (vector3)
+          * * facetPartitioning : optional partitioning array. facetPositions is required for facetPartitioning computation
+          * * ratio : optional partitioning ratio / bounding box, required for facetPartitioning computation
+          * * bInfo : optional bounding info, required for facetPartitioning computation
+          * * bbSize : optional bounding box size data, required for facetPartitioning computation
+          * * subDiv : optional partitioning data about subdivsions on  each axis (int), required for facetPartitioning computation
+          * * useRightHandedSystem: optional boolean to for right handed system computation
+          * * depthSort : optional boolean to enable the facet depth sort computation
+          * * distanceTo : optional Vector3 to compute the facet depth from this location
+          * * depthSortedFacets : optional array of depthSortedFacets to store the facet distances from the reference location
          */
         VertexData.ComputeNormals = function (positions, indices, normals, options) {
             // temporary scalar variables
@@ -2138,7 +2370,9 @@
             }
         };
         /**
-         * Creates a new VertexData from the imported parameters.
+         * Applies VertexData created from the imported parameters to the geometry
+         * @param parsedVertexData the parsed data from an imported file
+         * @param geometry the geometry to apply the VertexData to
          */
         VertexData.ImportVertexData = function (parsedVertexData, geometry) {
             var vertexData = new VertexData();
@@ -2214,4 +2448,5 @@
     LIB.VertexData = VertexData;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.mesh.vertexData.js.map
 //# sourceMappingURL=LIB.mesh.vertexData.js.map

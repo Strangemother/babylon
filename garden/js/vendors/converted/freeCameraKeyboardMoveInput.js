@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FreeCameraKeyboardMoveInput = /** @class */ (function () {
         function FreeCameraKeyboardMoveInput() {
@@ -117,4 +120,5 @@
     LIB.CameraInputTypes["FreeCameraKeyboardMoveInput"] = FreeCameraKeyboardMoveInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraKeyboardMoveInput.js.map
 //# sourceMappingURL=LIB.freeCameraKeyboardMoveInput.js.map

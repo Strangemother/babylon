@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var CustomProceduralTexture = /** @class */ (function (_super) {
         __extends(CustomProceduralTexture, _super);
@@ -118,4 +121,5 @@
     LIB.CustomProceduralTexture = CustomProceduralTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.customProceduralTexture.js.map
 //# sourceMappingURL=LIB.customProceduralTexture.js.map

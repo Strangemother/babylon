@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     /**
      * The PBR material of BJS following the metal roughness convention.
@@ -18,6 +26,8 @@
             _this._useRoughnessFromMetallicTextureAlpha = false;
             _this._useRoughnessFromMetallicTextureGreen = true;
             _this._useMetallnessFromMetallicTextureBlue = true;
+            _this.metallic = 1.0;
+            _this.roughness = 1.0;
             return _this;
         }
         /**
@@ -39,6 +49,11 @@
             }
             return activeTextures;
         };
+        /**
+         * Checks to see if a texture is used in the material.
+         * @param texture - Base texture to use.
+         * @returns - Boolean specifying if a texture is used in the material.
+         */
         PBRMetallicRoughnessMaterial.prototype.hasTexture = function (texture) {
             if (_super.prototype.hasTexture.call(this, texture)) {
                 return true;
@@ -51,6 +66,10 @@
             }
             return false;
         };
+        /**
+         * Makes a duplicate of the current material.
+         * @param name - name to use for the new material.
+         */
         PBRMetallicRoughnessMaterial.prototype.clone = function (name) {
             var _this = this;
             var clone = LIB.SerializationHelper.Clone(function () { return new PBRMetallicRoughnessMaterial(name, _this.getScene()); }, this);
@@ -93,8 +112,9 @@
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty", "_metallicTexture")
         ], PBRMetallicRoughnessMaterial.prototype, "metallicRoughnessTexture", void 0);
         return PBRMetallicRoughnessMaterial;
-    }(LIB.Internals.PBRBaseSimpleMaterial));
+    }(LIB.PBRBaseSimpleMaterial));
     LIB.PBRMetallicRoughnessMaterial = PBRMetallicRoughnessMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pbrMetallicRoughnessMaterial.js.map
 //# sourceMappingURL=LIB.pbrMetallicRoughnessMaterial.js.map

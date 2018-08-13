@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraPointersInput = /** @class */ (function () {
         function ArcRotateCameraPointersInput() {
@@ -77,15 +80,15 @@
                     if (!isTouch) {
                         pointB = null; // Mouse and pen are mono pointer
                     }
-                    //would be better to use pointers.remove(evt.pointerId) for multitouch gestures,
-                    //but emptying completly pointers collection is required to fix a bug on iPhone :
-                    //when changing orientation while pinching camera, one pointer stay pressed forever if we don't release all pointers
+                    //would be better to use pointers.remove(evt.pointerId) for multitouch gestures, 
+                    //but emptying completly pointers collection is required to fix a bug on iPhone : 
+                    //when changing orientation while pinching camera, one pointer stay pressed forever if we don't release all pointers  
                     //will be ok to put back pointers.remove(evt.pointerId); when iPhone bug corrected
-                    if (engine.badOS) {
+                    if (engine._badOS) {
                         pointA = pointB = null;
                     }
                     else {
-                        //only remove the impacted pointer in case of multitouch allowing on most
+                        //only remove the impacted pointer in case of multitouch allowing on most 
                         //platforms switching from rotate to zoom and pan seamlessly.
                         if (pointB && pointA && pointA.pointerId == evt.pointerId) {
                             pointA = pointB;
@@ -124,6 +127,7 @@
                         cacheSoloPointer.x = evt.clientX;
                         cacheSoloPointer.y = evt.clientY;
                     }
+                    // Two buttons down: pinch/pan
                     else if (pointA && pointB) {
                         //if (noPreventDefault) { evt.preventDefault(); } //if pinch gesture, could be useful to force preventDefault to avoid html page scroll/zoom in some mobile browsers
                         var ed = (pointA.pointerId === evt.pointerId) ? pointA : pointB;
@@ -321,4 +325,5 @@
     LIB.CameraInputTypes["ArcRotateCameraPointersInput"] = ArcRotateCameraPointersInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraPointersInput.js.map
 //# sourceMappingURL=LIB.arcRotateCameraPointersInput.js.map

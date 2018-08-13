@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var ReflectionProbe = /** @class */ (function () {
         function ReflectionProbe(name, size, scene, generateMipMaps) {
@@ -7,7 +9,7 @@
             this._viewMatrix = LIB.Matrix.Identity();
             this._target = LIB.Vector3.Zero();
             this._add = LIB.Vector3.Zero();
-            this.invertYAxis = false;
+            this._invertYAxis = false;
             this.position = LIB.Vector3.Zero();
             this._scene = scene;
             this._scene.reflectionProbes.push(this);
@@ -21,10 +23,10 @@
                         _this._add.copyFromFloats(-1, 0, 0);
                         break;
                     case 2:
-                        _this._add.copyFromFloats(0, _this.invertYAxis ? 1 : -1, 0);
+                        _this._add.copyFromFloats(0, _this._invertYAxis ? 1 : -1, 0);
                         break;
                     case 3:
-                        _this._add.copyFromFloats(0, _this.invertYAxis ? -1 : 1, 0);
+                        _this._add.copyFromFloats(0, _this._invertYAxis ? -1 : 1, 0);
                         break;
                     case 4:
                         _this._add.copyFromFloats(0, 0, 1);
@@ -101,7 +103,7 @@
         ReflectionProbe.prototype.dispose = function () {
             var index = this._scene.reflectionProbes.indexOf(this);
             if (index !== -1) {
-                // Remove from the scene if found
+                // Remove from the scene if found 
                 this._scene.reflectionProbes.splice(index, 1);
             }
             if (this._renderTargetTexture) {
@@ -114,4 +116,5 @@
     LIB.ReflectionProbe = ReflectionProbe;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.reflectionProbe.js.map
 //# sourceMappingURL=LIB.reflectionProbe.js.map

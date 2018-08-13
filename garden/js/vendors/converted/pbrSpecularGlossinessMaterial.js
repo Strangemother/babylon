@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     /**
      * The PBR material of BJS following the specular glossiness convention.
@@ -37,6 +45,11 @@
             }
             return activeTextures;
         };
+        /**
+         * Checks to see if a texture is used in the material.
+         * @param texture - Base texture to use.
+         * @returns - Boolean specifying if a texture is used in the material.
+         */
         PBRSpecularGlossinessMaterial.prototype.hasTexture = function (texture) {
             if (_super.prototype.hasTexture.call(this, texture)) {
                 return true;
@@ -49,6 +62,10 @@
             }
             return false;
         };
+        /**
+         * Makes a duplicate of the current material.
+         * @param name - name to use for the new material.
+         */
         PBRSpecularGlossinessMaterial.prototype.clone = function (name) {
             var _this = this;
             var clone = LIB.SerializationHelper.Clone(function () { return new PBRSpecularGlossinessMaterial(name, _this.getScene()); }, this);
@@ -91,8 +108,9 @@
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty", "_reflectivityTexture")
         ], PBRSpecularGlossinessMaterial.prototype, "specularGlossinessTexture", void 0);
         return PBRSpecularGlossinessMaterial;
-    }(LIB.Internals.PBRBaseSimpleMaterial));
+    }(LIB.PBRBaseSimpleMaterial));
     LIB.PBRSpecularGlossinessMaterial = PBRSpecularGlossinessMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pbrSpecularGlossinessMaterial.js.map
 //# sourceMappingURL=LIB.pbrSpecularGlossinessMaterial.js.map

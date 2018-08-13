@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     /**
      * The Physically based material of BJS.
@@ -44,6 +52,9 @@
              * AKA Occlusion Texture Intensity in other nomenclature.
              */
             _this.ambientTextureStrength = 1.0;
+            /**
+             * The color of a material in ambient lighting.
+             */
             _this.ambientColor = new LIB.Color3(0, 0, 0);
             /**
              * AKA Diffuse Color in other nomenclature.
@@ -53,7 +64,13 @@
              * AKA Specular Color in other nomenclature.
              */
             _this.reflectivityColor = new LIB.Color3(1, 1, 1);
+            /**
+             * The color reflected from the material.
+             */
             _this.reflectionColor = new LIB.Color3(1.0, 1.0, 1.0);
+            /**
+             * The color emitted from the material.
+             */
             _this.emissiveColor = new LIB.Color3(0, 0, 0);
             /**
              * AKA Glossiness in other nomenclature.
@@ -131,6 +148,10 @@
              */
             _this.useRadianceOverAlpha = true;
             /**
+             * Allows using an object space normal map (instead of tangent space).
+             */
+            _this.useObjectSpaceNormalMap = false;
+            /**
              * Allows using the bump map in parallax mode.
              */
             _this.useParallax = false;
@@ -186,6 +207,12 @@
              */
             _this.forceNormalForward = false;
             /**
+             * Enables specular anti aliasing in the PBR shader.
+             * It will both interacts on the Geometry for analytical and IBL lighting.
+             * It also prefilter the roughness map based on the bump values.
+             */
+            _this.enableSpecularAntiAliasing = false;
+            /**
              * This parameters will enable/disable Horizon occlusion to prevent normal maps to look shiny when the normal
              * makes the reflect vector face the model (under horizon).
              */
@@ -195,6 +222,10 @@
              * too much the area relying on ambient texture to define their ambient occlusion.
              */
             _this.useRadianceOcclusion = true;
+            /**
+             * If set to true, no lighting calculations will be applied.
+             */
+            _this.unlit = false;
             _this._environmentBRDFTexture = LIB.TextureTools.GetEnvironmentBRDFTexture(scene);
             return _this;
         }
@@ -385,9 +416,16 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Returns the name of this material class.
+         */
         PBRMaterial.prototype.getClassName = function () {
             return "PBRMaterial";
         };
+        /**
+         * Returns an array of the actively used textures.
+         * @returns - Array of BaseTextures
+         */
         PBRMaterial.prototype.getActiveTextures = function () {
             var activeTextures = _super.prototype.getActiveTextures.call(this);
             if (this._albedoTexture) {
@@ -425,6 +463,11 @@
             }
             return activeTextures;
         };
+        /**
+         * Checks to see if a texture is used in the material.
+         * @param texture - Base texture to use.
+         * @returns - Boolean specifying if a texture is used in the material.
+         */
         PBRMaterial.prototype.hasTexture = function (texture) {
             if (_super.prototype.hasTexture.call(this, texture)) {
                 return true;
@@ -461,6 +504,10 @@
             }
             return false;
         };
+        /**
+         * Makes a duplicate of the current material.
+         * @param name - name to use for the new material.
+         */
         PBRMaterial.prototype.clone = function (name) {
             var _this = this;
             var clone = LIB.SerializationHelper.Clone(function () { return new PBRMaterial(name, _this.getScene()); }, this);
@@ -468,18 +515,39 @@
             clone.name = name;
             return clone;
         };
+        /**
+         * Serializes this PBR Material.
+         * @returns - An object with the serialized material.
+         */
         PBRMaterial.prototype.serialize = function () {
             var serializationObject = LIB.SerializationHelper.Serialize(this);
             serializationObject.customType = "LIB.PBRMaterial";
             return serializationObject;
         };
         // Statics
+        /**
+         * Parses a PBR Material from a serialized object.
+         * @param source - Serialized object.
+         * @param scene - BJS scene instance.
+         * @param rootUrl - url for the scene object
+         * @returns - PBRMaterial
+         */
         PBRMaterial.Parse = function (source, scene, rootUrl) {
             return LIB.SerializationHelper.Parse(function () { return new PBRMaterial(source.name, scene); }, source, scene, rootUrl);
         };
         PBRMaterial._PBRMATERIAL_OPAQUE = 0;
+        /**
+         * Alpha Test mode, pixel are discarded below a certain threshold defined by the alpha cutoff value.
+         */
         PBRMaterial._PBRMATERIAL_ALPHATEST = 1;
+        /**
+         * Represents the value for Alpha Blend.  Pixels are blended (according to the alpha mode) with the already drawn pixels in the current frame buffer.
+         */
         PBRMaterial._PBRMATERIAL_ALPHABLEND = 2;
+        /**
+         * Represents the value for Alpha Test and Blend.  Pixels are blended (according to the alpha mode) with the already drawn pixels in the current frame buffer.
+         * They are also discarded below the alpha cutoff threshold to improve performances.
+         */
         PBRMaterial._PBRMATERIAL_ALPHATESTANDBLEND = 3;
         __decorate([
             LIB.serialize(),
@@ -515,7 +583,7 @@
         ], PBRMaterial.prototype, "ambientTextureStrength", void 0);
         __decorate([
             LIB.serializeAsTexture(),
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], PBRMaterial.prototype, "opacityTexture", void 0);
         __decorate([
             LIB.serializeAsTexture(),
@@ -599,15 +667,15 @@
         ], PBRMaterial.prototype, "useLightmapAsShadowmap", void 0);
         __decorate([
             LIB.serialize(),
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], PBRMaterial.prototype, "useAlphaFromAlbedoTexture", void 0);
         __decorate([
             LIB.serialize(),
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], PBRMaterial.prototype, "forceAlphaTest", void 0);
         __decorate([
             LIB.serialize(),
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesAndMiscDirty")
         ], PBRMaterial.prototype, "alphaCutOff", void 0);
         __decorate([
             LIB.serialize(),
@@ -649,6 +717,10 @@
             LIB.serialize(),
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
         ], PBRMaterial.prototype, "useRadianceOverAlpha", void 0);
+        __decorate([
+            LIB.serialize(),
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+        ], PBRMaterial.prototype, "useObjectSpaceNormalMap", void 0);
         __decorate([
             LIB.serialize(),
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
@@ -704,14 +776,23 @@
         __decorate([
             LIB.serialize(),
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
+        ], PBRMaterial.prototype, "enableSpecularAntiAliasing", void 0);
+        __decorate([
+            LIB.serialize(),
+            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
         ], PBRMaterial.prototype, "useHorizonOcclusion", void 0);
         __decorate([
             LIB.serialize(),
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
         ], PBRMaterial.prototype, "useRadianceOcclusion", void 0);
+        __decorate([
+            LIB.serialize(),
+            LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
+        ], PBRMaterial.prototype, "unlit", void 0);
         return PBRMaterial;
     }(LIB.PBRBaseMaterial));
     LIB.PBRMaterial = PBRMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pbrMaterial.js.map
 //# sourceMappingURL=LIB.pbrMaterial.js.map

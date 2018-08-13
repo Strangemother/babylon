@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * This groups together the common properties used for image processing either in direct forward pass
@@ -48,7 +51,6 @@
             this._isEnabled = true;
             /**
             * An event triggered when the configuration changes and requires Shader to Update some parameters.
-            * @type {LIB.Observable}
             */
             this.onUpdateParameters = new LIB.Observable();
         }
@@ -505,4 +507,5 @@
     LIB.ImageProcessingConfiguration = ImageProcessingConfiguration;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.imageProcessingConfiguration.js.map
 //# sourceMappingURL=LIB.imageProcessingConfiguration.js.map

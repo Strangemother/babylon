@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var VRDeviceOrientationFreeCamera = /** @class */ (function (_super) {
         __extends(VRDeviceOrientationFreeCamera, _super);
@@ -49,4 +52,5 @@
     LIB.VRDeviceOrientationArcRotateCamera = VRDeviceOrientationArcRotateCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.vrDeviceOrientationCamera.js.map
 //# sourceMappingURL=LIB.vrDeviceOrientationCamera.js.map

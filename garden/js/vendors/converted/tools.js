@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     // See https://stackoverflow.com/questions/12915412/how-do-i-extend-a-host-object-e-g-error-in-typescript
     // and https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -74,6 +77,19 @@
             }
             return fn;
         };
+        /**
+         * Provides a slice function that will work even on IE
+         * @param data defines the array to slice
+         * @param start defines the start of the data (optional)
+         * @param end defines the end of the data (optional)
+         * @returns the new sliced array
+         */
+        Tools.Slice = function (data, start, end) {
+            if (data.slice) {
+                return data.slice(start, end);
+            }
+            return Array.prototype.slice.call(data, start, end);
+        };
         Tools.SetImmediate = function (action) {
             if (window.setImmediate) {
                 window.setImmediate(action);
@@ -88,6 +104,18 @@
                 count *= 2;
             } while (count < value);
             return count === value;
+        };
+        /**
+         * Returns the nearest 32-bit single precision float representation of a Number
+         * @param value A Number.  If the parameter is of a different type, it will get converted
+         * to a number or to NaN if it cannot be converted
+         * @returns number
+         */
+        Tools.FloatRound = function (value) {
+            if (Math.fround) {
+                return Math.fround(value);
+            }
+            return (Tools._tmpFloatArray[0] = value);
         };
         /**
          * Find the next highest power of two.
@@ -150,10 +178,21 @@
                 return path;
             return path.substring(index + 1);
         };
-        Tools.GetFolderPath = function (uri) {
+        /**
+         * Extracts the "folder" part of a path (everything before the filename).
+         * @param uri The URI to extract the info from
+         * @param returnUnchangedIfNoSlash Do not touch the URI if no slashes are present
+         * @returns The "folder" part of the path
+         */
+        Tools.GetFolderPath = function (uri, returnUnchangedIfNoSlash) {
+            if (returnUnchangedIfNoSlash === void 0) { returnUnchangedIfNoSlash = false; }
             var index = uri.lastIndexOf("/");
-            if (index < 0)
+            if (index < 0) {
+                if (returnUnchangedIfNoSlash) {
+                    return uri;
+                }
                 return "";
+            }
             return uri.substring(0, index + 1);
         };
         Tools.GetDOMTextContent = function (element) {
@@ -181,7 +220,7 @@
             var bytes = new Uint8Array(buffer);
             while (i < bytes.length) {
                 chr1 = bytes[i++];
-                chr2 = i < bytes.length ? bytes[i++] : Number.NaN; // Not sure if the index
+                chr2 = i < bytes.length ? bytes[i++] : Number.NaN; // Not sure if the index 
                 chr3 = i < bytes.length ? bytes[i++] : Number.NaN; // checks are needed here
                 enc1 = chr1 >> 2;
                 enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
@@ -375,15 +414,21 @@
             url = Tools.PreprocessUrl(url);
             var img = new Image();
             Tools.SetCorsBehavior(url, img);
-            img.onload = function () {
+            var loadHandler = function () {
+                img.removeEventListener("load", loadHandler);
+                img.removeEventListener("error", errorHandler);
                 onLoad(img);
             };
-            img.onerror = function (err) {
+            var errorHandler = function (err) {
+                img.removeEventListener("load", loadHandler);
+                img.removeEventListener("error", errorHandler);
                 Tools.Error("Error while trying to load image: " + url);
                 if (onError) {
                     onError("Error while trying to load image: " + url, err);
                 }
             };
+            img.addEventListener("load", loadHandler);
+            img.addEventListener("error", errorHandler);
             var noIndexedDB = function () {
                 img.src = url;
             };
@@ -459,7 +504,9 @@
                         request.addEventListener("progress", onProgress);
                     }
                     var onLoadEnd = function () {
+                        request.removeEventListener("loadend", onLoadEnd);
                         fileRequest.onCompleteObservable.notifyObservers(fileRequest);
+                        fileRequest.onCompleteObservable.clear();
                     };
                     request.addEventListener("loadend", onLoadEnd);
                     var onReadyStateChange = function () {
@@ -547,7 +594,7 @@
             };
             script.onerror = function (e) {
                 if (onError) {
-                    onError("Unable to load script", e);
+                    onError("Unable to load script '" + scriptUrl + "'", e);
                 }
             };
             head.appendChild(script);
@@ -635,29 +682,34 @@
                 if (typeOfSourceValue === "function") {
                     continue;
                 }
-                if (typeOfSourceValue === "object") {
-                    if (sourceValue instanceof Array) {
-                        destination[prop] = [];
-                        if (sourceValue.length > 0) {
-                            if (typeof sourceValue[0] == "object") {
-                                for (var index = 0; index < sourceValue.length; index++) {
-                                    var clonedValue = cloneValue(sourceValue[index], destination);
-                                    if (destination[prop].indexOf(clonedValue) === -1) {
-                                        destination[prop].push(clonedValue);
+                try {
+                    if (typeOfSourceValue === "object") {
+                        if (sourceValue instanceof Array) {
+                            destination[prop] = [];
+                            if (sourceValue.length > 0) {
+                                if (typeof sourceValue[0] == "object") {
+                                    for (var index = 0; index < sourceValue.length; index++) {
+                                        var clonedValue = cloneValue(sourceValue[index], destination);
+                                        if (destination[prop].indexOf(clonedValue) === -1) { // Test if auto inject was not done
+                                            destination[prop].push(clonedValue);
+                                        }
                                     }
                                 }
+                                else {
+                                    destination[prop] = sourceValue.slice(0);
+                                }
                             }
-                            else {
-                                destination[prop] = sourceValue.slice(0);
-                            }
+                        }
+                        else {
+                            destination[prop] = cloneValue(sourceValue, destination);
                         }
                     }
                     else {
-                        destination[prop] = cloneValue(sourceValue, destination);
+                        destination[prop] = sourceValue;
                     }
                 }
-                else {
-                    destination[prop] = sourceValue;
+                catch (e) {
+                    // Just ignore error (it could be because of a read-only property)
                 }
             }
         };
@@ -802,14 +854,17 @@
                 width = size.width;
                 height = size.height;
             }
+            //If passing only width, computing height to keep display canvas ratio.
             else if (size.width && !size.height) {
                 width = size.width;
                 height = Math.round(width / engine.getAspectRatio(camera));
             }
+            //If passing only height, computing width to keep display canvas ratio.
             else if (size.height && !size.width) {
                 height = size.height;
                 width = Math.round(height * engine.getAspectRatio(camera));
             }
+            //Assuming here that "size" parameter is a number
             else if (!isNaN(size)) {
                 height = size;
                 width = size;
@@ -839,6 +894,26 @@
             }
             Tools.EncodeScreenshotCanvasData(successCallback, mimeType);
         };
+        /**
+         * Generates an image screenshot from the specified camera.
+         *
+         * @param engine The engine to use for rendering
+         * @param camera The camera to use for rendering
+         * @param size This parameter can be set to a single number or to an object with the
+         * following (optional) properties: precision, width, height. If a single number is passed,
+         * it will be used for both width and height. If an object is passed, the screenshot size
+         * will be derived from the parameters. The precision property is a multiplier allowing
+         * rendering at a higher or lower resolution.
+         * @param successCallback The callback receives a single parameter which contains the
+         * screenshot as a string of base64-encoded characters. This string can be assigned to the
+         * src parameter of an <img> to display it.
+         * @param mimeType The MIME type of the screenshot image (default: image/png).
+         * Check your browser for supported MIME types.
+         * @param samples Texture samples (default: 1)
+         * @param antialiasing Whether antialiasing should be turned on or not (default: false)
+         * @param fileName A name for for the downloaded file.
+         * @constructor
+         */
         Tools.CreateScreenshotUsingRenderTarget = function (engine, camera, size, successCallback, mimeType, samples, antialiasing, fileName) {
             if (mimeType === void 0) { mimeType = "image/png"; }
             if (samples === void 0) { samples = 1; }
@@ -855,16 +930,19 @@
                 width = size.width;
                 height = size.height;
             }
+            //If passing only width, computing height to keep display canvas ratio.
             else if (size.width && !size.height) {
                 width = size.width;
                 height = Math.round(width / engine.getAspectRatio(camera));
                 size = { width: width, height: height };
             }
+            //If passing only height, computing width to keep display canvas ratio.
             else if (size.height && !size.width) {
                 height = size.height;
                 width = Math.round(height * engine.getAspectRatio(camera));
                 size = { width: width, height: height };
             }
+            //Assuming here that "size" parameter is a number
             else if (!isNaN(size)) {
                 height = size;
                 width = size;
@@ -913,7 +991,7 @@
                 }
                 if (dataType & 2) {
                     // Check header width and height since there is no "TGA" magic number
-                    var tgaHeader = LIB.Internals.TGATools.GetTGAHeader(xhr.response);
+                    var tgaHeader = LIB.TGATools.GetTGAHeader(xhr.response);
                     if (tgaHeader.width && tgaHeader.height && tgaHeader.width > 0 && tgaHeader.height > 0) {
                         return true;
                     }
@@ -947,6 +1025,28 @@
                 var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
+        };
+        /**
+        * Test if the given uri is a base64 string.
+        * @param uri The uri to test
+        * @return True if the uri is a base64 string or false otherwise.
+        */
+        Tools.IsBase64 = function (uri) {
+            return uri.length < 5 ? false : uri.substr(0, 5) === "data:";
+        };
+        /**
+        * Decode the given base64 uri.
+        * @param uri The uri to decode
+        * @return The decoded base64 data.
+        */
+        Tools.DecodeBase64 = function (uri) {
+            var decodedString = atob(uri.split(",")[1]);
+            var bufferLength = decodedString.length;
+            var bufferView = new Uint8Array(new ArrayBuffer(bufferLength));
+            for (var i = 0; i < bufferLength; i++) {
+                bufferView[i] = decodedString.charCodeAt(i);
+            }
+            return bufferView.buffer;
         };
         Object.defineProperty(Tools, "NoneLogLevel", {
             get: function () {
@@ -1149,7 +1249,7 @@
                 if (Tools.IsWindowObjectExist() && window.performance && window.performance.now) {
                     return window.performance.now();
                 }
-                return new Date().getTime();
+                return Date.now();
             },
             enumerable: true,
             configurable: true
@@ -1251,6 +1351,18 @@
             }
             return hash;
         };
+        /**
+         * Returns a promise that resolves after the given amount of time.
+         * @param delay Number of milliseconds to delay
+         * @returns Promise that resolves after the given amount of time
+         */
+        Tools.DelayAsync = function (delay) {
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    resolve();
+                }, delay);
+            });
+        };
         Tools.BaseUrl = "";
         Tools.DefaultRetryStrategy = RetryStrategy.ExponentialBackoff();
         /**
@@ -1265,8 +1377,9 @@
          * to allow the laoders to instantiate them
          */
         Tools.RegisteredExternalClasses = {};
-        // Used in case of a texture loading problem
+        // Used in case of a texture loading problem 
         Tools.fallbackTexture = "data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBmRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAAQAAAATgAAAAAAAABgAAAAAQAAAGAAAAABcGFpbnQubmV0IDQuMC41AP/bAEMABAIDAwMCBAMDAwQEBAQFCQYFBQUFCwgIBgkNCw0NDQsMDA4QFBEODxMPDAwSGBITFRYXFxcOERkbGRYaFBYXFv/bAEMBBAQEBQUFCgYGChYPDA8WFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFv/AABEIAQABAAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APH6KKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FCiiigD6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++gooooA+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gUKKKKAPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76CiiigD5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BQooooA+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/voKKKKAPl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FCiiigD6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++gooooA+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gUKKKKAPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76CiiigD5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BQooooA+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/voKKKKAPl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FCiiigD6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++gooooA+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gUKKKKAPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76Pl+iiivuj+BT6gooor4U/vo+X6KKK+6P4FPqCiiivhT++j5fooor7o/gU+oKKKK+FP76P//Z";
+        Tools._tmpFloatArray = new Float32Array(1);
         Tools.PreprocessUrl = function (url) {
             return url;
         };
@@ -1545,4 +1658,5 @@
     LIB.AsyncLoop = AsyncLoop;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.tools.js.map
 //# sourceMappingURL=LIB.tools.js.map

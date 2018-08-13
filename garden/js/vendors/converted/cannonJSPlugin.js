@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var CannonJSPlugin = /** @class */ (function () {
         function CannonJSPlugin(_useDeltaForWorldStep, iterations) {
@@ -8,7 +10,7 @@
             this._physicsMaterials = new Array();
             this._fixedTimeStep = 1 / 60;
             //See https://github.com/schteppe/CANNON.js/blob/gh-pages/demos/collisionFilter.html
-            this.BJSCANNON = typeof CANNON !== 'undefined' ? CANNON : (typeof require !== 'undefined' ? require('cannon') : undefined);
+            this.BJSCANNON = CANNON;
             this._minus90X = new LIB.Quaternion(-0.7071067811865475, 0, 0, 0.7071067811865475);
             this._plus90X = new LIB.Quaternion(0.7071067811865475, 0, 0, 0.7071067811865475);
             this._tmpPosition = LIB.Vector3.Zero();
@@ -350,6 +352,7 @@
             var center = impostor.getObjectCenter();
             //m.getAbsolutePosition().subtract(m.getBoundingInfo().boundingBox.centerWorld)
             this._tmpDeltaPosition.copyFrom(object.getAbsolutePivotPoint().subtract(center));
+            this._tmpDeltaPosition.divideInPlace(impostor.object.scaling);
             this._tmpPosition.copyFrom(center);
             var quaternion = object.rotationQuaternion;
             if (!quaternion) {
@@ -376,7 +379,7 @@
                 var oldPivot = mesh.getPivotMatrix() || LIB.Matrix.Translation(0, 0, 0);
                 //calculate the new center using a pivot (since this.BJSCANNON.js doesn't center height maps)
                 var p = LIB.Matrix.Translation(boundingInfo.boundingBox.extendSizeWorld.x, 0, -boundingInfo.boundingBox.extendSizeWorld.z);
-                mesh.setPivotMatrix(p);
+                mesh.setPreTransformMatrix(p);
                 mesh.computeWorldMatrix(true);
                 //calculate the translation
                 var translation = boundingInfo.boundingBox.centerWorld.subtract(center).subtract(mesh.position).negate();
@@ -386,7 +389,7 @@
                 this._tmpDeltaPosition.y += boundingInfo.boundingBox.extendSizeWorld.y;
                 //rotation is back
                 mesh.rotationQuaternion = rotationQuaternion;
-                mesh.setPivotMatrix(oldPivot);
+                mesh.setPreTransformMatrix(oldPivot);
                 mesh.computeWorldMatrix(true);
             }
             else if (impostor.type === LIB.PhysicsImpostor.MeshImpostor) {
@@ -552,4 +555,5 @@
     LIB.CannonJSPlugin = CannonJSPlugin;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.cannonJSPlugin.js.map
 //# sourceMappingURL=LIB.cannonJSPlugin.js.map

@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var DefaultLoadingScreen = /** @class */ (function () {
         function DefaultLoadingScreen(_renderingCanvas, _loadingText, _loadingDivBackgroundColor) {
@@ -23,7 +25,7 @@
         }
         DefaultLoadingScreen.prototype.displayLoadingUI = function () {
             if (this._loadingDiv) {
-                // Do not add a loading screen if there is already one
+                // Do not add a loading screen if there is already one  
                 return;
             }
             this._loadingDiv = document.createElement("div");
@@ -117,4 +119,5 @@
     LIB.DefaultLoadingScreen = DefaultLoadingScreen;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.loadingScreen.js.map
 //# sourceMappingURL=LIB.loadingScreen.js.map

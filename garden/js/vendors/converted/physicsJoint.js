@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * This is a holder class for the physics joint created by the physics plugin.
@@ -161,4 +164,5 @@
     LIB.Hinge2Joint = Hinge2Joint;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.physicsJoint.js.map
 //# sourceMappingURL=LIB.physicsJoint.js.map

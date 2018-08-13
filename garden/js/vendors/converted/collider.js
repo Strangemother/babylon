@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var intersectBoxAASphere = function (boxMin, boxMax, sphereCenter, sphereRadius) {
         if (boxMin.x > sphereCenter.x + sphereRadius)
@@ -295,4 +297,5 @@
     LIB.Collider = Collider;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.collider.js.map
 //# sourceMappingURL=LIB.collider.js.map

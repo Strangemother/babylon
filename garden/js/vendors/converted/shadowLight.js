@@ -1,4 +1,16 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * Base implementation IShadowLight
+     * It groups all the common behaviour in order to reduce dupplication and better follow the DRY pattern.
+     */
     var ShadowLight = /** @class */ (function (_super) {
         __extends(ShadowLight, _super);
         function ShadowLight() {
@@ -6,20 +18,58 @@
             _this._needProjectionMatrixCompute = true;
             return _this;
         }
+        ShadowLight.prototype._setPosition = function (value) {
+            this._position = value;
+        };
+        Object.defineProperty(ShadowLight.prototype, "position", {
+            /**
+             * Sets the position the shadow will be casted from. Also use as the light position for both
+             * point and spot lights.
+             */
+            get: function () {
+                return this._position;
+            },
+            /**
+             * Sets the position the shadow will be casted from. Also use as the light position for both
+             * point and spot lights.
+             */
+            set: function (value) {
+                this._setPosition(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ShadowLight.prototype._setDirection = function (value) {
+            this._direction = value;
+        };
         Object.defineProperty(ShadowLight.prototype, "direction", {
+            /**
+             * In 2d mode (needCube being false), gets the direction used to cast the shadow.
+             * Also use as the light direction on spot and directional lights.
+             */
             get: function () {
                 return this._direction;
             },
+            /**
+             * In 2d mode (needCube being false), sets the direction used to cast the shadow.
+             * Also use as the light direction on spot and directional lights.
+             */
             set: function (value) {
-                this._direction = value;
+                this._setDirection(value);
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(ShadowLight.prototype, "shadowMinZ", {
+            /**
+             * Gets the shadow projection clipping minimum z value.
+             */
             get: function () {
                 return this._shadowMinZ;
             },
+            /**
+             * Sets the shadow projection clipping minimum z value.
+             */
             set: function (value) {
                 this._shadowMinZ = value;
                 this.forceProjectionMatrixCompute();
@@ -28,9 +78,15 @@
             configurable: true
         });
         Object.defineProperty(ShadowLight.prototype, "shadowMaxZ", {
+            /**
+             * Sets the shadow projection clipping maximum z value.
+             */
             get: function () {
                 return this._shadowMaxZ;
             },
+            /**
+             * Gets the shadow projection clipping maximum z value.
+             */
             set: function (value) {
                 this._shadowMaxZ = value;
                 this.forceProjectionMatrixCompute();
@@ -39,7 +95,8 @@
             configurable: true
         });
         /**
-         * Computes the light transformed position/direction in case the light is parented. Returns true if parented, else false.
+         * Computes the transformed information (transformedPosition and transformedDirection in World space) of the current light
+         * @returns true if the information has been computed, false if it does not need to (no parenting)
          */
         ShadowLight.prototype.computeTransformedInformation = function () {
             if (this.parent && this.parent.getWorldMatrix) {
@@ -60,32 +117,38 @@
         };
         /**
          * Return the depth scale used for the shadow map.
+         * @returns the depth scale.
          */
         ShadowLight.prototype.getDepthScale = function () {
             return 50.0;
         };
         /**
-         * Returns the light direction (Vector3) for any passed face index.
+         * Get the direction to use to render the shadow map. In case of cube texture, the face index can be passed.
+         * @param faceIndex The index of the face we are computed the direction to generate shadow
+         * @returns The set direction in 2d mode otherwise the direction to the cubemap face if needCube() is true
          */
         ShadowLight.prototype.getShadowDirection = function (faceIndex) {
             return this.transformedDirection ? this.transformedDirection : this.direction;
         };
         /**
-         * Returns the DirectionalLight absolute position in the World.
+         * Returns the ShadowLight absolute position in the World.
+         * @returns the position vector in world space
          */
         ShadowLight.prototype.getAbsolutePosition = function () {
             return this.transformedPosition ? this.transformedPosition : this.position;
         };
         /**
-         * Sets the DirectionalLight direction toward the passed target (Vector3).
-         * Returns the updated DirectionalLight direction (Vector3).
+         * Sets the ShadowLight direction toward the passed target.
+         * @param target The point tot target in local space
+         * @returns the updated ShadowLight direction
          */
         ShadowLight.prototype.setDirectionToTarget = function (target) {
             this.direction = LIB.Vector3.Normalize(target.subtract(this.position));
             return this.direction;
         };
         /**
-         * Returns the light rotation (Vector3).
+         * Returns the light rotation in euler definition.
+         * @returns the x y z rotation in local space.
          */
         ShadowLight.prototype.getRotation = function () {
             this.direction.normalize();
@@ -94,13 +157,15 @@
             return LIB.Vector3.RotationFromAxis(xaxis, yaxis, this.direction);
         };
         /**
-         * Boolean : false by default.
+         * Returns whether or not the shadow generation require a cube texture or a 2d texture.
+         * @returns true if a cube texture needs to be use
          */
         ShadowLight.prototype.needCube = function () {
             return false;
         };
         /**
-         * Specifies wether or not the projection matrix should be recomputed this frame.
+         * Detects if the projection matrix requires to be recomputed this frame.
+         * @returns true if it requires to be recomputed otherwise, false.
          */
         ShadowLight.prototype.needProjectionMatrixCompute = function () {
             return this._needProjectionMatrixCompute;
@@ -113,6 +178,7 @@
         };
         /**
          * Get the world matrix of the sahdow lights.
+         * @hidden Internal Use Only
          */
         ShadowLight.prototype._getWorldMatrix = function () {
             if (!this._worldMatrix) {
@@ -123,21 +189,26 @@
         };
         /**
          * Gets the minZ used for shadow according to both the scene and the light.
-         * @param activeCamera
+         * @param activeCamera The camera we are returning the min for
+         * @returns the depth min z
          */
         ShadowLight.prototype.getDepthMinZ = function (activeCamera) {
             return this.shadowMinZ !== undefined ? this.shadowMinZ : activeCamera.minZ;
         };
         /**
          * Gets the maxZ used for shadow according to both the scene and the light.
-         * @param activeCamera
+         * @param activeCamera The camera we are returning the max for
+         * @returns the depth max z
          */
         ShadowLight.prototype.getDepthMaxZ = function (activeCamera) {
             return this.shadowMaxZ !== undefined ? this.shadowMaxZ : activeCamera.maxZ;
         };
         /**
-         * Sets the projection matrix according to the type of light and custom projection matrix definition.
-         * Returns the light.
+         * Sets the shadow projection matrix in parameter to the generated projection matrix.
+         * @param matrix The materix to updated with the projection information
+         * @param viewMatrix The transform matrix of the light
+         * @param renderList The list of mesh to render in the map
+         * @returns The current light
          */
         ShadowLight.prototype.setShadowProjectionMatrix = function (matrix, viewMatrix, renderList) {
             if (this.customProjectionMatrixBuilder) {
@@ -150,7 +221,7 @@
         };
         __decorate([
             LIB.serializeAsVector3()
-        ], ShadowLight.prototype, "position", void 0);
+        ], ShadowLight.prototype, "position", null);
         __decorate([
             LIB.serializeAsVector3()
         ], ShadowLight.prototype, "direction", null);
@@ -165,4 +236,5 @@
     LIB.ShadowLight = ShadowLight;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.shadowLight.js.map
 //# sourceMappingURL=LIB.shadowLight.js.map

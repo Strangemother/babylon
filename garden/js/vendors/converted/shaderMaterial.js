@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ShaderMaterial = /** @class */ (function (_super) {
         __extends(ShaderMaterial, _super);
@@ -194,7 +197,7 @@
                 }
             }
             // Alpha test
-            if (engine.getAlphaTesting()) {
+            if (mesh && this._shouldTurnAlphaTestOn(mesh)) {
                 defines.push("#define ALPHATEST");
             }
             var previousEffect = this._effect;
@@ -258,43 +261,43 @@
                 for (name in this._textureArrays) {
                     this._effect.setTextureArray(name, this._textureArrays[name]);
                 }
-                // Int
+                // Int    
                 for (name in this._ints) {
                     this._effect.setInt(name, this._ints[name]);
                 }
-                // Float
+                // Float    
                 for (name in this._floats) {
                     this._effect.setFloat(name, this._floats[name]);
                 }
-                // Floats
+                // Floats   
                 for (name in this._floatsArrays) {
                     this._effect.setArray(name, this._floatsArrays[name]);
                 }
-                // Color3
+                // Color3        
                 for (name in this._colors3) {
                     this._effect.setColor3(name, this._colors3[name]);
                 }
                 for (name in this._colors3Arrays) {
                     this._effect.setArray3(name, this._colors3Arrays[name]);
                 }
-                // Color4
+                // Color4      
                 for (name in this._colors4) {
                     var color = this._colors4[name];
                     this._effect.setFloat4(name, color.r, color.g, color.b, color.a);
                 }
-                // Vector2
+                // Vector2        
                 for (name in this._vectors2) {
                     this._effect.setVector2(name, this._vectors2[name]);
                 }
-                // Vector3
+                // Vector3        
                 for (name in this._vectors3) {
                     this._effect.setVector3(name, this._vectors3[name]);
                 }
-                // Vector4
+                // Vector4        
                 for (name in this._vectors4) {
                     this._effect.setVector4(name, this._vectors4[name]);
                 }
-                // Matrix
+                // Matrix      
                 for (name in this._matrices) {
                     this._effect.setMatrix(name, this._matrices[name]);
                 }
@@ -306,11 +309,11 @@
                 for (name in this._matrices2x2) {
                     this._effect.setMatrix2x2(name, this._matrices2x2[name]);
                 }
-                // Vector2Array
+                // Vector2Array   
                 for (name in this._vectors2Arrays) {
                     this._effect.setArray2(name, this._vectors2Arrays[name]);
                 }
-                // Vector3Array
+                // Vector3Array   
                 for (name in this._vectors3Arrays) {
                     this._effect.setArray3(name, this._vectors3Arrays[name]);
                 }
@@ -389,17 +392,17 @@
                     serializationObject.textureArrays[name].push(array[index].serialize());
                 }
             }
-            // Float
+            // Float    
             serializationObject.floats = {};
             for (name in this._floats) {
                 serializationObject.floats[name] = this._floats[name];
             }
-            // Float s
+            // Float s   
             serializationObject.FloatArrays = {};
             for (name in this._floatsArrays) {
                 serializationObject.FloatArrays[name] = this._floatsArrays[name];
             }
-            // Color3
+            // Color3    
             serializationObject.colors3 = {};
             for (name in this._colors3) {
                 serializationObject.colors3[name] = this._colors3[name].asArray();
@@ -409,27 +412,27 @@
             for (name in this._colors3Arrays) {
                 serializationObject.colors3Arrays[name] = this._colors3Arrays[name];
             }
-            // Color4
+            // Color4  
             serializationObject.colors4 = {};
             for (name in this._colors4) {
                 serializationObject.colors4[name] = this._colors4[name].asArray();
             }
-            // Vector2
+            // Vector2  
             serializationObject.vectors2 = {};
             for (name in this._vectors2) {
                 serializationObject.vectors2[name] = this._vectors2[name].asArray();
             }
-            // Vector3
+            // Vector3        
             serializationObject.vectors3 = {};
             for (name in this._vectors3) {
                 serializationObject.vectors3[name] = this._vectors3[name].asArray();
             }
-            // Vector4
+            // Vector4        
             serializationObject.vectors4 = {};
             for (name in this._vectors4) {
                 serializationObject.vectors4[name] = this._vectors4[name].asArray();
             }
-            // Matrix
+            // Matrix      
             serializationObject.matrices = {};
             for (name in this._matrices) {
                 serializationObject.matrices[name] = this._matrices[name].asArray();
@@ -472,15 +475,15 @@
                 }
                 material.setTextureArray(name, textureArray);
             }
-            // Float
+            // Float    
             for (name in source.floats) {
                 material.setFloat(name, source.floats[name]);
             }
-            // Float s
+            // Float s   
             for (name in source.floatsArrays) {
                 material.setFloats(name, source.floatsArrays[name]);
             }
-            // Color3
+            // Color3        
             for (name in source.colors3) {
                 material.setColor3(name, LIB.Color3.FromArray(source.colors3[name]));
             }
@@ -497,23 +500,23 @@
                 }, []).map(function (color) { return LIB.Color3.FromArray(color); });
                 material.setColor3Array(name, colors);
             }
-            // Color4
+            // Color4      
             for (name in source.colors4) {
                 material.setColor4(name, LIB.Color4.FromArray(source.colors4[name]));
             }
-            // Vector2
+            // Vector2        
             for (name in source.vectors2) {
                 material.setVector2(name, LIB.Vector2.FromArray(source.vectors2[name]));
             }
-            // Vector3
+            // Vector3        
             for (name in source.vectors3) {
                 material.setVector3(name, LIB.Vector3.FromArray(source.vectors3[name]));
             }
-            // Vector4
+            // Vector4        
             for (name in source.vectors4) {
                 material.setVector4(name, LIB.Vector4.FromArray(source.vectors4[name]));
             }
-            // Matrix
+            // Matrix      
             for (name in source.matrices) {
                 material.setMatrix(name, LIB.Matrix.FromArray(source.matrices[name]));
             }
@@ -540,4 +543,5 @@
     LIB.ShaderMaterial = ShaderMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.shaderMaterial.js.map
 //# sourceMappingURL=LIB.shaderMaterial.js.map

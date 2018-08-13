@@ -1,6 +1,24 @@
+
+
+var LIB;
 (function (LIB) {
     var RenderTargetTexture = /** @class */ (function (_super) {
         __extends(RenderTargetTexture, _super);
+        /**
+         * Instantiate a render target texture. This is mainly to render of screen the scene to for instance apply post processse
+         * or used a shadow, depth texture...
+         * @param name The friendly name of the texture
+         * @param size The size of the RTT (number if square, or {with: number, height:number} or {ratio:} to define a ratio from the main scene)
+         * @param scene The scene the RTT belongs to. The latest created scene will be used if not precised.
+         * @param generateMipMaps True if mip maps need to be generated after render.
+         * @param doNotChangeAspectRatio True to not change the aspect ratio of the scene in the RTT
+         * @param type The type of the buffer in the RTT (int, half float, float...)
+         * @param isCube True if a cube texture needs to be created
+         * @param samplingMode The sampling mode to be usedwith the render target (Linear, Nearest...)
+         * @param generateDepthBuffer True to generate a depth buffer
+         * @param generateStencilBuffer True to generate a stencil buffer
+         * @param isMulti True if multiple textures need to be created (Draw Buffers)
+         */
         function RenderTargetTexture(name, size, scene, generateMipMaps, doNotChangeAspectRatio, type, isCube, samplingMode, generateDepthBuffer, generateStencilBuffer, isMulti) {
             if (doNotChangeAspectRatio === void 0) { doNotChangeAspectRatio = true; }
             if (type === void 0) { type = LIB.Engine.TEXTURETYPE_UNSIGNED_INT; }
@@ -22,32 +40,32 @@
             // Events
             /**
             * An event triggered when the texture is unbind.
-            * @type {LIB.Observable}
             */
             _this.onBeforeBindObservable = new LIB.Observable();
             /**
             * An event triggered when the texture is unbind.
-            * @type {LIB.Observable}
             */
             _this.onAfterUnbindObservable = new LIB.Observable();
             /**
             * An event triggered before rendering the texture
-            * @type {LIB.Observable}
             */
             _this.onBeforeRenderObservable = new LIB.Observable();
             /**
             * An event triggered after rendering the texture
-            * @type {LIB.Observable}
             */
             _this.onAfterRenderObservable = new LIB.Observable();
             /**
             * An event triggered after the texture clear
-            * @type {LIB.Observable}
             */
             _this.onClearObservable = new LIB.Observable();
             _this._currentRefreshId = -1;
             _this._refreshRate = 1;
             _this._samples = 1;
+            /**
+             * Gets or sets the center of the bounding box associated with the texture (when in cube mode)
+             * It must define where the camera used to render the texture is set
+             */
+            _this.boundingBoxPosition = LIB.Vector3.Zero();
             scene = _this.getScene();
             if (!scene) {
                 return _this;
@@ -160,6 +178,52 @@
                 this.resize(this._initialSizeParameter);
             }
         };
+        Object.defineProperty(RenderTargetTexture.prototype, "boundingBoxSize", {
+            get: function () {
+                return this._boundingBoxSize;
+            },
+            /**
+             * Gets or sets the size of the bounding box associated with the texture (when in cube mode)
+             * When defined, the cubemap will switch to local mode
+             * @see https://community.arm.com/graphics/b/blog/posts/reflections-based-on-local-cubemaps-in-unity
+             * @example https://www.LIBjs-playground.com/#RNASML
+             */
+            set: function (value) {
+                if (this._boundingBoxSize && this._boundingBoxSize.equals(value)) {
+                    return;
+                }
+                this._boundingBoxSize = value;
+                var scene = this.getScene();
+                if (scene) {
+                    scene.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * Creates a depth stencil texture.
+         * This is only available in WebGL 2 or with the depth texture extension available.
+         * @param comparisonFunction Specifies the comparison function to set on the texture. If 0 or undefined, the texture is not in comparison mode
+         * @param bilinearFiltering Specifies whether or not bilinear filtering is enable on the texture
+         * @param generateStencil Specifies whether or not a stencil should be allocated in the texture
+         */
+        RenderTargetTexture.prototype.createDepthStencilTexture = function (comparisonFunction, bilinearFiltering, generateStencil) {
+            if (comparisonFunction === void 0) { comparisonFunction = 0; }
+            if (bilinearFiltering === void 0) { bilinearFiltering = true; }
+            if (generateStencil === void 0) { generateStencil = false; }
+            if (!this.getScene()) {
+                return;
+            }
+            var engine = this.getScene().getEngine();
+            this.depthStencilTexture = engine.createDepthStencilTexture(this._size, {
+                bilinearFiltering: bilinearFiltering,
+                comparisonFunction: comparisonFunction,
+                generateStencil: generateStencil,
+                isCube: this.isCube
+            });
+            engine.setFrameBufferDepthStencilTexture(this);
+        };
         RenderTargetTexture.prototype._processSizeParameter = function (size) {
             if (size.ratio) {
                 this._sizeRatio = size.ratio;
@@ -242,7 +306,7 @@
             }
         };
         RenderTargetTexture.prototype._shouldRender = function () {
-            if (this._currentRefreshId === -1) {
+            if (this._currentRefreshId === -1) { // At least render once
                 this._currentRefreshId = 1;
                 return true;
             }
@@ -369,8 +433,7 @@
             for (var meshIndex = 0; meshIndex < currentRenderListLength; meshIndex++) {
                 var mesh = currentRenderList[meshIndex];
                 if (mesh) {
-                    if (!mesh.isReady()) {
-                        // Reset _currentRefreshId
+                    if (!mesh.isReady(this.refreshRate === 0)) {
                         this.resetRefreshCounter();
                         continue;
                     }
@@ -387,7 +450,7 @@
                         for (var subIndex = 0; subIndex < mesh.subMeshes.length; subIndex++) {
                             var subMesh = mesh.subMeshes[subIndex];
                             scene._activeIndices.addCount(subMesh.indexCount, false);
-                            this._renderingManager.dispatch(subMesh);
+                            this._renderingManager.dispatch(subMesh, mesh);
                         }
                     }
                 }
@@ -428,8 +491,16 @@
             // Ensure we don't exceed the render dimension (while staying POT)
             return Math.min(LIB.Tools.FloorPOT(renderDimension), curved);
         };
-        RenderTargetTexture.prototype.renderToTarget = function (faceIndex, currentRenderList, currentRenderListLength, useCameraPostProcess, dumpForDebug) {
+        RenderTargetTexture.prototype.unbindFrameBuffer = function (engine, faceIndex) {
             var _this = this;
+            if (!this._texture) {
+                return;
+            }
+            engine.unBindFramebuffer(this._texture, this.isCube, function () {
+                _this.onAfterRenderObservable.notifyObservers(faceIndex);
+            });
+        };
+        RenderTargetTexture.prototype.renderToTarget = function (faceIndex, currentRenderList, currentRenderListLength, useCameraPostProcess, dumpForDebug) {
             var scene = this.getScene();
             if (!scene) {
                 return;
@@ -444,7 +515,7 @@
             }
             else if (!useCameraPostProcess || !scene.postProcessManager._prepareFrame(this._texture)) {
                 if (this._texture) {
-                    engine.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport);
+                    engine.bindFramebuffer(this._texture, this.isCube ? faceIndex : undefined, undefined, undefined, this.ignoreCameraViewport, this.depthStencilTexture ? this.depthStencilTexture : undefined);
                 }
             }
             this.onBeforeRenderObservable.notifyObservers(faceIndex);
@@ -480,9 +551,7 @@
                         engine.generateMipMapsForCubemap(this._texture);
                     }
                 }
-                engine.unBindFramebuffer(this._texture, this.isCube, function () {
-                    _this.onAfterRenderObservable.notifyObservers(faceIndex);
-                });
+                this.unbindFrameBuffer(engine, faceIndex);
             }
             else {
                 this.onAfterRenderObservable.notifyObservers(faceIndex);
@@ -514,7 +583,7 @@
         };
         RenderTargetTexture.prototype.clone = function () {
             var textureSize = this.getSize();
-            var newTexture = new RenderTargetTexture(this.name, textureSize.width, this.getScene(), this._renderTargetOptions.generateMipMaps, this._doNotChangeAspectRatio, this._renderTargetOptions.type, this.isCube, this._renderTargetOptions.samplingMode, this._renderTargetOptions.generateDepthBuffer, this._renderTargetOptions.generateStencilBuffer);
+            var newTexture = new RenderTargetTexture(this.name, textureSize, this.getScene(), this._renderTargetOptions.generateMipMaps, this._doNotChangeAspectRatio, this._renderTargetOptions.type, this.isCube, this._renderTargetOptions.samplingMode, this._renderTargetOptions.generateDepthBuffer, this._renderTargetOptions.generateStencilBuffer);
             // Base texture
             newTexture.hasAlpha = this.hasAlpha;
             newTexture.level = this.level;
@@ -584,6 +653,14 @@
                 this._postProcessManager._rebuild();
             }
         };
+        /**
+         * Clear the info related to rendering groups preventing retention point in material dispose.
+         */
+        RenderTargetTexture.prototype.freeRenderingGroups = function () {
+            if (this._renderingManager) {
+                this._renderingManager.freeRenderingGroups();
+            }
+        };
         RenderTargetTexture._REFRESHRATE_RENDER_ONCE = 0;
         RenderTargetTexture._REFRESHRATE_RENDER_ONEVERYFRAME = 1;
         RenderTargetTexture._REFRESHRATE_RENDER_ONEVERYTWOFRAMES = 2;
@@ -592,4 +669,5 @@
     LIB.RenderTargetTexture = RenderTargetTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.renderTargetTexture.js.map
 //# sourceMappingURL=LIB.renderTargetTexture.js.map

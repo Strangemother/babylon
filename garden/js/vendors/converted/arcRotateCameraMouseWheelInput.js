@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraMouseWheelInput = /** @class */ (function () {
         function ArcRotateCameraMouseWheelInput() {
@@ -17,7 +20,18 @@
                 var event = p.event;
                 var delta = 0;
                 if (event.wheelDelta) {
-                    delta = _this.wheelDeltaPercentage ? (event.wheelDelta * 0.01) * _this.camera.radius * _this.wheelDeltaPercentage : event.wheelDelta / (_this.wheelPrecision * 40);
+                    if (_this.wheelDeltaPercentage) {
+                        var wheelDelta = (event.wheelDelta * 0.01 * _this.wheelDeltaPercentage) * _this.camera.radius;
+                        if (event.wheelDelta > 0) {
+                            delta = wheelDelta / (1.0 + _this.wheelDeltaPercentage);
+                        }
+                        else {
+                            delta = wheelDelta * (1.0 + _this.wheelDeltaPercentage);
+                        }
+                    }
+                    else {
+                        delta = event.wheelDelta / (_this.wheelPrecision * 40);
+                    }
                 }
                 else if (event.detail) {
                     delta = -event.detail / _this.wheelPrecision;
@@ -57,4 +71,5 @@
     LIB.CameraInputTypes["ArcRotateCameraMouseWheelInput"] = ArcRotateCameraMouseWheelInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraMouseWheelInput.js.map
 //# sourceMappingURL=LIB.arcRotateCameraMouseWheelInput.js.map

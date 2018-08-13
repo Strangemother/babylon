@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var PointerEventTypes = /** @class */ (function () {
         function PointerEventTypes() {
@@ -100,4 +103,5 @@
     LIB.PointerInfo = PointerInfo;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pointerEvents.js.map
 //# sourceMappingURL=LIB.pointerEvents.js.map

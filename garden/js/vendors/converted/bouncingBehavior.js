@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * Add a bouncing effect to an ArcRotateCamera when reaching a specified minimum and maximum radius
@@ -174,4 +176,5 @@
     LIB.BouncingBehavior = BouncingBehavior;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.bouncingBehavior.js.map
 //# sourceMappingURL=LIB.bouncingBehavior.js.map

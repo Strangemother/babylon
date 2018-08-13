@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var FresnelParameters = /** @class */ (function () {
         function FresnelParameters() {
@@ -16,7 +18,7 @@
                     return;
                 }
                 this._isEnabled = value;
-                LIB.Engine.MarkAllMaterialsAsDirty(LIB.Material.FresnelDirtyFlag);
+                LIB.Engine.MarkAllMaterialsAsDirty(LIB.Material.FresnelDirtyFlag | LIB.Material.MiscDirtyFlag);
             },
             enumerable: true,
             configurable: true
@@ -29,8 +31,8 @@
         FresnelParameters.prototype.serialize = function () {
             var serializationObject = {};
             serializationObject.isEnabled = this.isEnabled;
-            serializationObject.leftColor = this.leftColor;
-            serializationObject.rightColor = this.rightColor;
+            serializationObject.leftColor = this.leftColor.asArray();
+            serializationObject.rightColor = this.rightColor.asArray();
             serializationObject.bias = this.bias;
             serializationObject.power = this.power;
             return serializationObject;
@@ -49,4 +51,5 @@
     LIB.FresnelParameters = FresnelParameters;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.fresnelParameters.js.map
 //# sourceMappingURL=LIB.fresnelParameters.js.map

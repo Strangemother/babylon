@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var SSAO2RenderingPipeline = /** @class */ (function (_super) {
         __extends(SSAO2RenderingPipeline, _super);
@@ -13,73 +21,62 @@
             // Members
             /**
             * The PassPostProcess id in the pipeline that contains the original scene color
-            * @type {string}
             */
             _this.SSAOOriginalSceneColorEffect = "SSAOOriginalSceneColorEffect";
             /**
             * The SSAO PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAORenderEffect = "SSAORenderEffect";
             /**
             * The horizontal blur PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAOBlurHRenderEffect = "SSAOBlurHRenderEffect";
             /**
             * The vertical blur PostProcess id in the pipeline
-            * @type {string}
             */
             _this.SSAOBlurVRenderEffect = "SSAOBlurVRenderEffect";
             /**
             * The PostProcess id in the pipeline that combines the SSAO-Blur output with the original scene color (SSAOOriginalSceneColorEffect)
-            * @type {string}
             */
             _this.SSAOCombineRenderEffect = "SSAOCombineRenderEffect";
             /**
             * The output strength of the SSAO post-process. Default value is 1.0.
-            * @type {number}
             */
             _this.totalStrength = 1.0;
             /**
             * Maximum depth value to still render AO. A smooth falloff makes the dimming more natural, so there will be no abrupt shading change.
-            * @type {number}
             */
             _this.maxZ = 100.0;
             /**
             * In order to save performances, SSAO radius is clamped on close geometry. This ratio changes by how much
-            * @type {number}
             */
             _this.minZAspect = 0.2;
             /**
             * Number of samples used for the SSAO calculations. Default value is 8
-            * @type {number}
             */
             _this._samples = 8;
             /**
             * Are we using bilateral blur ?
-            * @type {boolean}
             */
             _this._expensiveBlur = true;
             /**
             * The radius around the analyzed pixel used by the SSAO post-process. Default value is 2.0
-            * @type {number}
             */
             _this.radius = 2.0;
             /**
             * The base color of the SSAO post-process
             * The final result is "base + ssao" between [0, 1]
-            * @type {number}
             */
             _this.base = 0.1;
             _this._firstUpdate = true;
             _this._scene = scene;
+            _this._ratio = ratio;
             if (!_this.isSupported) {
                 LIB.Tools.Error("SSAO 2 needs WebGL 2 support.");
                 return _this;
             }
-            var ssaoRatio = ratio.ssaoRatio || ratio;
-            var blurRatio = ratio.blurRatio || ratio;
+            var ssaoRatio = _this._ratio.ssaoRatio || ratio;
+            var blurRatio = _this._ratio.blurRatio || ratio;
             // Set up assets
             var geometryBufferRenderer = scene.enableGeometryBufferRenderer();
             _this._createRandomTexture();
@@ -130,7 +127,6 @@
         Object.defineProperty(SSAO2RenderingPipeline, "IsSupported", {
             /**
             *  Support test.
-            * @type {boolean}
             */
             get: function () {
                 var engine = LIB.Engine.LastCreatedEngine;
@@ -289,6 +285,25 @@
             }
             this._randomTexture.update(false);
         };
+        /**
+         * Serialize the rendering pipeline (Used when exporting)
+         * @returns the serialized object
+         */
+        SSAO2RenderingPipeline.prototype.serialize = function () {
+            var serializationObject = LIB.SerializationHelper.Serialize(this);
+            serializationObject.customType = "SSAO2RenderingPipeline";
+            return serializationObject;
+        };
+        /**
+         * Parse the serialized pipeline
+         * @param source Source pipeline.
+         * @param scene The scene to load the pipeline to.
+         * @param rootUrl The URL of the serialized pipeline.
+         * @returns An instantiated pipeline from the serialized object.
+         */
+        SSAO2RenderingPipeline.Parse = function (source, scene, rootUrl) {
+            return LIB.SerializationHelper.Parse(function () { return new SSAO2RenderingPipeline(source._name, scene, source._ratio); }, source, scene, rootUrl);
+        };
         __decorate([
             LIB.serialize()
         ], SSAO2RenderingPipeline.prototype, "totalStrength", void 0);
@@ -301,6 +316,9 @@
         __decorate([
             LIB.serialize("samples")
         ], SSAO2RenderingPipeline.prototype, "_samples", void 0);
+        __decorate([
+            LIB.serialize()
+        ], SSAO2RenderingPipeline.prototype, "_ratio", void 0);
         __decorate([
             LIB.serialize("expensiveBlur")
         ], SSAO2RenderingPipeline.prototype, "_expensiveBlur", void 0);
@@ -315,4 +333,5 @@
     LIB.SSAO2RenderingPipeline = SSAO2RenderingPipeline;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.ssao2RenderingPipeline.js.map
 //# sourceMappingURL=LIB.ssao2RenderingPipeline.js.map

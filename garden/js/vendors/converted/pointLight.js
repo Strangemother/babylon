@@ -1,4 +1,18 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * A point light is a light defined by an unique point in world space.
+     * The light is emitted in every direction from this point.
+     * A good example of a point light is a standard light bulb.
+     * Documentation: https://doc.LIBjs.com/LIB101/lights
+     */
     var PointLight = /** @class */ (function (_super) {
         __extends(PointLight, _super);
         /**
@@ -10,6 +24,9 @@
          * var pointLight = new LIB.PointLight("pl", camera.position, scene);
          * ```
          * Documentation : http://doc.LIBjs.com/tutorials/lights
+         * @param name The light friendly name
+         * @param position The position of the point light in the scene
+         * @param scene The scene the lights belongs to
          */
         function PointLight(name, position, scene) {
             var _this = _super.call(this, name, scene) || this;
@@ -41,6 +58,10 @@
             configurable: true
         });
         Object.defineProperty(PointLight.prototype, "direction", {
+            /**
+             * Gets the direction if it has been set.
+             * In case of direction provided, the shadow will not use a cube texture but simulate a spot shadow as a fallback
+             */
             get: function () {
                 return this._direction;
             },
@@ -59,24 +80,29 @@
         });
         /**
          * Returns the string "PointLight"
+         * @returns the class name
          */
         PointLight.prototype.getClassName = function () {
             return "PointLight";
         };
         /**
          * Returns the integer 0.
+         * @returns The light Type id as a constant defines in Light.LIGHTTYPEID_x
          */
         PointLight.prototype.getTypeID = function () {
             return LIB.Light.LIGHTTYPEID_POINTLIGHT;
         };
         /**
          * Specifies wether or not the shadowmap should be a cube texture.
+         * @returns true if the shadowmap needs to be a cube texture.
          */
         PointLight.prototype.needCube = function () {
             return !this.direction;
         };
         /**
          * Returns a new Vector3 aligned with the PointLight cube system according to the passed cube face index (integer).
+         * @param faceIndex The index of the face we are computed the direction to generate shadow
+         * @returns The set direction in 2d mode otherwise the direction to the cubemap face if needCube() is true
          */
         PointLight.prototype.getShadowDirection = function (faceIndex) {
             if (this.direction) {
@@ -124,7 +150,9 @@
         };
         /**
          * Sets the passed Effect "effect" with the PointLight transformed position (or position, if none) and passed name (string).
-         * Returns the PointLight.
+         * @param effect The effect to update
+         * @param lightIndex The index of the light in the effect to update
+         * @returns The point light
          */
         PointLight.prototype.transferToEffect = function (effect, lightIndex) {
             if (this.computeTransformedInformation()) {
@@ -142,4 +170,5 @@
     LIB.PointLight = PointLight;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.pointLight.js.map
 //# sourceMappingURL=LIB.pointLight.js.map

@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     /**
      * Special Glow Blur post process only blurring the alpha channel
@@ -27,7 +35,8 @@
      *
      * !!! THIS REQUIRES AN ACTIVE STENCIL BUFFER ON THE CANVAS !!!
      */
-    var HighlightLayer = /** @class */ (function () {
+    var HighlightLayer = /** @class */ (function (_super) {
+        __extends(HighlightLayer, _super);
         /**
          * Instantiates a new highlight Layer and references it to the scene..
          * @param name The name of the layer
@@ -35,99 +44,44 @@
          * @param options Sets of none mandatory options to use with the layer (see IHighlightLayerOptions for more information)
          */
         function HighlightLayer(name, scene, options) {
-            this.name = name;
-            this._vertexBuffers = {};
-            this._mainTextureDesiredSize = { width: 0, height: 0 };
-            this._meshes = {};
-            this._maxSize = 0;
-            this._shouldRender = false;
-            this._instanceGlowingMeshStencilReference = HighlightLayer.glowingMeshStencilReference++;
-            this._excludedMeshes = {};
+            var _this = _super.call(this, name, scene) || this;
+            _this.name = name;
             /**
              * Specifies whether or not the inner glow is ACTIVE in the layer.
              */
-            this.innerGlow = true;
+            _this.innerGlow = true;
             /**
              * Specifies whether or not the outer glow is ACTIVE in the layer.
              */
-            this.outerGlow = true;
-            /**
-             * Specifies wether the highlight layer is enabled or not.
-             */
-            this.isEnabled = true;
-            /**
-             * An event triggered when the highlight layer has been disposed.
-             * @type {LIB.Observable}
-             */
-            this.onDisposeObservable = new LIB.Observable();
-            /**
-             * An event triggered when the highlight layer is about rendering the main texture with the glowy parts.
-             * @type {LIB.Observable}
-             */
-            this.onBeforeRenderMainTextureObservable = new LIB.Observable();
+            _this.outerGlow = true;
             /**
              * An event triggered when the highlight layer is being blurred.
-             * @type {LIB.Observable}
              */
-            this.onBeforeBlurObservable = new LIB.Observable();
+            _this.onBeforeBlurObservable = new LIB.Observable();
             /**
              * An event triggered when the highlight layer has been blurred.
-             * @type {LIB.Observable}
              */
-            this.onAfterBlurObservable = new LIB.Observable();
-            /**
-             * An event triggered when the glowing blurred texture is being merged in the scene.
-             * @type {LIB.Observable}
-             */
-            this.onBeforeComposeObservable = new LIB.Observable();
-            /**
-             * An event triggered when the glowing blurred texture has been merged in the scene.
-             * @type {LIB.Observable}
-             */
-            this.onAfterComposeObservable = new LIB.Observable();
-            /**
-             * An event triggered when the highlight layer changes its size.
-             * @type {LIB.Observable}
-             */
-            this.onSizeChangedObservable = new LIB.Observable();
-            this._scene = scene || LIB.Engine.LastCreatedScene;
-            var engine = scene.getEngine();
-            this._engine = engine;
-            this._maxSize = this._engine.getCaps().maxTextureSize;
-            this._scene.highlightLayers.push(this);
-            // Warn on stencil.
-            if (!this._engine.isStencilEnable) {
+            _this.onAfterBlurObservable = new LIB.Observable();
+            _this._instanceGlowingMeshStencilReference = HighlightLayer.GlowingMeshStencilReference++;
+            _this._meshes = {};
+            _this._excludedMeshes = {};
+            _this.neutralColor = HighlightLayer.NeutralColor;
+            // Warn on stencil
+            if (!_this._engine.isStencilEnable) {
                 LIB.Tools.Warn("Rendering the Highlight Layer requires the stencil to be active on the canvas. var engine = new LIB.Engine(canvas, antialias, { stencil: true }");
             }
             // Adapt options
-            this._options = options || {
-                mainTextureRatio: 0.5,
-                blurTextureSizeRatio: 0.5,
-                blurHorizontalSize: 1.0,
-                blurVerticalSize: 1.0,
-                alphaBlendingMode: LIB.Engine.ALPHA_COMBINE,
-                camera: null
-            };
-            this._options.mainTextureRatio = this._options.mainTextureRatio || 0.5;
-            this._options.blurTextureSizeRatio = this._options.blurTextureSizeRatio || 1.0;
-            this._options.blurHorizontalSize = this._options.blurHorizontalSize || 1;
-            this._options.blurVerticalSize = this._options.blurVerticalSize || 1;
-            this._options.alphaBlendingMode = this._options.alphaBlendingMode || LIB.Engine.ALPHA_COMBINE;
-            // VBO
-            var vertices = [];
-            vertices.push(1, 1);
-            vertices.push(-1, 1);
-            vertices.push(-1, -1);
-            vertices.push(1, -1);
-            var vertexBuffer = new LIB.VertexBuffer(engine, vertices, LIB.VertexBuffer.PositionKind, false, false, 2);
-            this._vertexBuffers[LIB.VertexBuffer.PositionKind] = vertexBuffer;
-            this._createIndexBuffer();
-            // Effect
-            this._glowMapMergeEffect = engine.createEffect("glowMapMerge", [LIB.VertexBuffer.PositionKind], ["offset"], ["textureSampler"], "");
-            // Render target
-            this.setMainTextureSize();
-            // Create Textures and post processes
-            this.createTextureAndPostProcesses();
+            _this._options = __assign({ mainTextureRatio: 0.5, blurTextureSizeRatio: 0.5, blurHorizontalSize: 1.0, blurVerticalSize: 1.0, alphaBlendingMode: LIB.Engine.ALPHA_COMBINE, camera: null }, options);
+            // Initialize the layer
+            _this._init({
+                alphaBlendingMode: _this._options.alphaBlendingMode,
+                camera: _this._options.camera,
+                mainTextureFixedSize: _this._options.mainTextureFixedSize,
+                mainTextureRatio: _this._options.mainTextureRatio
+            });
+            // Do not render as long as no meshes have been added
+            _this._shouldRender = false;
+            return _this;
         }
         Object.defineProperty(HighlightLayer.prototype, "blurHorizontalSize", {
             /**
@@ -161,71 +115,46 @@
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(HighlightLayer.prototype, "camera", {
-            /**
-             * Gets the camera attached to the layer.
-             */
-            get: function () {
-                return this._options.camera;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        HighlightLayer.prototype._createIndexBuffer = function () {
-            var engine = this._scene.getEngine();
-            // Indices
-            var indices = [];
-            indices.push(0);
-            indices.push(1);
-            indices.push(2);
-            indices.push(0);
-            indices.push(2);
-            indices.push(3);
-            this._indexBuffer = engine.createIndexBuffer(indices);
+        /**
+         * Get the effect name of the layer.
+         * @return The effect name
+         */
+        HighlightLayer.prototype.getEffectName = function () {
+            return HighlightLayer.EffectName;
         };
-        HighlightLayer.prototype._rebuild = function () {
-            var vb = this._vertexBuffers[LIB.VertexBuffer.PositionKind];
-            if (vb) {
-                vb._rebuild();
-            }
-            this._createIndexBuffer();
+        /**
+         * Create the merge effect. This is the shader use to blit the information back
+         * to the main canvas at the end of the scene rendering.
+         */
+        HighlightLayer.prototype._createMergeEffect = function () {
+            // Effect
+            return this._engine.createEffect("glowMapMerge", [LIB.VertexBuffer.PositionKind], ["offset"], ["textureSampler"], this._options.isStroke ? "#define STROKE \n" : undefined);
         };
         /**
          * Creates the render target textures and post processes used in the highlight layer.
          */
-        HighlightLayer.prototype.createTextureAndPostProcesses = function () {
+        HighlightLayer.prototype._createTextureAndPostProcesses = function () {
             var _this = this;
             var blurTextureWidth = this._mainTextureDesiredSize.width * this._options.blurTextureSizeRatio;
             var blurTextureHeight = this._mainTextureDesiredSize.height * this._options.blurTextureSizeRatio;
             blurTextureWidth = this._engine.needPOTTextures ? LIB.Tools.GetExponentOfTwo(blurTextureWidth, this._maxSize) : blurTextureWidth;
             blurTextureHeight = this._engine.needPOTTextures ? LIB.Tools.GetExponentOfTwo(blurTextureHeight, this._maxSize) : blurTextureHeight;
-            this._mainTexture = new LIB.RenderTargetTexture("HighlightLayerMainRTT", {
-                width: this._mainTextureDesiredSize.width,
-                height: this._mainTextureDesiredSize.height
-            }, this._scene, false, true, LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
-            this._mainTexture.activeCamera = this._options.camera;
-            this._mainTexture.wrapU = LIB.Texture.CLAMP_ADDRESSMODE;
-            this._mainTexture.wrapV = LIB.Texture.CLAMP_ADDRESSMODE;
-            this._mainTexture.anisotropicFilteringLevel = 1;
-            this._mainTexture.updateSamplingMode(LIB.Texture.BILINEAR_SAMPLINGMODE);
-            this._mainTexture.renderParticles = false;
-            this._mainTexture.renderList = null;
-            this._mainTexture.ignoreCameraViewport = true;
             this._blurTexture = new LIB.RenderTargetTexture("HighlightLayerBlurRTT", {
                 width: blurTextureWidth,
                 height: blurTextureHeight
-            }, this._scene, false, true, LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
+            }, this._scene, false, true, LIB.Engine.TEXTURETYPE_HALF_FLOAT);
             this._blurTexture.wrapU = LIB.Texture.CLAMP_ADDRESSMODE;
             this._blurTexture.wrapV = LIB.Texture.CLAMP_ADDRESSMODE;
             this._blurTexture.anisotropicFilteringLevel = 16;
             this._blurTexture.updateSamplingMode(LIB.Texture.TRILINEAR_SAMPLINGMODE);
             this._blurTexture.renderParticles = false;
             this._blurTexture.ignoreCameraViewport = true;
-            this._downSamplePostprocess = new LIB.PassPostProcess("HighlightLayerPPP", this._options.blurTextureSizeRatio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine());
-            this._downSamplePostprocess.onApplyObservable.add(function (effect) {
-                effect.setTexture("textureSampler", _this._mainTexture);
-            });
+            this._textures = [this._blurTexture];
             if (this._options.alphaBlendingMode === LIB.Engine.ALPHA_COMBINE) {
+                this._downSamplePostprocess = new LIB.PassPostProcess("HighlightLayerPPP", this._options.blurTextureSizeRatio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine());
+                this._downSamplePostprocess.onApplyObservable.add(function (effect) {
+                    effect.setTexture("textureSampler", _this._mainTexture);
+                });
                 this._horizontalBlurPostprocess = new GlowBlurPostProcess("HighlightLayerHBP", new LIB.Vector2(1.0, 0), this._options.blurHorizontalSize, 1, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine());
                 this._horizontalBlurPostprocess.onApplyObservable.add(function (effect) {
                     effect.setFloat2("screenSize", blurTextureWidth, blurTextureHeight);
@@ -234,121 +163,40 @@
                 this._verticalBlurPostprocess.onApplyObservable.add(function (effect) {
                     effect.setFloat2("screenSize", blurTextureWidth, blurTextureHeight);
                 });
+                this._postProcesses = [this._downSamplePostprocess, this._horizontalBlurPostprocess, this._verticalBlurPostprocess];
             }
             else {
-                this._horizontalBlurPostprocess = new LIB.BlurPostProcess("HighlightLayerHBP", new LIB.Vector2(1.0, 0), this._options.blurHorizontalSize, 1, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine());
+                this._horizontalBlurPostprocess = new LIB.BlurPostProcess("HighlightLayerHBP", new LIB.Vector2(1.0, 0), this._options.blurHorizontalSize / 2, {
+                    width: blurTextureWidth,
+                    height: blurTextureHeight
+                }, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, LIB.Engine.TEXTURETYPE_HALF_FLOAT);
+                this._horizontalBlurPostprocess.width = blurTextureWidth;
+                this._horizontalBlurPostprocess.height = blurTextureHeight;
                 this._horizontalBlurPostprocess.onApplyObservable.add(function (effect) {
-                    effect.setFloat2("screenSize", blurTextureWidth, blurTextureHeight);
+                    effect.setTexture("textureSampler", _this._mainTexture);
                 });
-                this._verticalBlurPostprocess = new LIB.BlurPostProcess("HighlightLayerVBP", new LIB.Vector2(0, 1.0), this._options.blurVerticalSize, 1, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine());
-                this._verticalBlurPostprocess.onApplyObservable.add(function (effect) {
-                    effect.setFloat2("screenSize", blurTextureWidth, blurTextureHeight);
-                });
+                this._verticalBlurPostprocess = new LIB.BlurPostProcess("HighlightLayerVBP", new LIB.Vector2(0, 1.0), this._options.blurVerticalSize / 2, {
+                    width: blurTextureWidth,
+                    height: blurTextureHeight
+                }, null, LIB.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, LIB.Engine.TEXTURETYPE_HALF_FLOAT);
+                this._postProcesses = [this._horizontalBlurPostprocess, this._verticalBlurPostprocess];
             }
             this._mainTexture.onAfterUnbindObservable.add(function () {
                 _this.onBeforeBlurObservable.notifyObservers(_this);
                 var internalTexture = _this._blurTexture.getInternalTexture();
                 if (internalTexture) {
-                    _this._scene.postProcessManager.directRender([_this._downSamplePostprocess, _this._horizontalBlurPostprocess, _this._verticalBlurPostprocess], internalTexture, true);
+                    _this._scene.postProcessManager.directRender(_this._postProcesses, internalTexture, true);
                 }
                 _this.onAfterBlurObservable.notifyObservers(_this);
             });
-            // Custom render function
-            var renderSubMesh = function (subMesh) {
-                if (!_this._meshes) {
-                    return;
-                }
-                var material = subMesh.getMaterial();
-                var mesh = subMesh.getRenderingMesh();
-                var scene = _this._scene;
-                var engine = scene.getEngine();
-                if (!material) {
-                    return;
-                }
-                // Do not block in blend mode.
-                if (material.needAlphaBlendingForMesh(mesh)) {
-                    return;
-                }
-                // Culling
-                engine.setState(material.backFaceCulling);
-                // Managing instances
-                var batch = mesh._getInstancesRenderList(subMesh._id);
-                if (batch.mustReturn) {
-                    return;
-                }
-                // Excluded Mesh
-                if (_this._excludedMeshes && _this._excludedMeshes[mesh.uniqueId]) {
-                    return;
-                }
-                ;
-                var hardwareInstancedRendering = (engine.getCaps().instancedArrays) && (batch.visibleInstances[subMesh._id] !== null) && (batch.visibleInstances[subMesh._id] !== undefined);
-                var highlightLayerMesh = _this._meshes[mesh.uniqueId];
-                var emissiveTexture = null;
-                if (highlightLayerMesh && highlightLayerMesh.glowEmissiveOnly && material) {
-                    emissiveTexture = material.emissiveTexture;
-                }
-                if (_this.isReady(subMesh, hardwareInstancedRendering, emissiveTexture)) {
-                    engine.enableEffect(_this._glowMapGenerationEffect);
-                    mesh._bind(subMesh, _this._glowMapGenerationEffect, LIB.Material.TriangleFillMode);
-                    _this._glowMapGenerationEffect.setMatrix("viewProjection", scene.getTransformMatrix());
-                    if (highlightLayerMesh) {
-                        _this._glowMapGenerationEffect.setFloat4("color", highlightLayerMesh.color.r, highlightLayerMesh.color.g, highlightLayerMesh.color.b, 1.0);
-                    }
-                    else {
-                        _this._glowMapGenerationEffect.setFloat4("color", HighlightLayer.neutralColor.r, HighlightLayer.neutralColor.g, HighlightLayer.neutralColor.b, HighlightLayer.neutralColor.a);
-                    }
-                    // Alpha test
-                    if (material && material.needAlphaTesting()) {
-                        var alphaTexture = material.getAlphaTestTexture();
-                        if (alphaTexture) {
-                            _this._glowMapGenerationEffect.setTexture("diffuseSampler", alphaTexture);
-                            var textureMatrix = alphaTexture.getTextureMatrix();
-                            if (textureMatrix) {
-                                _this._glowMapGenerationEffect.setMatrix("diffuseMatrix", textureMatrix);
-                            }
-                        }
-                    }
-                    // Glow emissive only
-                    if (emissiveTexture) {
-                        _this._glowMapGenerationEffect.setTexture("emissiveSampler", emissiveTexture);
-                        _this._glowMapGenerationEffect.setMatrix("emissiveMatrix", emissiveTexture.getTextureMatrix());
-                    }
-                    // Bones
-                    if (mesh.useBones && mesh.computeBonesUsingShaders && mesh.skeleton) {
-                        _this._glowMapGenerationEffect.setMatrices("mBones", mesh.skeleton.getTransformMatrices(mesh));
-                    }
-                    // Draw
-                    mesh._processRendering(subMesh, _this._glowMapGenerationEffect, LIB.Material.TriangleFillMode, batch, hardwareInstancedRendering, function (isInstance, world) { return _this._glowMapGenerationEffect.setMatrix("world", world); });
-                }
-                else {
-                    // Need to reset refresh rate of the shadowMap
-                    _this._mainTexture.resetRefreshCounter();
-                }
-            };
-            this._mainTexture.customRenderFunction = function (opaqueSubMeshes, alphaTestSubMeshes, transparentSubMeshes, depthOnlySubMeshes) {
-                _this.onBeforeRenderMainTextureObservable.notifyObservers(_this);
-                var index;
-                var engine = _this._scene.getEngine();
-                if (depthOnlySubMeshes.length) {
-                    engine.setColorWrite(false);
-                    for (index = 0; index < depthOnlySubMeshes.length; index++) {
-                        renderSubMesh(depthOnlySubMeshes.data[index]);
-                    }
-                    engine.setColorWrite(true);
-                }
-                for (index = 0; index < opaqueSubMeshes.length; index++) {
-                    renderSubMesh(opaqueSubMeshes.data[index]);
-                }
-                for (index = 0; index < alphaTestSubMeshes.length; index++) {
-                    renderSubMesh(alphaTestSubMeshes.data[index]);
-                }
-                for (index = 0; index < transparentSubMeshes.length; index++) {
-                    renderSubMesh(transparentSubMeshes.data[index]);
-                }
-            };
-            this._mainTexture.onClearObservable.add(function (engine) {
-                engine.clear(HighlightLayer.neutralColor, true, true, true);
-            });
+            // Prevent autoClear.
+            this._postProcesses.map(function (pp) { pp.autoClear = false; });
+        };
+        /**
+         * Returns wether or nood the layer needs stencil enabled during the mesh rendering.
+         */
+        HighlightLayer.prototype.needStencil = function () {
+            return true;
         };
         /**
          * Checks for the readiness of the element composing the layer.
@@ -357,148 +205,102 @@
          * @param emissiveTexture the associated emissive texture used to generate the glow
          * @return true if ready otherwise, false
          */
-        HighlightLayer.prototype.isReady = function (subMesh, useInstances, emissiveTexture) {
+        HighlightLayer.prototype.isReady = function (subMesh, useInstances) {
             var material = subMesh.getMaterial();
-            if (!material) {
+            var mesh = subMesh.getRenderingMesh();
+            if (!material || !mesh || !this._meshes) {
                 return false;
             }
-            if (!material.isReady(subMesh.getMesh(), useInstances)) {
-                return false;
+            var emissiveTexture = null;
+            var highlightLayerMesh = this._meshes[mesh.uniqueId];
+            if (highlightLayerMesh && highlightLayerMesh.glowEmissiveOnly && material) {
+                emissiveTexture = material.emissiveTexture;
             }
-            var defines = [];
-            var attribs = [LIB.VertexBuffer.PositionKind];
-            var mesh = subMesh.getMesh();
-            var uv1 = false;
-            var uv2 = false;
-            // Alpha test
-            if (material && material.needAlphaTesting()) {
-                var alphaTexture = material.getAlphaTestTexture();
-                if (alphaTexture) {
-                    defines.push("#define ALPHATEST");
-                    if (mesh.isVerticesDataPresent(LIB.VertexBuffer.UV2Kind) &&
-                        alphaTexture.coordinatesIndex === 1) {
-                        defines.push("#define DIFFUSEUV2");
-                        uv2 = true;
-                    }
-                    else if (mesh.isVerticesDataPresent(LIB.VertexBuffer.UVKind)) {
-                        defines.push("#define DIFFUSEUV1");
-                        uv1 = true;
-                    }
-                }
-            }
-            // Emissive
-            if (emissiveTexture) {
-                defines.push("#define EMISSIVE");
-                if (mesh.isVerticesDataPresent(LIB.VertexBuffer.UV2Kind) &&
-                    emissiveTexture.coordinatesIndex === 1) {
-                    defines.push("#define EMISSIVEUV2");
-                    uv2 = true;
-                }
-                else if (mesh.isVerticesDataPresent(LIB.VertexBuffer.UVKind)) {
-                    defines.push("#define EMISSIVEUV1");
-                    uv1 = true;
-                }
-            }
-            if (uv1) {
-                attribs.push(LIB.VertexBuffer.UVKind);
-                defines.push("#define UV1");
-            }
-            if (uv2) {
-                attribs.push(LIB.VertexBuffer.UV2Kind);
-                defines.push("#define UV2");
-            }
-            // Bones
-            if (mesh.useBones && mesh.computeBonesUsingShaders) {
-                attribs.push(LIB.VertexBuffer.MatricesIndicesKind);
-                attribs.push(LIB.VertexBuffer.MatricesWeightsKind);
-                if (mesh.numBoneInfluencers > 4) {
-                    attribs.push(LIB.VertexBuffer.MatricesIndicesExtraKind);
-                    attribs.push(LIB.VertexBuffer.MatricesWeightsExtraKind);
-                }
-                defines.push("#define NUM_BONE_INFLUENCERS " + mesh.numBoneInfluencers);
-                defines.push("#define BonesPerMesh " + (mesh.skeleton ? (mesh.skeleton.bones.length + 1) : 0));
-            }
-            else {
-                defines.push("#define NUM_BONE_INFLUENCERS 0");
-            }
-            // Instances
-            if (useInstances) {
-                defines.push("#define INSTANCES");
-                attribs.push("world0");
-                attribs.push("world1");
-                attribs.push("world2");
-                attribs.push("world3");
-            }
-            // Get correct effect
-            var join = defines.join("\n");
-            if (this._cachedDefines !== join) {
-                this._cachedDefines = join;
-                this._glowMapGenerationEffect = this._scene.getEngine().createEffect("glowMapGeneration", attribs, ["world", "mBones", "viewProjection", "diffuseMatrix", "color", "emissiveMatrix"], ["diffuseSampler", "emissiveSampler"], join);
-            }
-            return this._glowMapGenerationEffect.isReady();
+            return _super.prototype._isReady.call(this, subMesh, useInstances, emissiveTexture);
         };
         /**
-         * Renders the glowing part of the scene by blending the blurred glowing meshes on top of the rendered scene.
+         * Implementation specific of rendering the generating effect on the main canvas.
+         * @param effect The effect used to render through
          */
-        HighlightLayer.prototype.render = function () {
-            var currentEffect = this._glowMapMergeEffect;
-            // Check
-            if (!currentEffect.isReady() || !this._blurTexture.isReady())
-                return;
-            var engine = this._scene.getEngine();
-            this.onBeforeComposeObservable.notifyObservers(this);
-            // Render
-            engine.enableEffect(currentEffect);
-            engine.setState(false);
+        HighlightLayer.prototype._internalRender = function (effect) {
+            // Texture
+            effect.setTexture("textureSampler", this._blurTexture);
             // Cache
+            var engine = this._engine;
             var previousStencilBuffer = engine.getStencilBuffer();
             var previousStencilFunction = engine.getStencilFunction();
             var previousStencilMask = engine.getStencilMask();
             var previousStencilOperationPass = engine.getStencilOperationPass();
             var previousStencilOperationFail = engine.getStencilOperationFail();
             var previousStencilOperationDepthFail = engine.getStencilOperationDepthFail();
-            var previousAlphaMode = engine.getAlphaMode();
-            // Texture
-            currentEffect.setTexture("textureSampler", this._blurTexture);
-            // VBOs
-            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, currentEffect);
+            var previousStencilReference = engine.getStencilFunctionReference();
             // Stencil operations
             engine.setStencilOperationPass(LIB.Engine.REPLACE);
             engine.setStencilOperationFail(LIB.Engine.KEEP);
             engine.setStencilOperationDepthFail(LIB.Engine.KEEP);
             // Draw order
-            engine.setAlphaMode(this._options.alphaBlendingMode);
             engine.setStencilMask(0x00);
             engine.setStencilBuffer(true);
             engine.setStencilFunctionReference(this._instanceGlowingMeshStencilReference);
+            // 2 passes inner outer
             if (this.outerGlow) {
-                currentEffect.setFloat("offset", 0);
+                effect.setFloat("offset", 0);
                 engine.setStencilFunction(LIB.Engine.NOTEQUAL);
                 engine.drawElementsType(LIB.Material.TriangleFillMode, 0, 6);
             }
             if (this.innerGlow) {
-                currentEffect.setFloat("offset", 1);
+                effect.setFloat("offset", 1);
                 engine.setStencilFunction(LIB.Engine.EQUAL);
                 engine.drawElementsType(LIB.Material.TriangleFillMode, 0, 6);
             }
             // Restore Cache
             engine.setStencilFunction(previousStencilFunction);
             engine.setStencilMask(previousStencilMask);
-            engine.setAlphaMode(previousAlphaMode);
             engine.setStencilBuffer(previousStencilBuffer);
             engine.setStencilOperationPass(previousStencilOperationPass);
             engine.setStencilOperationFail(previousStencilOperationFail);
             engine.setStencilOperationDepthFail(previousStencilOperationDepthFail);
-            engine._stencilState.reset();
-            this.onAfterComposeObservable.notifyObservers(this);
-            // Handle size changes.
-            var size = this._mainTexture.getSize();
-            this.setMainTextureSize();
-            if (size.width !== this._mainTextureDesiredSize.width || size.height !== this._mainTextureDesiredSize.height) {
-                // Recreate RTT and post processes on size change.
-                this.onSizeChangedObservable.notifyObservers(this);
-                this.disposeTextureAndPostProcesses();
-                this.createTextureAndPostProcesses();
+            engine.setStencilFunctionReference(previousStencilReference);
+        };
+        /**
+         * Returns true if the layer contains information to display, otherwise false.
+         */
+        HighlightLayer.prototype.shouldRender = function () {
+            if (_super.prototype.shouldRender.call(this)) {
+                return this._meshes ? true : false;
+            }
+            return false;
+        };
+        /**
+         * Returns true if the mesh should render, otherwise false.
+         * @param mesh The mesh to render
+         * @returns true if it should render otherwise false
+         */
+        HighlightLayer.prototype._shouldRenderMesh = function (mesh) {
+            // Excluded Mesh
+            if (this._excludedMeshes && this._excludedMeshes[mesh.uniqueId]) {
+                return false;
+            }
+            ;
+            return true;
+        };
+        /**
+         * Sets the required values for both the emissive texture and and the main color.
+         */
+        HighlightLayer.prototype._setEmissiveTextureAndColor = function (mesh, subMesh, material) {
+            var highlightLayerMesh = this._meshes[mesh.uniqueId];
+            if (highlightLayerMesh) {
+                this._emissiveTextureAndColor.color.set(highlightLayerMesh.color.r, highlightLayerMesh.color.g, highlightLayerMesh.color.b, 1.0);
+            }
+            else {
+                this._emissiveTextureAndColor.color.set(this.neutralColor.r, this.neutralColor.g, this.neutralColor.b, this.neutralColor.a);
+            }
+            if (highlightLayerMesh && highlightLayerMesh.glowEmissiveOnly && material) {
+                this._emissiveTextureAndColor.texture = material.emissiveTexture;
+                this._emissiveTextureAndColor.color.set(1.0, 1.0, 1.0, 1.0);
+            }
+            else {
+                this._emissiveTextureAndColor.texture = null;
             }
         };
         /**
@@ -542,6 +344,17 @@
             this._excludedMeshes[mesh.uniqueId] = null;
         };
         /**
+         * Determine if a given mesh will be highlighted by the current HighlightLayer
+         * @param mesh mesh to test
+         * @returns true if the mesh will be highlighted by the current HighlightLayer
+         */
+        HighlightLayer.prototype.hasMesh = function (mesh) {
+            if (!this._meshes) {
+                return false;
+            }
+            return this._meshes[mesh.uniqueId] !== undefined && this._meshes[mesh.uniqueId] !== null;
+        };
+        /**
          * Add a mesh in the highlight layer in order to make it glow with the chosen color.
          * @param mesh The mesh to highlight
          * @param color The color of the highlight
@@ -564,13 +377,13 @@
                     // Lambda required for capture due to Observable this context
                     observerHighlight: mesh.onBeforeRenderObservable.add(function (mesh) {
                         if (_this._excludedMeshes && _this._excludedMeshes[mesh.uniqueId]) {
-                            _this.defaultStencilReference(mesh);
+                            _this._defaultStencilReference(mesh);
                         }
                         else {
                             mesh.getScene().getEngine().setStencilFunctionReference(_this._instanceGlowingMeshStencilReference);
                         }
                     }),
-                    observerDefault: mesh.onAfterRenderObservable.add(this.defaultStencilReference),
+                    observerDefault: mesh.onAfterRenderObservable.add(this._defaultStencilReference),
                     glowEmissiveOnly: glowEmissiveOnly
                 };
             }
@@ -603,60 +416,26 @@
             }
         };
         /**
-         * Returns true if the layer contains information to display, otherwise false.
-         */
-        HighlightLayer.prototype.shouldRender = function () {
-            return this.isEnabled && this._shouldRender;
-        };
-        /**
-         * Sets the main texture desired size which is the closest power of two
-         * of the engine canvas size.
-         */
-        HighlightLayer.prototype.setMainTextureSize = function () {
-            if (this._options.mainTextureFixedSize) {
-                this._mainTextureDesiredSize.width = this._options.mainTextureFixedSize;
-                this._mainTextureDesiredSize.height = this._options.mainTextureFixedSize;
-            }
-            else {
-                this._mainTextureDesiredSize.width = this._engine.getRenderWidth() * this._options.mainTextureRatio;
-                this._mainTextureDesiredSize.height = this._engine.getRenderHeight() * this._options.mainTextureRatio;
-                this._mainTextureDesiredSize.width = this._engine.needPOTTextures ? LIB.Tools.GetExponentOfTwo(this._mainTextureDesiredSize.width, this._maxSize) : this._mainTextureDesiredSize.width;
-                this._mainTextureDesiredSize.height = this._engine.needPOTTextures ? LIB.Tools.GetExponentOfTwo(this._mainTextureDesiredSize.height, this._maxSize) : this._mainTextureDesiredSize.height;
-            }
-        };
-        /**
          * Force the stencil to the normal expected value for none glowing parts
          */
-        HighlightLayer.prototype.defaultStencilReference = function (mesh) {
-            mesh.getScene().getEngine().setStencilFunctionReference(HighlightLayer.normalMeshStencilReference);
+        HighlightLayer.prototype._defaultStencilReference = function (mesh) {
+            mesh.getScene().getEngine().setStencilFunctionReference(HighlightLayer.NormalMeshStencilReference);
         };
         /**
-         * Dispose only the render target textures and post process.
+         * Free any resources and references associated to a mesh.
+         * Internal use
+         * @param mesh The mesh to free.
          */
-        HighlightLayer.prototype.disposeTextureAndPostProcesses = function () {
-            this._blurTexture.dispose();
-            this._mainTexture.dispose();
-            this._downSamplePostprocess.dispose();
-            this._horizontalBlurPostprocess.dispose();
-            this._verticalBlurPostprocess.dispose();
+        HighlightLayer.prototype._disposeMesh = function (mesh) {
+            this.removeMesh(mesh);
+            this.removeExcludedMesh(mesh);
         };
         /**
          * Dispose the highlight layer and free resources.
          */
         HighlightLayer.prototype.dispose = function () {
-            var vertexBuffer = this._vertexBuffers[LIB.VertexBuffer.PositionKind];
-            if (vertexBuffer) {
-                vertexBuffer.dispose();
-                this._vertexBuffers[LIB.VertexBuffer.PositionKind] = null;
-            }
-            if (this._indexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._indexBuffer);
-                this._indexBuffer = null;
-            }
-            // Clean textures and post processes
-            this.disposeTextureAndPostProcesses();
             if (this._meshes) {
-                // Clean mesh references
+                // Clean mesh references 
                 for (var id in this._meshes) {
                     var meshHighlight = this._meshes[id];
                     if (meshHighlight && meshHighlight.mesh) {
@@ -684,36 +463,111 @@
                 }
                 this._excludedMeshes = null;
             }
-            // Remove from scene
-            var index = this._scene.highlightLayers.indexOf(this, 0);
-            if (index > -1) {
-                this._scene.highlightLayers.splice(index, 1);
-            }
-            // Callback
-            this.onDisposeObservable.notifyObservers(this);
-            this.onDisposeObservable.clear();
-            this.onBeforeRenderMainTextureObservable.clear();
-            this.onBeforeBlurObservable.clear();
-            this.onBeforeComposeObservable.clear();
-            this.onAfterComposeObservable.clear();
-            this.onSizeChangedObservable.clear();
+            _super.prototype.dispose.call(this);
         };
+        /**
+          * Gets the class name of the effect layer
+          * @returns the string with the class name of the effect layer
+          */
+        HighlightLayer.prototype.getClassName = function () {
+            return "HighlightLayer";
+        };
+        /**
+         * Serializes this Highlight layer
+         * @returns a serialized Highlight layer object
+         */
+        HighlightLayer.prototype.serialize = function () {
+            var serializationObject = LIB.SerializationHelper.Serialize(this);
+            serializationObject.customType = "LIB.HighlightLayer";
+            // Highlighted meshes
+            serializationObject.meshes = [];
+            if (this._meshes) {
+                for (var m in this._meshes) {
+                    var mesh = this._meshes[m];
+                    if (mesh) {
+                        serializationObject.meshes.push({
+                            glowEmissiveOnly: mesh.glowEmissiveOnly,
+                            color: mesh.color.asArray(),
+                            meshId: mesh.mesh.id
+                        });
+                    }
+                }
+            }
+            // Excluded meshes
+            serializationObject.excludedMeshes = [];
+            if (this._excludedMeshes) {
+                for (var e in this._excludedMeshes) {
+                    var excludedMesh = this._excludedMeshes[e];
+                    if (excludedMesh) {
+                        serializationObject.excludedMeshes.push(excludedMesh.mesh.id);
+                    }
+                }
+            }
+            return serializationObject;
+        };
+        /**
+         * Creates a Highlight layer from parsed Highlight layer data
+         * @param parsedHightlightLayer defines the Highlight layer data
+         * @param scene defines the current scene
+         * @param rootUrl defines the root URL containing the Highlight layer information
+         * @returns a parsed Highlight layer
+         */
+        HighlightLayer.Parse = function (parsedHightlightLayer, scene, rootUrl) {
+            var hl = LIB.SerializationHelper.Parse(function () { return new HighlightLayer(parsedHightlightLayer.name, scene, parsedHightlightLayer.options); }, parsedHightlightLayer, scene, rootUrl);
+            var index;
+            // Excluded meshes
+            for (index = 0; index < parsedHightlightLayer.excludedMeshes.length; index++) {
+                var mesh = scene.getMeshByID(parsedHightlightLayer.excludedMeshes[index]);
+                if (mesh) {
+                    hl.addExcludedMesh(mesh);
+                }
+            }
+            // Included meshes
+            for (index = 0; index < parsedHightlightLayer.meshes.length; index++) {
+                var highlightedMesh = parsedHightlightLayer.meshes[index];
+                var mesh = scene.getMeshByID(highlightedMesh.meshId);
+                if (mesh) {
+                    hl.addMesh(mesh, LIB.Color3.FromArray(highlightedMesh.color), highlightedMesh.glowEmissiveOnly);
+                }
+            }
+            return hl;
+        };
+        /**
+         * Effect Name of the highlight layer.
+         */
+        HighlightLayer.EffectName = "HighlightLayer";
         /**
          * The neutral color used during the preparation of the glow effect.
          * This is black by default as the blend operation is a blend operation.
          */
-        HighlightLayer.neutralColor = new LIB.Color4(0, 0, 0, 0);
+        HighlightLayer.NeutralColor = new LIB.Color4(0, 0, 0, 0);
         /**
          * Stencil value used for glowing meshes.
          */
-        HighlightLayer.glowingMeshStencilReference = 0x02;
+        HighlightLayer.GlowingMeshStencilReference = 0x02;
         /**
          * Stencil value used for the other meshes in the scene.
          */
-        HighlightLayer.normalMeshStencilReference = 0x01;
+        HighlightLayer.NormalMeshStencilReference = 0x01;
+        __decorate([
+            LIB.serialize()
+        ], HighlightLayer.prototype, "innerGlow", void 0);
+        __decorate([
+            LIB.serialize()
+        ], HighlightLayer.prototype, "outerGlow", void 0);
+        __decorate([
+            LIB.serialize()
+        ], HighlightLayer.prototype, "blurHorizontalSize", null);
+        __decorate([
+            LIB.serialize()
+        ], HighlightLayer.prototype, "blurVerticalSize", null);
+        __decorate([
+            LIB.serialize("options")
+        ], HighlightLayer.prototype, "_options", void 0);
         return HighlightLayer;
-    }());
+    }(LIB.EffectLayer));
     LIB.HighlightLayer = HighlightLayer;
 })(LIB || (LIB = {}));
 
-//# sourceMappingURL=LIB.highlightlayer.js.map
+//# sourceMappingURL=LIB.highlightLayer.js.map
+//# sourceMappingURL=LIB.highlightLayer.js.map

@@ -1,3 +1,13 @@
+
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
+var LIB;
 (function (LIB) {
     var compileShader = function (gl, source, type, defines, shaderVersion) {
         return compileRawShader(gl, shaderVersion + (defines ? defines + "\n" : "") + source, type);
@@ -154,6 +164,9 @@
         }
         return BufferPointer;
     }());
+    /**
+     * Interface for attribute information associated with buffer instanciation
+     */
     var InstancingAttributeInfo = /** @class */ (function () {
         function InstancingAttributeInfo() {
         }
@@ -170,7 +183,16 @@
     }());
     LIB.RenderTargetCreationOptions = RenderTargetCreationOptions;
     /**
-     * Regroup several parameters relative to the browser in use
+     * Define options used to create a depth texture
+     */
+    var DepthTextureCreationOptions = /** @class */ (function () {
+        function DepthTextureCreationOptions() {
+        }
+        return DepthTextureCreationOptions;
+    }());
+    LIB.DepthTextureCreationOptions = DepthTextureCreationOptions;
+    /**
+     * Class used to describe the capabilities of the engine relatively to the current browser
      */
     var EngineCapabilities = /** @class */ (function () {
         function EngineCapabilities() {
@@ -179,28 +201,59 @@
     }());
     LIB.EngineCapabilities = EngineCapabilities;
     /**
-     * The engine class is responsible for interfacing with all lower-level APIs such as WebGL and Audio.
+     * The engine class is responsible for interfacing with all lower-level APIs such as WebGL and Audio
      */
     var Engine = /** @class */ (function () {
         /**
-         * @constructor
-         * @param {HTMLCanvasElement | WebGLRenderingContext} canvasOrContext - the canvas or the webgl context to be used for rendering
-         * @param {boolean} [antialias] - enable antialias
-         * @param options - further options to be sent to the getContext function
+         * Creates a new engine
+         * @param canvasOrContext defines the canvas or WebGL context to use for rendering
+         * @param antialias defines enable antialiasing (default: false)
+         * @param options defines further options to be sent to the getContext() function
+         * @param adaptToDeviceRatio defines whether to adapt to the device's viewport characteristics (default: false)
          */
         function Engine(canvasOrContext, antialias, options, adaptToDeviceRatio) {
             if (adaptToDeviceRatio === void 0) { adaptToDeviceRatio = false; }
             var _this = this;
             // Public members
+            /**
+             * Gets or sets a boolean that indicates if textures must be forced to power of 2 size even if not required
+             */
             this.forcePOTTextures = false;
+            /**
+             * Gets a boolean indicating if the engine is currently rendering in fullscreen mode
+             */
             this.isFullscreen = false;
+            /**
+             * Gets a boolean indicating if the pointer is currently locked
+             */
             this.isPointerLock = false;
+            /**
+             * Gets or sets a boolean indicating if back faces must be culled (true by default)
+             */
             this.cullBackFaces = true;
+            /**
+             * Gets or sets a boolean indicating if the engine must keep rendering even if the window is not in foregroun
+             */
             this.renderEvenInBackground = true;
+            /**
+             * Gets or sets a boolean indicating that cache can be kept between frames
+             */
             this.preventCacheWipeBetweenFrames = false;
-            // To enable/disable IDB support and avoid XHR on .manifest
+            /**
+             * Gets or sets a boolean to enable/disable IndexedDB support and avoid XHR on .manifest
+             **/
             this.enableOfflineSupport = false;
+            /**
+             * Gets or sets a boolean to enable/disable checking manifest if IndexedDB support is enabled (LIB.js will always consider the database is up to date)
+             **/
+            this.disableManifestCheck = false;
+            /**
+             * Gets the list of created scenes
+             */
             this.scenes = new Array();
+            /**
+             * Gets the list of created postprocesses
+             */
             this.postProcesses = new Array();
             // Observables
             /**
@@ -228,7 +281,11 @@
             this._vrSupported = false;
             this._vrExclusivePointerMode = false;
             // Uniform buffers list
+            /**
+             * Gets or sets a boolean indicating that uniform buffers must be disabled even if they are supported
+             */
             this.disableUniformBuffers = false;
+            /** @hidden */
             this._uniformBuffers = new Array();
             // Observables
             /**
@@ -249,13 +306,32 @@
             this.onAfterShaderCompilationObservable = new LIB.Observable();
             this._windowIsBackground = false;
             this._webGLVersion = 1.0;
+            /** @hidden */
             this._badOS = false;
+            /** @hidden */
             this._badDesktopOS = false;
+            /**
+             * Gets or sets a value indicating if we want to disable texture binding optmization.
+             * This could be required on some buggy drivers which wants to have textures bound in a progressive order.
+             * By default LIB.js will try to let textures bound where they are and only update the samplers to point where the texture is
+             */
+            this.disableTextureBindingOptimization = false;
+            /**
+             * Observable signaled when VR display mode changes
+             */
             this.onVRDisplayChangedObservable = new LIB.Observable();
+            /**
+             * Observable signaled when VR request present is complete
+             */
             this.onVRRequestPresentComplete = new LIB.Observable();
+            /**
+             * Observable signaled when VR request present starts
+             */
             this.onVRRequestPresentStart = new LIB.Observable();
             this._colorWrite = true;
+            /** @hidden */
             this._drawCalls = new LIB.PerfCounter();
+            /** @hidden */
             this._textureCollisions = new LIB.PerfCounter();
             this._renderingQueueLaunched = false;
             this._activeRenderLoops = new Array();
@@ -263,7 +339,13 @@
             this._deterministicLockstep = false;
             this._lockstepMaxSteps = 4;
             // Lost context
+            /**
+             * Observable signaled when a context lost event is raised
+             */
             this.onContextLostObservable = new LIB.Observable();
+            /**
+             * Observable signaled when a context restored event is raised
+             */
             this.onContextRestoredObservable = new LIB.Observable();
             this._contextWasLost = false;
             this._doNotHandleContextLost = false;
@@ -276,14 +358,21 @@
              */
             this.disablePerformanceMonitorInBackground = false;
             // States
-            this._depthCullingState = new LIB.Internals._DepthCullingState();
-            this._stencilState = new LIB.Internals._StencilState();
-            this._alphaState = new LIB.Internals._AlphaState();
+            /** @hidden */
+            this._depthCullingState = new LIB._DepthCullingState();
+            /** @hidden */
+            this._stencilState = new LIB._StencilState();
+            /** @hidden */
+            this._alphaState = new LIB._AlphaState();
+            /** @hidden */
             this._alphaMode = Engine.ALPHA_DISABLE;
             // Cache
             this._internalTexturesCache = new Array();
+            /** @hidden */
+            this._activeChannel = 0;
+            this._currentTextureChannel = -1;
+            /** @hidden */
             this._boundTexturesCache = {};
-            this._boundTexturesStack = new Array();
             this._compiledEffects = {};
             this._vertexAttribArraysEnabled = [];
             this._uintIndicesCurrentlySet = false;
@@ -291,9 +380,12 @@
             this._currentBufferPointers = new Array();
             this._currentInstanceLocations = new Array();
             this._currentInstanceBuffers = new Array();
+            this._firstBoundInternalTextureTracker = new LIB.DummyInternalTextureTracker();
+            this._lastBoundInternalTextureTracker = new LIB.DummyInternalTextureTracker();
             this._vaoRecordInProgress = false;
             this._mustWipeVertexAttributes = false;
             this._nextFreeTextureSlots = new Array();
+            this._maxSimultaneousTextures = 0;
             this._activeRequests = new Array();
             // Hardware supported Compressed Textures
             this._texturesSupported = new Array();
@@ -313,6 +405,8 @@
                 }
             };
             this._boundUniforms = {};
+            // Register promises
+            LIB.PromisePolyfill.Apply();
             var canvas = null;
             Engine.Instances.push(this);
             if (!canvasOrContext) {
@@ -344,14 +438,35 @@
                 this._lockstepMaxSteps = options.lockstepMaxSteps;
                 this._doNotHandleContextLost = options.doNotHandleContextLost ? true : false;
                 // Exceptions
-                if (!options.disableWebGL2Support) {
-                    if (navigator && navigator.userAgent) {
-                        var ua = navigator.userAgent;
-                        for (var _i = 0, _a = Engine.WebGL2UniformBuffersExceptionList; _i < _a.length; _i++) {
-                            var exception = _a[_i];
-                            if (ua.indexOf(exception) > -1) {
-                                this.disableUniformBuffers = true;
-                                break;
+                if (navigator && navigator.userAgent) {
+                    var ua = navigator.userAgent;
+                    for (var _i = 0, _a = Engine.ExceptionList; _i < _a.length; _i++) {
+                        var exception = _a[_i];
+                        var key = exception.key;
+                        var targets = exception.targets;
+                        if (ua.indexOf(key) > -1) {
+                            if (exception.capture && exception.captureConstraint) {
+                                var capture = exception.capture;
+                                var constraint = exception.captureConstraint;
+                                var regex = new RegExp(capture);
+                                var matches = regex.exec(ua);
+                                if (matches && matches.length > 0) {
+                                    var capturedValue = parseInt(matches[matches.length - 1]);
+                                    if (capturedValue >= constraint) {
+                                        continue;
+                                    }
+                                }
+                            }
+                            for (var _b = 0, targets_1 = targets; _b < targets_1.length; _b++) {
+                                var target = targets_1[_b];
+                                switch (target) {
+                                    case "uniformBuffer":
+                                        this.disableUniformBuffers = true;
+                                        break;
+                                    case "textureBindingOptimization":
+                                        this.disableTextureBindingOptimization = true;
+                                        break;
+                                }
                             }
                         }
                     }
@@ -402,8 +517,8 @@
                     }
                     _this._windowIsBackground = false;
                 };
-                this._onCanvasPointerOut = function () {
-                    _this.onCanvasPointerOutObservable.notifyObservers(_this);
+                this._onCanvasPointerOut = function (ev) {
+                    _this.onCanvasPointerOutObservable.notifyObservers(ev);
                 };
                 window.addEventListener("blur", this._onBlur);
                 window.addEventListener("focus", this._onFocus);
@@ -511,6 +626,7 @@
             for (var i = 0; i < this._caps.maxVertexAttribs; i++) {
                 this._currentBufferPointers[i] = new BufferPointer();
             }
+            this._linkTrackers(this._firstBoundInternalTextureTracker, this._lastBoundInternalTextureTracker);
             // Load WebVR Devices
             if (options.autoEnableWebVR) {
                 this.initWebVR();
@@ -519,10 +635,13 @@
             this._badOS = /iPad/i.test(navigator.userAgent) || /iPhone/i.test(navigator.userAgent);
             // Detect if we are running on a faulty buggy desktop OS.
             this._badDesktopOS = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            LIB.Tools.Log("LIB.js engine (v" + Engine.Version + ") launched");
+            console.log("LIB.js engine (v" + Engine.Version + ") launched");
             this.enableOfflineSupport = (LIB.Database !== undefined);
         }
         Object.defineProperty(Engine, "LastCreatedEngine", {
+            /**
+             * Gets the latest created engine
+             */
             get: function () {
                 if (Engine.Instances.length === 0) {
                     return null;
@@ -533,6 +652,9 @@
             configurable: true
         });
         Object.defineProperty(Engine, "LastCreatedScene", {
+            /**
+             * Gets the latest created scene
+             */
             get: function () {
                 var lastCreatedEngine = Engine.LastCreatedEngine;
                 if (!lastCreatedEngine) {
@@ -548,6 +670,8 @@
         });
         /**
          * Will flag all materials in all scenes in all engines as dirty to trigger new shader compilation
+         * @param flag defines which part of the materials must be marked as dirty
+         * @param predicate defines a predicate used to filter which materials should be affected
          */
         Engine.MarkAllMaterialsAsDirty = function (flag, predicate) {
             for (var engineIndex = 0; engineIndex < Engine.Instances.length; engineIndex++) {
@@ -558,6 +682,7 @@
             }
         };
         Object.defineProperty(Engine, "NEVER", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will never pass. i.e. Nothing will be drawn */
             get: function () {
                 return Engine._NEVER;
             },
@@ -565,6 +690,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALWAYS", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will always pass. i.e. Pixels will be drawn in the order they are drawn */
             get: function () {
                 return Engine._ALWAYS;
             },
@@ -572,6 +698,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "LESS", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than the stored value */
             get: function () {
                 return Engine._LESS;
             },
@@ -579,6 +706,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "EQUAL", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is equals to the stored value */
             get: function () {
                 return Engine._EQUAL;
             },
@@ -586,6 +714,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "LEQUAL", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than or equal to the stored value */
             get: function () {
                 return Engine._LEQUAL;
             },
@@ -593,6 +722,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "GREATER", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than the stored value */
             get: function () {
                 return Engine._GREATER;
             },
@@ -600,6 +730,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "GEQUAL", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than or equal to the stored value */
             get: function () {
                 return Engine._GEQUAL;
             },
@@ -607,6 +738,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "NOTEQUAL", {
+            /** Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is not equal to the stored value */
             get: function () {
                 return Engine._NOTEQUAL;
             },
@@ -614,6 +746,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "KEEP", {
+            /** Passed to stencilOperation to specify that stencil value must be kept */
             get: function () {
                 return Engine._KEEP;
             },
@@ -621,6 +754,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "REPLACE", {
+            /** Passed to stencilOperation to specify that stencil value must be replaced */
             get: function () {
                 return Engine._REPLACE;
             },
@@ -628,6 +762,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "INCR", {
+            /** Passed to stencilOperation to specify that stencil value must be incremented */
             get: function () {
                 return Engine._INCR;
             },
@@ -635,6 +770,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DECR", {
+            /** Passed to stencilOperation to specify that stencil value must be decremented */
             get: function () {
                 return Engine._DECR;
             },
@@ -642,6 +778,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "INVERT", {
+            /** Passed to stencilOperation to specify that stencil value must be inverted */
             get: function () {
                 return Engine._INVERT;
             },
@@ -649,6 +786,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "INCR_WRAP", {
+            /** Passed to stencilOperation to specify that stencil value must be incremented with wrapping */
             get: function () {
                 return Engine._INCR_WRAP;
             },
@@ -656,6 +794,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DECR_WRAP", {
+            /** Passed to stencilOperation to specify that stencil value must be decremented with wrapping */
             get: function () {
                 return Engine._DECR_WRAP;
             },
@@ -663,6 +802,8 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_DISABLE", {
+            // Alpha
+            /** Defines that alpha blending is disabled */
             get: function () {
                 return Engine._ALPHA_DISABLE;
             },
@@ -670,6 +811,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_ONEONE", {
+            /** Defines that alpha blending to SRC + DEST */
             get: function () {
                 return Engine._ALPHA_ONEONE;
             },
@@ -677,6 +819,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_ADD", {
+            /** Defines that alpha blending to SRC ALPHA * SRC + DEST */
             get: function () {
                 return Engine._ALPHA_ADD;
             },
@@ -684,6 +827,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_COMBINE", {
+            /** Defines that alpha blending to SRC ALPHA * SRC + (1 - SRC ALPHA) * DEST */
             get: function () {
                 return Engine._ALPHA_COMBINE;
             },
@@ -691,6 +835,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_SUBTRACT", {
+            /** Defines that alpha blending to DEST - SRC * DEST */
             get: function () {
                 return Engine._ALPHA_SUBTRACT;
             },
@@ -698,6 +843,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_MULTIPLY", {
+            /** Defines that alpha blending to SRC * DEST */
             get: function () {
                 return Engine._ALPHA_MULTIPLY;
             },
@@ -705,6 +851,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_MAXIMIZED", {
+            /** Defines that alpha blending to SRC ALPHA * SRC + (1 - SRC) * DEST */
             get: function () {
                 return Engine._ALPHA_MAXIMIZED;
             },
@@ -712,6 +859,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_PREMULTIPLIED", {
+            /** Defines that alpha blending to SRC + (1 - SRC ALPHA) * DEST */
             get: function () {
                 return Engine._ALPHA_PREMULTIPLIED;
             },
@@ -719,6 +867,10 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_PREMULTIPLIED_PORTERDUFF", {
+            /**
+             * Defines that alpha blending to SRC + (1 - SRC ALPHA) * DEST
+             * Alpha will be set to (1 - SRC ALPHA) * DEST ALPHA
+             */
             get: function () {
                 return Engine._ALPHA_PREMULTIPLIED_PORTERDUFF;
             },
@@ -726,6 +878,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_INTERPOLATE", {
+            /** Defines that alpha blending to CST * SRC + (1 - CST) * DEST */
             get: function () {
                 return Engine._ALPHA_INTERPOLATE;
             },
@@ -733,6 +886,10 @@
             configurable: true
         });
         Object.defineProperty(Engine, "ALPHA_SCREENMODE", {
+            /**
+             * Defines that alpha blending to SRC + (1 - SRC) * DEST
+             * Alpha will be set to SRC ALPHA + (1 - SRC ALPHA) * DEST ALPHA
+             */
             get: function () {
                 return Engine._ALPHA_SCREENMODE;
             },
@@ -740,6 +897,8 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DELAYLOADSTATE_NONE", {
+            // Delays
+            /** Defines that the ressource is not delayed*/
             get: function () {
                 return Engine._DELAYLOADSTATE_NONE;
             },
@@ -747,6 +906,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DELAYLOADSTATE_LOADED", {
+            /** Defines that the ressource was successfully delay loaded */
             get: function () {
                 return Engine._DELAYLOADSTATE_LOADED;
             },
@@ -754,6 +914,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DELAYLOADSTATE_LOADING", {
+            /** Defines that the ressource is currently delay loading */
             get: function () {
                 return Engine._DELAYLOADSTATE_LOADING;
             },
@@ -761,6 +922,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "DELAYLOADSTATE_NOTLOADED", {
+            /** Defines that the ressource is delayed and has not started loading */
             get: function () {
                 return Engine._DELAYLOADSTATE_NOTLOADED;
             },
@@ -768,6 +930,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTUREFORMAT_ALPHA", {
+            /** ALPHA */
             get: function () {
                 return Engine._TEXTUREFORMAT_ALPHA;
             },
@@ -775,13 +938,55 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTUREFORMAT_LUMINANCE", {
+            /** LUMINANCE */
             get: function () {
                 return Engine._TEXTUREFORMAT_LUMINANCE;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Engine, "TEXTUREFORMAT_R32F", {
+            /**
+             * R32F
+             */
+            get: function () {
+                return Engine._TEXTUREFORMAT_R32F;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Engine, "TEXTUREFORMAT_RG32F", {
+            /**
+             * RG32F
+             */
+            get: function () {
+                return Engine._TEXTUREFORMAT_RG32F;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Engine, "TEXTUREFORMAT_RGB32F", {
+            /**
+             * RGB32F
+             */
+            get: function () {
+                return Engine._TEXTUREFORMAT_RGB32F;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Engine, "TEXTUREFORMAT_RGBA32F", {
+            /**
+             * RGBA32F
+             */
+            get: function () {
+                return Engine._TEXTUREFORMAT_RGBA32F;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Engine, "TEXTUREFORMAT_LUMINANCE_ALPHA", {
+            /** LUMINANCE_ALPHA */
             get: function () {
                 return Engine._TEXTUREFORMAT_LUMINANCE_ALPHA;
             },
@@ -789,6 +994,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTUREFORMAT_RGB", {
+            /** RGB */
             get: function () {
                 return Engine._TEXTUREFORMAT_RGB;
             },
@@ -796,6 +1002,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTUREFORMAT_RGBA", {
+            /** RGBA */
             get: function () {
                 return Engine._TEXTUREFORMAT_RGBA;
             },
@@ -803,6 +1010,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTURETYPE_UNSIGNED_INT", {
+            /** UNSIGNED_INT */
             get: function () {
                 return Engine._TEXTURETYPE_UNSIGNED_INT;
             },
@@ -810,6 +1018,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTURETYPE_FLOAT", {
+            /** FLOAT */
             get: function () {
                 return Engine._TEXTURETYPE_FLOAT;
             },
@@ -817,6 +1026,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "TEXTURETYPE_HALF_FLOAT", {
+            /** HALF_FLOAT */
             get: function () {
                 return Engine._TEXTURETYPE_HALF_FLOAT;
             },
@@ -824,6 +1034,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "SCALEMODE_FLOOR", {
+            /** Defines that texture rescaling will use a floor to find the closer power of 2 size */
             get: function () {
                 return Engine._SCALEMODE_FLOOR;
             },
@@ -831,6 +1042,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "SCALEMODE_NEAREST", {
+            /** Defines that texture rescaling will look for the nearest power of 2 size */
             get: function () {
                 return Engine._SCALEMODE_NEAREST;
             },
@@ -838,6 +1050,7 @@
             configurable: true
         });
         Object.defineProperty(Engine, "SCALEMODE_CEILING", {
+            /** Defines that texture rescaling will use a ceil to find the closer power of 2 size */
             get: function () {
                 return Engine._SCALEMODE_CEILING;
             },
@@ -845,13 +1058,20 @@
             configurable: true
         });
         Object.defineProperty(Engine, "Version", {
+            /**
+             * Returns the current version of the framework
+             */
             get: function () {
-                return "3.2.0-alpha1";
+                return "3.2.0";
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "isInVRExclusivePointerMode", {
+            /**
+             * Gets a boolean indicating that the engine is currently in VR exclusive mode for the pointers
+             * @see https://docs.microsoft.com/en-us/microsoft-edge/webvr/essentials#mouse-input
+             */
             get: function () {
                 return this._vrExclusivePointerMode;
             },
@@ -859,6 +1079,10 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "supportsUniformBuffers", {
+            /**
+             * Gets a boolean indicating that the engine supports uniform buffers
+             * @see http://doc.LIBjs.com/features/webgl2#uniform-buffer-objets
+             */
             get: function () {
                 return this.webGLVersion > 1 && !this.disableUniformBuffers;
             },
@@ -866,27 +1090,21 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "needPOTTextures", {
+            /**
+             * Gets a boolean indicating that only power of 2 textures are supported
+             * Please note that you can still use non power of 2 textures but in this case the engine will forcefully convert them
+             */
             get: function () {
                 return this._webGLVersion < 2 || this.forcePOTTextures;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Engine.prototype, "badOS", {
-            get: function () {
-                return this._badOS;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Engine.prototype, "badDesktopOS", {
-            get: function () {
-                return this._badDesktopOS;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(Engine.prototype, "performanceMonitor", {
+            /**
+             * Gets the performance monitor attached to this engine
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene#engineinstrumentation
+             */
             get: function () {
                 return this._performanceMonitor;
             },
@@ -894,6 +1112,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "texturesSupported", {
+            /**
+             * Gets the list of texture formats supported
+             */
             get: function () {
                 return this._texturesSupported;
             },
@@ -901,6 +1122,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "textureFormatInUse", {
+            /**
+             * Gets the list of texture formats in use
+             */
             get: function () {
                 return this._textureFormatInUse;
             },
@@ -908,6 +1132,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "currentViewport", {
+            /**
+             * Gets the current viewport
+             */
             get: function () {
                 return this._cachedViewport;
             },
@@ -915,7 +1142,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "emptyTexture", {
-            // Empty texture
+            /**
+             * Gets the default empty texture
+             */
             get: function () {
                 if (!this._emptyTexture) {
                     this._emptyTexture = this.createRawTexture(new Uint8Array(4), 1, 1, Engine.TEXTUREFORMAT_RGBA, false, false, LIB.Texture.NEAREST_SAMPLINGMODE);
@@ -926,6 +1155,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "emptyTexture3D", {
+            /**
+             * Gets the default empty 3D texture
+             */
             get: function () {
                 if (!this._emptyTexture3D) {
                     this._emptyTexture3D = this.createRawTexture3D(new Uint8Array(4), 1, 1, 1, Engine.TEXTUREFORMAT_RGBA, false, false, LIB.Texture.NEAREST_SAMPLINGMODE);
@@ -936,6 +1168,9 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "emptyCubeTexture", {
+            /**
+             * Gets the default empty cube texture
+             */
             get: function () {
                 if (!this._emptyCubeTexture) {
                     var faceData = new Uint8Array(4);
@@ -1034,16 +1269,16 @@
             }
             // Checks if some of the format renders first to allow the use of webgl inspector.
             this._caps.colorBufferFloat = this._webGLVersion > 1 && this._gl.getExtension('EXT_color_buffer_float');
-            this._caps.textureFloat = this._webGLVersion > 1 || this._gl.getExtension('OES_texture_float');
-            this._caps.textureFloatLinearFiltering = this._caps.textureFloat && this._gl.getExtension('OES_texture_float_linear');
-            this._caps.textureFloatRender = this._caps.textureFloat && this._canRenderToFloatFramebuffer();
-            this._caps.textureHalfFloat = this._webGLVersion > 1 || this._gl.getExtension('OES_texture_half_float');
-            this._caps.textureHalfFloatLinearFiltering = this._webGLVersion > 1 || (this._caps.textureHalfFloat && this._gl.getExtension('OES_texture_half_float_linear'));
+            this._caps.textureFloat = (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_float')) ? true : false;
+            this._caps.textureFloatLinearFiltering = this._caps.textureFloat && this._gl.getExtension('OES_texture_float_linear') ? true : false;
+            this._caps.textureFloatRender = this._caps.textureFloat && this._canRenderToFloatFramebuffer() ? true : false;
+            this._caps.textureHalfFloat = (this._webGLVersion > 1 || this._gl.getExtension('OES_texture_half_float')) ? true : false;
+            this._caps.textureHalfFloatLinearFiltering = (this._webGLVersion > 1 || (this._caps.textureHalfFloat && this._gl.getExtension('OES_texture_half_float_linear'))) ? true : false;
             if (this._webGLVersion > 1) {
                 this._gl.HALF_FLOAT_OES = 0x140B;
             }
             this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this._canRenderToHalfFloatFramebuffer();
-            this._caps.textureLOD = this._webGLVersion > 1 || this._gl.getExtension('EXT_shader_texture_lod');
+            this._caps.textureLOD = (this._webGLVersion > 1 || this._gl.getExtension('EXT_shader_texture_lod')) ? true : false;
             // Draw buffers
             if (this._webGLVersion > 1) {
                 this._caps.drawBuffersExtension = true;
@@ -1070,6 +1305,7 @@
                 var depthTextureExtension = this._gl.getExtension('WEBGL_depth_texture');
                 if (depthTextureExtension != null) {
                     this._caps.depthTextureExtension = true;
+                    this._gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
                 }
             }
             // Vertex array object
@@ -1130,11 +1366,15 @@
             this.setDepthFunctionToLessOrEqual();
             this.setDepthWrite(true);
             // Texture maps
-            for (var slot = 0; slot < this._caps.maxTexturesImageUnits; slot++) {
+            this._maxSimultaneousTextures = this._caps.maxCombinedTexturesImageUnits;
+            for (var slot = 0; slot < this._maxSimultaneousTextures; slot++) {
                 this._nextFreeTextureSlots.push(slot);
             }
         };
         Object.defineProperty(Engine.prototype, "webGLVersion", {
+            /**
+             * Gets version of the current webGL context
+             */
             get: function () {
                 return this._webGLVersion;
             },
@@ -1161,26 +1401,48 @@
                 this._workingContext = context;
             }
         };
+        /**
+         * Reset the texture cache to empty state
+         */
         Engine.prototype.resetTextureCache = function () {
             for (var key in this._boundTexturesCache) {
+                if (!this._boundTexturesCache.hasOwnProperty(key)) {
+                    continue;
+                }
                 var boundTexture = this._boundTexturesCache[key];
                 if (boundTexture) {
                     this._removeDesignatedSlot(boundTexture);
                 }
                 this._boundTexturesCache[key] = null;
             }
-            this._nextFreeTextureSlots = [];
-            for (var slot = 0; slot < this._caps.maxTexturesImageUnits; slot++) {
-                this._nextFreeTextureSlots.push(slot);
+            if (!this.disableTextureBindingOptimization) {
+                this._nextFreeTextureSlots = [];
+                for (var slot = 0; slot < this._maxSimultaneousTextures; slot++) {
+                    this._nextFreeTextureSlots.push(slot);
+                }
             }
-            this._activeChannel = -1;
+            this._currentTextureChannel = -1;
         };
+        /**
+         * Gets a boolean indicating that the engine is running in deterministic lock step mode
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         * @returns true if engine is in deterministic lock step mode
+         */
         Engine.prototype.isDeterministicLockStep = function () {
             return this._deterministicLockstep;
         };
+        /**
+         * Gets the max steps when engine is running in deterministic lock step
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         * @returns the max steps
+         */
         Engine.prototype.getLockstepMaxSteps = function () {
             return this._lockstepMaxSteps;
         };
+        /**
+         * Gets an object containing information about the current webGL context
+         * @returns an object containing the vender, the renderer and the version of the current webGL context
+         */
         Engine.prototype.getGlInfo = function () {
             return {
                 vendor: this._glVendor,
@@ -1188,11 +1450,22 @@
                 version: this._glVersion
             };
         };
+        /**
+         * Gets current aspect ratio
+         * @param camera defines the camera to use to get the aspect ratio
+         * @param useScreen defines if screen size must be used (or the current render target if any)
+         * @returns a number defining the aspect ratio
+         */
         Engine.prototype.getAspectRatio = function (camera, useScreen) {
             if (useScreen === void 0) { useScreen = false; }
             var viewport = camera.viewport;
             return (this.getRenderWidth(useScreen) * viewport.width) / (this.getRenderHeight(useScreen) * viewport.height);
         };
+        /**
+         * Gets the current render width
+         * @param useScreen defines if screen size must be used (or the current render target if any)
+         * @returns a number defining the current render width
+         */
         Engine.prototype.getRenderWidth = function (useScreen) {
             if (useScreen === void 0) { useScreen = false; }
             if (!useScreen && this._currentRenderTarget) {
@@ -1200,6 +1473,11 @@
             }
             return this._gl.drawingBufferWidth;
         };
+        /**
+         * Gets the current render height
+         * @param useScreen defines if screen size must be used (or the current render target if any)
+         * @returns a number defining the current render height
+         */
         Engine.prototype.getRenderHeight = function (useScreen) {
             if (useScreen === void 0) { useScreen = false; }
             if (!useScreen && this._currentRenderTarget) {
@@ -1207,30 +1485,58 @@
             }
             return this._gl.drawingBufferHeight;
         };
+        /**
+         * Gets the HTML canvas attached with the current webGL context
+         * @returns a HTML canvas
+         */
         Engine.prototype.getRenderingCanvas = function () {
             return this._renderingCanvas;
         };
+        /**
+         * Gets the client rect of the HTML canvas attached with the current webGL context
+         * @returns a client rectanglee
+         */
         Engine.prototype.getRenderingCanvasClientRect = function () {
             if (!this._renderingCanvas) {
                 return null;
             }
             return this._renderingCanvas.getBoundingClientRect();
         };
+        /**
+         * Defines the hardware scaling level.
+         * By default the hardware scaling level is computed from the window device ratio.
+         * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
+         * @param level defines the level to use
+         */
         Engine.prototype.setHardwareScalingLevel = function (level) {
             this._hardwareScalingLevel = level;
             this.resize();
         };
+        /**
+         * Gets the current hardware scaling level.
+         * By default the hardware scaling level is computed from the window device ratio.
+         * if level = 1 then the engine will render at the exact resolution of the canvas. If level = 0.5 then the engine will render at twice the size of the canvas.
+         * @returns a number indicating the current hardware scaling level
+         */
         Engine.prototype.getHardwareScalingLevel = function () {
             return this._hardwareScalingLevel;
         };
+        /**
+         * Gets the list of loaded textures
+         * @returns an array containing all loaded textures
+         */
         Engine.prototype.getLoadedTexturesCache = function () {
             return this._internalTexturesCache;
         };
+        /**
+         * Gets the object containing all engine capabilities
+         * @returns the EngineCapabilities object
+         */
         Engine.prototype.getCaps = function () {
             return this._caps;
         };
         Object.defineProperty(Engine.prototype, "drawCalls", {
-            /** The number of draw calls submitted last frame */
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("drawCalls is deprecated. Please use SceneInstrumentation class");
                 return 0;
@@ -1239,6 +1545,7 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "drawCallsPerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("drawCallsPerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -1246,72 +1553,160 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the current depth function
+         * @returns a number defining the depth function
+         */
         Engine.prototype.getDepthFunction = function () {
             return this._depthCullingState.depthFunc;
         };
+        /**
+         * Sets the current depth function
+         * @param depthFunc defines the function to use
+         */
         Engine.prototype.setDepthFunction = function (depthFunc) {
             this._depthCullingState.depthFunc = depthFunc;
         };
+        /**
+         * Sets the current depth function to GREATER
+         */
         Engine.prototype.setDepthFunctionToGreater = function () {
             this._depthCullingState.depthFunc = this._gl.GREATER;
         };
+        /**
+         * Sets the current depth function to GEQUAL
+         */
         Engine.prototype.setDepthFunctionToGreaterOrEqual = function () {
             this._depthCullingState.depthFunc = this._gl.GEQUAL;
         };
+        /**
+         * Sets the current depth function to LESS
+         */
         Engine.prototype.setDepthFunctionToLess = function () {
             this._depthCullingState.depthFunc = this._gl.LESS;
         };
+        /**
+         * Sets the current depth function to LEQUAL
+         */
         Engine.prototype.setDepthFunctionToLessOrEqual = function () {
             this._depthCullingState.depthFunc = this._gl.LEQUAL;
         };
+        /**
+         * Gets a boolean indicating if stencil buffer is enabled
+         * @returns the current stencil buffer state
+         */
         Engine.prototype.getStencilBuffer = function () {
             return this._stencilState.stencilTest;
         };
+        /**
+         * Enable or disable the stencil buffer
+         * @param enable defines if the stencil buffer must be enabled or disabled
+         */
         Engine.prototype.setStencilBuffer = function (enable) {
             this._stencilState.stencilTest = enable;
         };
+        /**
+         * Gets the current stencil mask
+         * @returns a number defining the new stencil mask to use
+         */
         Engine.prototype.getStencilMask = function () {
             return this._stencilState.stencilMask;
         };
+        /**
+         * Sets the current stencil mask
+         * @param mask defines the new stencil mask to use
+         */
         Engine.prototype.setStencilMask = function (mask) {
             this._stencilState.stencilMask = mask;
         };
+        /**
+         * Gets the current stencil function
+         * @returns a number defining the stencil function to use
+         */
         Engine.prototype.getStencilFunction = function () {
             return this._stencilState.stencilFunc;
         };
+        /**
+         * Gets the current stencil reference value
+         * @returns a number defining the stencil reference value to use
+         */
         Engine.prototype.getStencilFunctionReference = function () {
             return this._stencilState.stencilFuncRef;
         };
+        /**
+         * Gets the current stencil mask
+         * @returns a number defining the stencil mask to use
+         */
         Engine.prototype.getStencilFunctionMask = function () {
             return this._stencilState.stencilFuncMask;
         };
+        /**
+         * Sets the current stencil function
+         * @param stencilFunc defines the new stencil function to use
+         */
         Engine.prototype.setStencilFunction = function (stencilFunc) {
             this._stencilState.stencilFunc = stencilFunc;
         };
+        /**
+         * Sets the current stencil reference
+         * @param reference defines the new stencil reference to use
+         */
         Engine.prototype.setStencilFunctionReference = function (reference) {
             this._stencilState.stencilFuncRef = reference;
         };
+        /**
+         * Sets the current stencil mask
+         * @param mask defines the new stencil mask to use
+         */
         Engine.prototype.setStencilFunctionMask = function (mask) {
             this._stencilState.stencilFuncMask = mask;
         };
+        /**
+         * Gets the current stencil operation when stencil fails
+         * @returns a number defining stencil operation to use when stencil fails
+         */
         Engine.prototype.getStencilOperationFail = function () {
             return this._stencilState.stencilOpStencilFail;
         };
+        /**
+         * Gets the current stencil operation when depth fails
+         * @returns a number defining stencil operation to use when depth fails
+         */
         Engine.prototype.getStencilOperationDepthFail = function () {
             return this._stencilState.stencilOpDepthFail;
         };
+        /**
+         * Gets the current stencil operation when stencil passes
+         * @returns a number defining stencil operation to use when stencil passes
+         */
         Engine.prototype.getStencilOperationPass = function () {
             return this._stencilState.stencilOpStencilDepthPass;
         };
+        /**
+         * Sets the stencil operation to use when stencil fails
+         * @param operation defines the stencil operation to use when stencil fails
+         */
         Engine.prototype.setStencilOperationFail = function (operation) {
             this._stencilState.stencilOpStencilFail = operation;
         };
+        /**
+         * Sets the stencil operation to use when depth fails
+         * @param operation defines the stencil operation to use when depth fails
+         */
         Engine.prototype.setStencilOperationDepthFail = function (operation) {
             this._stencilState.stencilOpDepthFail = operation;
         };
+        /**
+         * Sets the stencil operation to use when stencil passes
+         * @param operation defines the stencil operation to use when stencil passes
+         */
         Engine.prototype.setStencilOperationPass = function (operation) {
             this._stencilState.stencilOpStencilDepthPass = operation;
         };
+        /**
+         * Sets a boolean indicating if the dithering state is enabled or disabled
+         * @param value defines the dithering state
+         */
         Engine.prototype.setDitheringState = function (value) {
             if (value) {
                 this._gl.enable(this._gl.DITHER);
@@ -1320,6 +1715,10 @@
                 this._gl.disable(this._gl.DITHER);
             }
         };
+        /**
+         * Sets a boolean indicating if the rasterizer state is enabled or disabled
+         * @param value defines the rasterizer state
+         */
         Engine.prototype.setRasterizerState = function (value) {
             if (value) {
                 this._gl.disable(this._gl.RASTERIZER_DISCARD);
@@ -1330,7 +1729,7 @@
         };
         /**
          * stop executing a render loop function and remove it from the execution array
-         * @param {Function} [renderFunction] the function to be removed. If not provided all functions will be removed.
+         * @param renderFunction defines the function to be removed. If not provided all functions will be removed.
          */
         Engine.prototype.stopRenderLoop = function (renderFunction) {
             if (!renderFunction) {
@@ -1342,6 +1741,7 @@
                 this._activeRenderLoops.splice(index, 1);
             }
         };
+        /** @hidden */
         Engine.prototype._renderLoop = function () {
             if (!this._contextWasLost) {
                 var shouldRender = true;
@@ -1371,12 +1771,8 @@
             }
         };
         /**
-         * Register and execute a render loop. The engine can have more than one render function.
-         * @param {Function} renderFunction - the function to continuously execute starting the next render loop.
-         * @example
-         * engine.runRenderLoop(function () {
-         *      scene.render()
-         * })
+         * Register and execute a render loop. The engine can have more than one render function
+         * @param renderFunction defines the function to continuously execute
          */
         Engine.prototype.runRenderLoop = function (renderFunction) {
             if (this._activeRenderLoops.indexOf(renderFunction) !== -1) {
@@ -1390,9 +1786,9 @@
             }
         };
         /**
-         * Toggle full screen mode.
-         * @param {boolean} requestPointerLock - should a pointer lock be requested from the user
-         * @param {any} options - an options object to be sent to the requestFullscreen function
+         * Toggle full screen mode
+         * @param requestPointerLock defines if a pointer lock should be requested from the user
+         * @param options defines an option object to be sent to the requestFullscreen function
          */
         Engine.prototype.switchFullscreen = function (requestPointerLock) {
             if (this.isFullscreen) {
@@ -1405,6 +1801,13 @@
                 }
             }
         };
+        /**
+         * Clear the current render buffer or the current render target (if any is set up)
+         * @param color defines the color to use
+         * @param backBuffer defines if the back buffer must be cleared
+         * @param depth defines if the depth buffer must be cleared
+         * @param stencil defines if the stencil buffer must be cleared
+         */
         Engine.prototype.clear = function (color, backBuffer, depth, stencil) {
             if (stencil === void 0) { stencil = false; }
             this.applyStates();
@@ -1423,6 +1826,14 @@
             }
             this._gl.clear(mode);
         };
+        /**
+         * Executes a scissor clear (ie. a clear on a specific portion of the screen)
+         * @param x defines the x-coordinate of the top left corner of the clear rectangle
+         * @param y defines the y-coordinate of the corner of the clear rectangle
+         * @param width defines the width of the clear rectangle
+         * @param height defines the height of the clear rectangle
+         * @param clearColor defines the clear color
+         */
         Engine.prototype.scissorClear = function (x, y, width, height, clearColor) {
             var gl = this._gl;
             // Save state
@@ -1444,9 +1855,9 @@
         };
         /**
          * Set the WebGL's viewport
-         * @param {LIB.Viewport} viewport - the viewport element to be used.
-         * @param {number} [requiredWidth] - the width required for rendering. If not provided the rendering canvas' width is used.
-         * @param {number} [requiredHeight] - the height required for rendering. If not provided the rendering canvas' height is used.
+         * @param viewport defines the viewport element to be used
+         * @param requiredWidth defines the width required for rendering. If not provided the rendering canvas' width is used
+         * @param requiredHeight defines the height required for rendering. If not provided the rendering canvas' height is used
          */
         Engine.prototype.setViewport = function (viewport, requiredWidth, requiredHeight) {
             var width = requiredWidth || this.getRenderWidth();
@@ -1458,8 +1869,11 @@
         };
         /**
          * Directly set the WebGL Viewport
-         * The x, y, width & height are directly passed to the WebGL call
-         * @return the current viewport Object (if any) that is being replaced by this call. You can restore this viewport later on to go back to the original state.
+         * @param x defines the x coordinate of the viewport (in screen space)
+         * @param y defines the y coordinate of the viewport (in screen space)
+         * @param width defines the width of the viewport (in screen space)
+         * @param height defines the height of the viewport (in screen space)
+         * @return the current viewport Object (if any) that is being replaced by this call. You can restore this viewport later on to go back to the original state
          */
         Engine.prototype.setDirectViewport = function (x, y, width, height) {
             var currentViewport = this._cachedViewport;
@@ -1467,16 +1881,22 @@
             this._gl.viewport(x, y, width, height);
             return currentViewport;
         };
+        /**
+         * Begin a new frame
+         */
         Engine.prototype.beginFrame = function () {
             this.onBeginFrameObservable.notifyObservers(this);
             this._measureFps();
         };
+        /**
+         * Enf the current frame
+         */
         Engine.prototype.endFrame = function () {
-            //force a flush in case we are using a bad OS.
+            // Force a flush in case we are using a bad OS.
             if (this._badOS) {
                 this.flushFramebuffer();
             }
-            //submit frame to the vr device, if enabled
+            // Submit frame to the vr device, if enabled
             if (this._vrDisplay && this._vrDisplay.isPresenting) {
                 // TODO: We should only submit the frame if we read frameData successfully.
                 this._vrDisplay.submitFrame();
@@ -1484,11 +1904,7 @@
             this.onEndFrameObservable.notifyObservers(this);
         };
         /**
-         * resize the view according to the canvas' size.
-         * @example
-         *   window.addEventListener("resize", function () {
-         *      engine.resize();
-         *   });
+         * Resize the view according to the canvas' size
          */
         Engine.prototype.resize = function () {
             // We're not resizing the size of the canvas while in VR mode & presenting
@@ -1499,9 +1915,9 @@
             }
         };
         /**
-         * force a specific size of the canvas
-         * @param {number} width - the new canvas' width
-         * @param {number} height - the new canvas' height
+         * Force a specific size of the canvas
+         * @param width defines the new canvas' width
+         * @param height defines the new canvas' height
          */
         Engine.prototype.setSize = function (width, height) {
             if (!this._renderingCanvas) {
@@ -1524,13 +1940,35 @@
             }
         };
         // WebVR functions
+        /**
+         * Gets a boolean indicating if a webVR device was detected
+         * @returns true if a webVR device was detected
+         */
         Engine.prototype.isVRDevicePresent = function () {
             return !!this._vrDisplay;
         };
+        /**
+         * Gets the current webVR device
+         * @returns the current webVR device (or null)
+         */
         Engine.prototype.getVRDevice = function () {
             return this._vrDisplay;
         };
+        /**
+         * Initializes a webVR display and starts listening to display change events
+         * The onVRDisplayChangedObservable will be notified upon these changes
+         * @returns The onVRDisplayChangedObservable
+         */
         Engine.prototype.initWebVR = function () {
+            this.initWebVRAsync();
+            return this.onVRDisplayChangedObservable;
+        };
+        /**
+         * Initializes a webVR display and starts listening to display change events
+         * The onVRDisplayChangedObservable will be notified upon these changes
+         * @returns A promise containing a VRDisplay and if vr is supported
+         */
+        Engine.prototype.initWebVRAsync = function () {
             var _this = this;
             var notifyObservers = function () {
                 var eventArgs = {
@@ -1538,6 +1976,7 @@
                     vrSupported: _this._vrSupported
                 };
                 _this.onVRDisplayChangedObservable.notifyObservers(eventArgs);
+                _this._webVRInitPromise = new Promise(function (res) { res(eventArgs); });
             };
             if (!this._onVrDisplayConnect) {
                 this._onVrDisplayConnect = function (event) {
@@ -1557,9 +1996,15 @@
                 window.addEventListener('vrdisplaydisconnect', this._onVrDisplayDisconnect);
                 window.addEventListener('vrdisplaypresentchange', this._onVrDisplayPresentChange);
             }
-            this._getVRDisplays(notifyObservers);
-            return this.onVRDisplayChangedObservable;
+            this._webVRInitPromise = this._webVRInitPromise || this._getVRDisplaysAsync();
+            this._webVRInitPromise.then(notifyObservers);
+            return this._webVRInitPromise;
         };
+        /**
+         * Call this function to switch to webVR mode
+         * Will do nothing if webVR is not supported or if there is no webVR device
+         * @see http://doc.LIBjs.com/how_to/webvr_camera
+         */
         Engine.prototype.enableVR = function () {
             var _this = this;
             if (this._vrDisplay && !this._vrDisplay.isPresenting) {
@@ -1574,34 +2019,51 @@
                 this._vrDisplay.requestPresent([{ source: this.getRenderingCanvas() }]).then(onResolved).catch(onRejected);
             }
         };
+        /**
+         * Call this function to leave webVR mode
+         * Will do nothing if webVR is not supported or if there is no webVR device
+         * @see http://doc.LIBjs.com/how_to/webvr_camera
+         */
         Engine.prototype.disableVR = function () {
             if (this._vrDisplay && this._vrDisplay.isPresenting) {
                 this._vrDisplay.exitPresent().then(this._onVRFullScreenTriggered).catch(this._onVRFullScreenTriggered);
             }
         };
-        Engine.prototype._getVRDisplays = function (callback) {
+        Engine.prototype._getVRDisplaysAsync = function () {
             var _this = this;
-            var getWebVRDevices = function (devices) {
-                _this._vrSupported = true;
-                // note that devices may actually be an empty array. This is fine;
-                // we expect this._vrDisplay to be undefined in this case.
-                return _this._vrDisplay = devices[0];
-            };
-            if (navigator.getVRDisplays) {
-                navigator.getVRDisplays().then(getWebVRDevices).then(callback).catch(function (error) {
-                    // TODO: System CANNOT support WebVR, despite API presence.
+            return new Promise(function (res, rej) {
+                if (navigator.getVRDisplays) {
+                    navigator.getVRDisplays().then(function (devices) {
+                        _this._vrSupported = true;
+                        // note that devices may actually be an empty array. This is fine;
+                        // we expect this._vrDisplay to be undefined in this case.
+                        _this._vrDisplay = devices[0];
+                        res({
+                            vrDisplay: _this._vrDisplay,
+                            vrSupported: _this._vrSupported
+                        });
+                    });
+                }
+                else {
+                    _this._vrDisplay = undefined;
                     _this._vrSupported = false;
-                    callback();
-                });
-            }
-            else {
-                // TODO: Browser does not support WebVR
-                this._vrDisplay = undefined;
-                this._vrSupported = false;
-                callback();
-            }
+                    res({
+                        vrDisplay: _this._vrDisplay,
+                        vrSupported: _this._vrSupported
+                    });
+                }
+            });
         };
-        Engine.prototype.bindFramebuffer = function (texture, faceIndex, requiredWidth, requiredHeight, forceFullscreenViewport) {
+        /**
+         * Binds the frame buffer to the specified texture.
+         * @param texture The texture to render to or null for the default canvas
+         * @param faceIndex The face of the texture to render to in case of cube texture
+         * @param requiredWidth The width of the target to render to
+         * @param requiredHeight The height of the target to render to
+         * @param forceFullscreenViewport Forces the viewport to be the entire texture/screen if true
+         * @param depthStencilTexture The depth stencil texture to use to render
+         */
+        Engine.prototype.bindFramebuffer = function (texture, faceIndex, requiredWidth, requiredHeight, forceFullscreenViewport, depthStencilTexture) {
             if (this._currentRenderTarget) {
                 this.unBindFramebuffer(this._currentRenderTarget);
             }
@@ -1613,6 +2075,14 @@
                     faceIndex = 0;
                 }
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, texture._webGLTexture, 0);
+                if (depthStencilTexture) {
+                    if (depthStencilTexture._generateStencilBuffer) {
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, 0);
+                    }
+                    else {
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, depthStencilTexture._webGLTexture, 0);
+                    }
+                }
             }
             if (this._cachedViewport && !forceFullscreenViewport) {
                 this.setViewport(this._cachedViewport, requiredWidth, requiredHeight);
@@ -1628,6 +2098,12 @@
                 this._currentFramebuffer = framebuffer;
             }
         };
+        /**
+         * Unbind the current render target texture from the webGL context
+         * @param texture defines the render target texture to unbind
+         * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
+         * @param onBeforeUnbind defines a function which will be called before the effective unbind
+         */
         Engine.prototype.unBindFramebuffer = function (texture, disableGenerateMipMaps, onBeforeUnbind) {
             if (disableGenerateMipMaps === void 0) { disableGenerateMipMaps = false; }
             this._currentRenderTarget = null;
@@ -1652,6 +2128,62 @@
             }
             this.bindUnboundFramebuffer(null);
         };
+        /**
+         * Unbind a list of render target textures from the webGL context
+         * This is used only when drawBuffer extension or webGL2 are active
+         * @param textures defines the render target textures to unbind
+         * @param disableGenerateMipMaps defines a boolean indicating that mipmaps must not be generated
+         * @param onBeforeUnbind defines a function which will be called before the effective unbind
+         */
+        Engine.prototype.unBindMultiColorAttachmentFramebuffer = function (textures, disableGenerateMipMaps, onBeforeUnbind) {
+            if (disableGenerateMipMaps === void 0) { disableGenerateMipMaps = false; }
+            this._currentRenderTarget = null;
+            // If MSAA, we need to bitblt back to main texture
+            var gl = this._gl;
+            if (textures[0]._MSAAFramebuffer) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, textures[0]._MSAAFramebuffer);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, textures[0]._framebuffer);
+                var attachments = textures[0]._attachments;
+                if (!attachments) {
+                    attachments = new Array(textures.length);
+                    textures[0]._attachments = attachments;
+                }
+                for (var i = 0; i < textures.length; i++) {
+                    var texture = textures[i];
+                    for (var j = 0; j < attachments.length; j++) {
+                        attachments[j] = gl.NONE;
+                    }
+                    attachments[i] = gl[this.webGLVersion > 1 ? "COLOR_ATTACHMENT" + i : "COLOR_ATTACHMENT" + i + "_WEBGL"];
+                    gl.readBuffer(attachments[i]);
+                    gl.drawBuffers(attachments);
+                    gl.blitFramebuffer(0, 0, texture.width, texture.height, 0, 0, texture.width, texture.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                }
+                for (var i = 0; i < attachments.length; i++) {
+                    attachments[i] = gl[this.webGLVersion > 1 ? "COLOR_ATTACHMENT" + i : "COLOR_ATTACHMENT" + i + "_WEBGL"];
+                }
+                gl.drawBuffers(attachments);
+            }
+            for (var i = 0; i < textures.length; i++) {
+                var texture = textures[i];
+                if (texture.generateMipMaps && !disableGenerateMipMaps && !texture.isCube) {
+                    this._bindTextureDirectly(gl.TEXTURE_2D, texture);
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                    this._bindTextureDirectly(gl.TEXTURE_2D, null);
+                }
+            }
+            if (onBeforeUnbind) {
+                if (textures[0]._MSAAFramebuffer) {
+                    // Bind the correct framebuffer
+                    this.bindUnboundFramebuffer(textures[0]._framebuffer);
+                }
+                onBeforeUnbind();
+            }
+            this.bindUnboundFramebuffer(null);
+        };
+        /**
+         * Force the mipmap generation for the given render target texture
+         * @param texture defines the render target texture to use
+         */
         Engine.prototype.generateMipMapsForCubemap = function (texture) {
             if (texture.generateMipMaps) {
                 var gl = this._gl;
@@ -1660,9 +2192,15 @@
                 this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             }
         };
+        /**
+         * Force a webGL flush (ie. a flush of all waiting webGL commands)
+         */
         Engine.prototype.flushFramebuffer = function () {
             this._gl.flush();
         };
+        /**
+         * Unbind the current render target and bind the default framebuffer
+         */
         Engine.prototype.restoreDefaultFramebuffer = function () {
             if (this._currentRenderTarget) {
                 this.unBindFramebuffer(this._currentRenderTarget);
@@ -1676,6 +2214,12 @@
             this.wipeCaches();
         };
         // UBOs
+        /**
+         * Create an uniform buffer
+         * @see http://doc.LIBjs.com/features/webgl2#uniform-buffer-objets
+         * @param elements defines the content of the uniform buffer
+         * @returns the webGL uniform buffer
+         */
         Engine.prototype.createUniformBuffer = function (elements) {
             var ubo = this._gl.createBuffer();
             if (!ubo) {
@@ -1692,6 +2236,12 @@
             ubo.references = 1;
             return ubo;
         };
+        /**
+         * Create a dynamic uniform buffer
+         * @see http://doc.LIBjs.com/features/webgl2#uniform-buffer-objets
+         * @param elements defines the content of the uniform buffer
+         * @returns the webGL uniform buffer
+         */
         Engine.prototype.createDynamicUniformBuffer = function (elements) {
             var ubo = this._gl.createBuffer();
             if (!ubo) {
@@ -1708,6 +2258,14 @@
             ubo.references = 1;
             return ubo;
         };
+        /**
+         * Update an existing uniform buffer
+         * @see http://doc.LIBjs.com/features/webgl2#uniform-buffer-objets
+         * @param uniformBuffer defines the target uniform buffer
+         * @param elements defines the content to update
+         * @param offset defines the offset in the uniform buffer where update should start
+         * @param count defines the size of the data to update
+         */
         Engine.prototype.updateUniformBuffer = function (uniformBuffer, elements, offset, count) {
             this.bindUniformBuffer(uniformBuffer);
             if (offset === undefined) {
@@ -1736,38 +2294,54 @@
             this.bindArrayBuffer(null);
             this._cachedVertexBuffers = null;
         };
-        Engine.prototype.createVertexBuffer = function (vertices) {
+        /**
+         * Creates a vertex buffer
+         * @param data the data for the vertex buffer
+         * @returns the new WebGL static buffer
+         */
+        Engine.prototype.createVertexBuffer = function (data) {
             var vbo = this._gl.createBuffer();
             if (!vbo) {
                 throw new Error("Unable to create vertex buffer");
             }
             this.bindArrayBuffer(vbo);
-            if (vertices instanceof Float32Array) {
-                this._gl.bufferData(this._gl.ARRAY_BUFFER, vertices, this._gl.STATIC_DRAW);
+            if (data instanceof Array) {
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.STATIC_DRAW);
             }
             else {
-                this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
             }
             this._resetVertexBufferBinding();
             vbo.references = 1;
             return vbo;
         };
-        Engine.prototype.createDynamicVertexBuffer = function (vertices) {
+        /**
+         * Creates a dynamic vertex buffer
+         * @param data the data for the dynamic vertex buffer
+         * @returns the new WebGL dynamic buffer
+         */
+        Engine.prototype.createDynamicVertexBuffer = function (data) {
             var vbo = this._gl.createBuffer();
             if (!vbo) {
                 throw new Error("Unable to create dynamic vertex buffer");
             }
             this.bindArrayBuffer(vbo);
-            if (vertices instanceof Float32Array) {
-                this._gl.bufferData(this._gl.ARRAY_BUFFER, vertices, this._gl.DYNAMIC_DRAW);
+            if (data instanceof Array) {
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(data), this._gl.DYNAMIC_DRAW);
             }
             else {
-                this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.DYNAMIC_DRAW);
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.DYNAMIC_DRAW);
             }
             this._resetVertexBufferBinding();
             vbo.references = 1;
             return vbo;
         };
+        /**
+         * Update a dynamic index buffer
+         * @param indexBuffer defines the target index buffer
+         * @param indices defines the data to update
+         * @param offset defines the offset in the target index buffer where update should start
+         */
         Engine.prototype.updateDynamicIndexBuffer = function (indexBuffer, indices, offset) {
             if (offset === void 0) { offset = 0; }
             // Force cache update
@@ -1783,25 +2357,38 @@
             this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, arrayBuffer, this._gl.DYNAMIC_DRAW);
             this._resetIndexBufferBinding();
         };
-        Engine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, vertices, offset, count) {
+        /**
+         * Updates a dynamic vertex buffer.
+         * @param vertexBuffer the vertex buffer to update
+         * @param data the data used to update the vertex buffer
+         * @param byteOffset the byte offset of the data
+         * @param byteLength the byte length of the data
+         */
+        Engine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, data, byteOffset, byteLength) {
             this.bindArrayBuffer(vertexBuffer);
-            if (offset === undefined) {
-                offset = 0;
+            if (byteOffset === undefined) {
+                byteOffset = 0;
             }
-            if (count === undefined) {
-                if (vertices instanceof Float32Array) {
-                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, vertices);
+            if (byteLength === undefined) {
+                if (data instanceof Array) {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, byteOffset, new Float32Array(data));
                 }
                 else {
-                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, new Float32Array(vertices));
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, byteOffset, data);
                 }
             }
             else {
-                if (vertices instanceof Float32Array) {
-                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, vertices.subarray(offset, offset + count));
+                if (data instanceof Array) {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, new Float32Array(data).subarray(byteOffset, byteOffset + byteLength));
                 }
                 else {
-                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, new Float32Array(vertices).subarray(offset, offset + count));
+                    if (data instanceof ArrayBuffer) {
+                        data = new Uint8Array(data, byteOffset, byteLength);
+                    }
+                    else {
+                        data = new Uint8Array(data.buffer, data.byteOffset + byteOffset, byteLength);
+                    }
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, data);
                 }
             }
             this._resetVertexBufferBinding();
@@ -1810,6 +2397,12 @@
             this.bindIndexBuffer(null);
             this._cachedIndexBuffer = null;
         };
+        /**
+         * Creates a new index buffer
+         * @param indices defines the content of the index buffer
+         * @param updatable defines if the index buffer must be updatable
+         * @returns a new webGL buffer
+         */
         Engine.prototype.createIndexBuffer = function (indices, updatable) {
             var vbo = this._gl.createBuffer();
             if (!vbo) {
@@ -1851,18 +2444,37 @@
             vbo.is32Bits = need32Bits;
             return vbo;
         };
+        /**
+         * Bind a webGL buffer to the webGL context
+         * @param buffer defines the buffer to bind
+         */
         Engine.prototype.bindArrayBuffer = function (buffer) {
             if (!this._vaoRecordInProgress) {
                 this._unbindVertexArrayObject();
             }
             this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
         };
+        /**
+         * Bind an uniform buffer to the current webGL context
+         * @param buffer defines the buffer to bind
+         */
         Engine.prototype.bindUniformBuffer = function (buffer) {
             this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, buffer);
         };
+        /**
+         * Bind a buffer to the current webGL context at a given location
+         * @param buffer defines the buffer to bind
+         * @param location defines the index where to bind the buffer
+         */
         Engine.prototype.bindUniformBufferBase = function (buffer, location) {
             this._gl.bindBufferBase(this._gl.UNIFORM_BUFFER, location, buffer);
         };
+        /**
+         * Bind a specific block at a given index in a specific shader program
+         * @param shaderProgram defines the shader program
+         * @param blockName defines the block name
+         * @param index defines the index where to bind the block
+         */
         Engine.prototype.bindUniformBlock = function (shaderProgram, blockName, index) {
             var uniformLocation = this._gl.getUniformBlockIndex(shaderProgram, blockName);
             this._gl.uniformBlockBinding(shaderProgram, uniformLocation, index);
@@ -1880,10 +2492,14 @@
                 this._currentBoundBuffer[target] = buffer;
             }
         };
+        /**
+         * update the bound buffer with the given data
+         * @param data defines the data to update
+         */
         Engine.prototype.updateArrayBuffer = function (data) {
             this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, data);
         };
-        Engine.prototype.vertexAttribPointer = function (buffer, indx, size, type, normalized, stride, offset) {
+        Engine.prototype._vertexAttribPointer = function (buffer, indx, size, type, normalized, stride, offset) {
             var pointer = this._currentBufferPointers[indx];
             var changed = false;
             if (!pointer.active) {
@@ -1957,7 +2573,7 @@
                     }
                     var buffer = vertexBuffer.getBuffer();
                     if (buffer) {
-                        this.vertexAttribPointer(buffer, order, vertexBuffer.getSize(), this._gl.FLOAT, false, vertexBuffer.getStrideSize() * 4, vertexBuffer.getOffset() * 4);
+                        this._vertexAttribPointer(buffer, order, vertexBuffer.getSize(), vertexBuffer.type, vertexBuffer.normalized, vertexBuffer.byteStride, vertexBuffer.byteOffset);
                         if (vertexBuffer.getIsInstanced()) {
                             this._gl.vertexAttribDivisor(order, vertexBuffer.getInstanceDivisor());
                             if (!this._vaoRecordInProgress) {
@@ -1969,6 +2585,14 @@
                 }
             }
         };
+        /**
+         * Records a vertex array object
+         * @see http://doc.LIBjs.com/features/webgl2#vertex-array-objects
+         * @param vertexBuffers defines the list of vertex buffers to store
+         * @param indexBuffer defines the index buffer to store
+         * @param effect defines the effect to store
+         * @returns the new vertex array object
+         */
         Engine.prototype.recordVertexArrayObject = function (vertexBuffers, indexBuffer, effect) {
             var vao = this._gl.createVertexArray();
             this._vaoRecordInProgress = true;
@@ -1980,6 +2604,12 @@
             this._gl.bindVertexArray(null);
             return vao;
         };
+        /**
+         * Bind a specific vertex array object
+         * @see http://doc.LIBjs.com/features/webgl2#vertex-array-objects
+         * @param vertexArrayObject defines the vertex array object to bind
+         * @param indexBuffer defines the index buffer to bind
+         */
         Engine.prototype.bindVertexArrayObject = function (vertexArrayObject, indexBuffer) {
             if (this._cachedVertexArrayObject !== vertexArrayObject) {
                 this._cachedVertexArrayObject = vertexArrayObject;
@@ -1990,6 +2620,14 @@
                 this._mustWipeVertexAttributes = true;
             }
         };
+        /**
+         * Bind webGl buffers directly to the webGL context
+         * @param vertexBuffer defines the vertex buffer to bind
+         * @param indexBuffer defines the index buffer to bind
+         * @param vertexDeclaration defines the vertex declaration to use with the vertex buffer
+         * @param vertexStrideSize defines the vertex stride of the vertex buffer
+         * @param effect defines the effect associated with the vertex buffer
+         */
         Engine.prototype.bindBuffersDirectly = function (vertexBuffer, indexBuffer, vertexDeclaration, vertexStrideSize, effect) {
             if (this._cachedVertexBuffers !== vertexBuffer || this._cachedEffectForVertexBuffers !== effect) {
                 this._cachedVertexBuffers = vertexBuffer;
@@ -2004,7 +2642,7 @@
                         if (order >= 0) {
                             this._gl.enableVertexAttribArray(order);
                             this._vertexAttribArraysEnabled[order] = true;
-                            this.vertexAttribPointer(vertexBuffer, order, vertexDeclaration[index], this._gl.FLOAT, false, vertexStrideSize, offset);
+                            this._vertexAttribPointer(vertexBuffer, order, vertexDeclaration[index], this._gl.FLOAT, false, vertexStrideSize, offset);
                         }
                         offset += vertexDeclaration[index] * 4;
                     }
@@ -2019,6 +2657,12 @@
             this._cachedVertexArrayObject = null;
             this._gl.bindVertexArray(null);
         };
+        /**
+         * Bind a list of vertex buffers to the webGL context
+         * @param vertexBuffers defines the list of vertex buffers to bind
+         * @param indexBuffer defines the index buffer to bind
+         * @param effect defines the effect associated with the vertex buffers
+         */
         Engine.prototype.bindBuffers = function (vertexBuffers, indexBuffer, effect) {
             if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
                 this._cachedVertexBuffers = vertexBuffers;
@@ -2027,6 +2671,9 @@
             }
             this._bindIndexBufferWithCache(indexBuffer);
         };
+        /**
+         * Unbind all instance attributes
+         */
         Engine.prototype.unbindInstanceAttributes = function () {
             var boundBuffer;
             for (var i = 0, ul = this._currentInstanceLocations.length; i < ul; i++) {
@@ -2041,9 +2688,14 @@
             this._currentInstanceBuffers.length = 0;
             this._currentInstanceLocations.length = 0;
         };
+        /**
+         * Release and free the memory of a vertex array object
+         * @param vao defines the vertex array object to delete
+         */
         Engine.prototype.releaseVertexArrayObject = function (vao) {
             this._gl.deleteVertexArray(vao);
         };
+        /** @hidden */
         Engine.prototype._releaseBuffer = function (buffer) {
             buffer.references--;
             if (buffer.references === 0) {
@@ -2052,6 +2704,11 @@
             }
             return false;
         };
+        /**
+         * Creates a webGL buffer to use with instanciation
+         * @param capacity defines the size of the buffer
+         * @returns the webGL buffer
+         */
         Engine.prototype.createInstancesBuffer = function (capacity) {
             var buffer = this._gl.createBuffer();
             if (!buffer) {
@@ -2062,9 +2719,19 @@
             this._gl.bufferData(this._gl.ARRAY_BUFFER, capacity, this._gl.DYNAMIC_DRAW);
             return buffer;
         };
+        /**
+         * Delete a webGL buffer used with instanciation
+         * @param buffer defines the webGL buffer to delete
+         */
         Engine.prototype.deleteInstancesBuffer = function (buffer) {
             this._gl.deleteBuffer(buffer);
         };
+        /**
+         * Update the content of a webGL buffer used with instanciation and bind it to the webGL context
+         * @param instancesBuffer defines the webGL buffer to update and bind
+         * @param data defines the data to store in the buffer
+         * @param offsetLocations defines the offsets or attributes information used to determine where data must be stored in the buffer
+         */
         Engine.prototype.updateAndBindInstancesBuffer = function (instancesBuffer, data, offsetLocations) {
             this.bindArrayBuffer(instancesBuffer);
             if (data) {
@@ -2082,7 +2749,7 @@
                         this._gl.enableVertexAttribArray(ai.index);
                         this._vertexAttribArraysEnabled[ai.index] = true;
                     }
-                    this.vertexAttribPointer(instancesBuffer, ai.index, ai.attributeSize, ai.attribyteType || this._gl.FLOAT, ai.normalized || false, stride, ai.offset);
+                    this._vertexAttribPointer(instancesBuffer, ai.index, ai.attributeSize, ai.attribyteType || this._gl.FLOAT, ai.normalized || false, stride, ai.offset);
                     this._gl.vertexAttribDivisor(ai.index, 1);
                     this._currentInstanceLocations.push(ai.index);
                     this._currentInstanceBuffers.push(instancesBuffer);
@@ -2095,33 +2762,63 @@
                         this._gl.enableVertexAttribArray(offsetLocation);
                         this._vertexAttribArraysEnabled[offsetLocation] = true;
                     }
-                    this.vertexAttribPointer(instancesBuffer, offsetLocation, 4, this._gl.FLOAT, false, 64, index * 16);
+                    this._vertexAttribPointer(instancesBuffer, offsetLocation, 4, this._gl.FLOAT, false, 64, index * 16);
                     this._gl.vertexAttribDivisor(offsetLocation, 1);
                     this._currentInstanceLocations.push(offsetLocation);
                     this._currentInstanceBuffers.push(instancesBuffer);
                 }
             }
         };
+        /**
+         * Apply all cached states (depth, culling, stencil and alpha)
+         */
         Engine.prototype.applyStates = function () {
             this._depthCullingState.apply(this._gl);
             this._stencilState.apply(this._gl);
             this._alphaState.apply(this._gl);
         };
+        /**
+         * Send a draw order
+         * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
+         * @param indexStart defines the starting index
+         * @param indexCount defines the number of index to draw
+         * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+         */
         Engine.prototype.draw = function (useTriangles, indexStart, indexCount, instancesCount) {
             this.drawElementsType(useTriangles ? LIB.Material.TriangleFillMode : LIB.Material.WireFrameFillMode, indexStart, indexCount, instancesCount);
         };
+        /**
+         * Draw a list of points
+         * @param verticesStart defines the index of first vertex to draw
+         * @param verticesCount defines the count of vertices to draw
+         * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+         */
         Engine.prototype.drawPointClouds = function (verticesStart, verticesCount, instancesCount) {
             this.drawArraysType(LIB.Material.PointFillMode, verticesStart, verticesCount, instancesCount);
         };
+        /**
+         * Draw a list of unindexed primitives
+         * @param useTriangles defines if triangles must be used to draw (else wireframe will be used)
+         * @param verticesStart defines the index of first vertex to draw
+         * @param verticesCount defines the count of vertices to draw
+         * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+         */
         Engine.prototype.drawUnIndexed = function (useTriangles, verticesStart, verticesCount, instancesCount) {
             this.drawArraysType(useTriangles ? LIB.Material.TriangleFillMode : LIB.Material.WireFrameFillMode, verticesStart, verticesCount, instancesCount);
         };
+        /**
+         * Draw a list of indexed primitives
+         * @param fillMode defines the primitive to use
+         * @param indexStart defines the starting index
+         * @param indexCount defines the number of index to draw
+         * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+         */
         Engine.prototype.drawElementsType = function (fillMode, indexStart, indexCount, instancesCount) {
             // Apply states
             this.applyStates();
             this._drawCalls.addCount(1, false);
             // Render
-            var drawMode = this.DrawMode(fillMode);
+            var drawMode = this._drawMode(fillMode);
             var indexFormat = this._uintIndicesCurrentlySet ? this._gl.UNSIGNED_INT : this._gl.UNSIGNED_SHORT;
             var mult = this._uintIndicesCurrentlySet ? 4 : 2;
             if (instancesCount) {
@@ -2131,11 +2828,18 @@
                 this._gl.drawElements(drawMode, indexCount, indexFormat, indexStart * mult);
             }
         };
+        /**
+         * Draw a list of unindexed primitives
+         * @param fillMode defines the primitive to use
+         * @param verticesStart defines the index of first vertex to draw
+         * @param verticesCount defines the count of vertices to draw
+         * @param instancesCount defines the number of instances to draw (if instanciation is enabled)
+         */
         Engine.prototype.drawArraysType = function (fillMode, verticesStart, verticesCount, instancesCount) {
             // Apply states
             this.applyStates();
             this._drawCalls.addCount(1, false);
-            var drawMode = this.DrawMode(fillMode);
+            var drawMode = this._drawMode(fillMode);
             if (instancesCount) {
                 this._gl.drawArraysInstanced(drawMode, verticesStart, verticesCount, instancesCount);
             }
@@ -2143,7 +2847,7 @@
                 this._gl.drawArrays(drawMode, verticesStart, verticesCount);
             }
         };
-        Engine.prototype.DrawMode = function (fillMode) {
+        Engine.prototype._drawMode = function (fillMode) {
             switch (fillMode) {
                 // Triangle views
                 case LIB.Material.TriangleFillMode:
@@ -2170,12 +2874,14 @@
             }
         };
         // Shaders
+        /** @hidden */
         Engine.prototype._releaseEffect = function (effect) {
             if (this._compiledEffects[effect._key]) {
                 delete this._compiledEffects[effect._key];
                 this._deleteProgram(effect.getProgram());
             }
         };
+        /** @hidden */
         Engine.prototype._deleteProgram = function (program) {
             if (program) {
                 program.__SPECTOR_rebuildProgram = null;
@@ -2187,8 +2893,17 @@
             }
         };
         /**
-         * @param baseName The base name of the effect (The name of file without .fragment.fx or .vertex.fx)
-         * @param samplers An array of string used to represent textures
+         * Create a new effect (used to store vertex/fragment shaders)
+         * @param baseName defines the base name of the effect (The name of file without .fragment.fx or .vertex.fx)
+         * @param attributesNamesOrOptions defines either a list of attribute names or an EffectCreationOptions object
+         * @param uniformsNamesOrEngine defines either a list of uniform names or the engine to use
+         * @param samplers defines an array of string used to represent textures
+         * @param defines defines the string containing the defines to use to compile the shaders
+         * @param fallbacks defines the list of potential fallbacks to use if shader conmpilation fails
+         * @param onCompiled defines a function to call when the effect creation is successful
+         * @param onError defines a function to call when the effect creation has failed
+         * @param indexParameters defines an object containing the index values to use to compile shaders (like the maximum number of simultaneous lights)
+         * @returns the new Effect
          */
         Engine.prototype.createEffect = function (baseName, attributesNamesOrOptions, uniformsNamesOrEngine, samplers, defines, fallbacks, onCompiled, onError, indexParameters) {
             var vertex = baseName.vertexElement || baseName.vertex || baseName;
@@ -2206,6 +2921,17 @@
             this._compiledEffects[name] = effect;
             return effect;
         };
+        /**
+         * Create an effect to use with particle systems
+         * @param fragmentName defines the base name of the effect (The name of file without .fragment.fx)
+         * @param uniformsNames defines a list of attribute names
+         * @param samplers defines an array of string used to represent textures
+         * @param defines defines the string containing the defines to use to compile the shaders
+         * @param fallbacks defines the list of potential fallbacks to use if shader conmpilation fails
+         * @param onCompiled defines a function to call when the effect creation is successful
+         * @param onError defines a function to call when the effect creation has failed
+         * @returns the new Effect
+         */
         Engine.prototype.createEffectForParticles = function (fragmentName, uniformsNames, samplers, defines, fallbacks, onCompiled, onError) {
             if (uniformsNames === void 0) { uniformsNames = []; }
             if (samplers === void 0) { samplers = []; }
@@ -2215,6 +2941,14 @@
                 fragmentElement: fragmentName
             }, ["position", "color", "options"], ["view", "projection"].concat(uniformsNames), ["diffuseSampler"].concat(samplers), defines, fallbacks, onCompiled, onError);
         };
+        /**
+         * Directly creates a webGL program
+         * @param vertexCode defines the vertex shader code to use
+         * @param fragmentCode defines the fragment shader code to use
+         * @param context defines the webGL context to use (if not set, the current one will be used)
+         * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+         * @returns the new webGL program
+         */
         Engine.prototype.createRawShaderProgram = function (vertexCode, fragmentCode, context, transformFeedbackVaryings) {
             if (transformFeedbackVaryings === void 0) { transformFeedbackVaryings = null; }
             context = context || this._gl;
@@ -2222,11 +2956,20 @@
             var fragmentShader = compileRawShader(context, fragmentCode, "fragment");
             return this._createShaderProgram(vertexShader, fragmentShader, context, transformFeedbackVaryings);
         };
+        /**
+         * Creates a webGL program
+         * @param vertexCode  defines the vertex shader code to use
+         * @param fragmentCode defines the fragment shader code to use
+         * @param defines defines the string containing the defines to use to compile the shaders
+         * @param context defines the webGL context to use (if not set, the current one will be used)
+         * @param transformFeedbackVaryings defines the list of transform feedback varyings to use
+         * @returns the new webGL program
+         */
         Engine.prototype.createShaderProgram = function (vertexCode, fragmentCode, defines, context, transformFeedbackVaryings) {
             if (transformFeedbackVaryings === void 0) { transformFeedbackVaryings = null; }
             context = context || this._gl;
             this.onBeforeShaderCompilationObservable.notifyObservers(this);
-            var shaderVersion = (this._webGLVersion > 1) ? "#version 300 es\n" : "";
+            var shaderVersion = (this._webGLVersion > 1) ? "#version 300 es\n#define WEBGL2 \n" : "";
             var vertexShader = compileShader(context, vertexCode, "vertex", defines, shaderVersion);
             var fragmentShader = compileShader(context, fragmentCode, "fragment", defines, shaderVersion);
             var program = this._createShaderProgram(vertexShader, fragmentShader, context, transformFeedbackVaryings);
@@ -2263,6 +3006,12 @@
             context.deleteShader(fragmentShader);
             return shaderProgram;
         };
+        /**
+         * Gets the list of webGL uniform locations associated with a specific program based on a list of uniform names
+         * @param shaderProgram defines the webGL program to use
+         * @param uniformsNames defines the list of uniform names
+         * @returns an array of webGL uniform locations
+         */
         Engine.prototype.getUniforms = function (shaderProgram, uniformsNames) {
             var results = new Array();
             for (var index = 0; index < uniformsNames.length; index++) {
@@ -2270,6 +3019,12 @@
             }
             return results;
         };
+        /**
+         * Gets the lsit of active attributes for a given webGL program
+         * @param shaderProgram defines the webGL program to use
+         * @param attributesNames defines the list of attribute names to get
+         * @returns an array of indices indicating the offset of each attribute
+         */
         Engine.prototype.getAttributes = function (shaderProgram, attributesNames) {
             var results = [];
             for (var index = 0; index < attributesNames.length; index++) {
@@ -2282,6 +3037,10 @@
             }
             return results;
         };
+        /**
+         * Activates an effect, mkaing it the current one (ie. the one used for rendering)
+         * @param effect defines the effect to activate
+         */
         Engine.prototype.enableEffect = function (effect) {
             if (!effect) {
                 return;
@@ -2294,127 +3053,271 @@
             }
             effect.onBindObservable.notifyObservers(effect);
         };
+        /**
+         * Set the value of an uniform to an array of int32
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of int32 to store
+         */
         Engine.prototype.setIntArray = function (uniform, array) {
             if (!uniform)
                 return;
             this._gl.uniform1iv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of int32 (stored as vec2)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of int32 to store
+         */
         Engine.prototype.setIntArray2 = function (uniform, array) {
             if (!uniform || array.length % 2 !== 0)
                 return;
             this._gl.uniform2iv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of int32 (stored as vec3)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of int32 to store
+         */
         Engine.prototype.setIntArray3 = function (uniform, array) {
             if (!uniform || array.length % 3 !== 0)
                 return;
             this._gl.uniform3iv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of int32 (stored as vec4)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of int32 to store
+         */
         Engine.prototype.setIntArray4 = function (uniform, array) {
             if (!uniform || array.length % 4 !== 0)
                 return;
             this._gl.uniform4iv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of float32
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of float32 to store
+         */
         Engine.prototype.setFloatArray = function (uniform, array) {
             if (!uniform)
                 return;
             this._gl.uniform1fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of float32 (stored as vec2)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of float32 to store
+         */
         Engine.prototype.setFloatArray2 = function (uniform, array) {
             if (!uniform || array.length % 2 !== 0)
                 return;
             this._gl.uniform2fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of float32 (stored as vec3)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of float32 to store
+         */
         Engine.prototype.setFloatArray3 = function (uniform, array) {
             if (!uniform || array.length % 3 !== 0)
                 return;
             this._gl.uniform3fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of float32 (stored as vec4)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of float32 to store
+         */
         Engine.prototype.setFloatArray4 = function (uniform, array) {
             if (!uniform || array.length % 4 !== 0)
                 return;
             this._gl.uniform4fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of number
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of number to store
+         */
         Engine.prototype.setArray = function (uniform, array) {
             if (!uniform)
                 return;
             this._gl.uniform1fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of number (stored as vec2)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of number to store
+         */
         Engine.prototype.setArray2 = function (uniform, array) {
             if (!uniform || array.length % 2 !== 0)
                 return;
             this._gl.uniform2fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of number (stored as vec3)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of number to store
+         */
         Engine.prototype.setArray3 = function (uniform, array) {
             if (!uniform || array.length % 3 !== 0)
                 return;
             this._gl.uniform3fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of number (stored as vec4)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param array defines the array of number to store
+         */
         Engine.prototype.setArray4 = function (uniform, array) {
             if (!uniform || array.length % 4 !== 0)
                 return;
             this._gl.uniform4fv(uniform, array);
         };
+        /**
+         * Set the value of an uniform to an array of float32 (stored as matrices)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param matrices defines the array of float32 to store
+         */
         Engine.prototype.setMatrices = function (uniform, matrices) {
             if (!uniform)
                 return;
             this._gl.uniformMatrix4fv(uniform, false, matrices);
         };
+        /**
+         * Set the value of an uniform to a matrix
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param matrix defines the matrix to store
+         */
         Engine.prototype.setMatrix = function (uniform, matrix) {
             if (!uniform)
                 return;
             this._gl.uniformMatrix4fv(uniform, false, matrix.toArray());
         };
+        /**
+         * Set the value of an uniform to a matrix (3x3)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param matrix defines the Float32Array representing the 3x3 matrix to store
+         */
         Engine.prototype.setMatrix3x3 = function (uniform, matrix) {
             if (!uniform)
                 return;
             this._gl.uniformMatrix3fv(uniform, false, matrix);
         };
+        /**
+         * Set the value of an uniform to a matrix (2x2)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param matrix defines the Float32Array representing the 2x2 matrix to store
+         */
         Engine.prototype.setMatrix2x2 = function (uniform, matrix) {
             if (!uniform)
                 return;
             this._gl.uniformMatrix2fv(uniform, false, matrix);
         };
+        /**
+         * Set the value of an uniform to a number (int)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param value defines the int number to store
+         */
         Engine.prototype.setInt = function (uniform, value) {
             if (!uniform)
                 return;
             this._gl.uniform1i(uniform, value);
         };
+        /**
+         * Set the value of an uniform to a number (float)
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param value defines the float number to store
+         */
         Engine.prototype.setFloat = function (uniform, value) {
             if (!uniform)
                 return;
             this._gl.uniform1f(uniform, value);
         };
+        /**
+         * Set the value of an uniform to a vec2
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param x defines the 1st component of the value
+         * @param y defines the 2nd component of the value
+         */
         Engine.prototype.setFloat2 = function (uniform, x, y) {
             if (!uniform)
                 return;
             this._gl.uniform2f(uniform, x, y);
         };
+        /**
+         * Set the value of an uniform to a vec3
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param x defines the 1st component of the value
+         * @param y defines the 2nd component of the value
+         * @param z defines the 3rd component of the value
+         */
         Engine.prototype.setFloat3 = function (uniform, x, y, z) {
             if (!uniform)
                 return;
             this._gl.uniform3f(uniform, x, y, z);
         };
+        /**
+         * Set the value of an uniform to a boolean
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param bool defines the boolean to store
+         */
         Engine.prototype.setBool = function (uniform, bool) {
             if (!uniform)
                 return;
             this._gl.uniform1i(uniform, bool);
         };
+        /**
+         * Set the value of an uniform to a vec4
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param x defines the 1st component of the value
+         * @param y defines the 2nd component of the value
+         * @param z defines the 3rd component of the value
+         * @param w defines the 4th component of the value
+         */
         Engine.prototype.setFloat4 = function (uniform, x, y, z, w) {
             if (!uniform)
                 return;
             this._gl.uniform4f(uniform, x, y, z, w);
         };
+        /**
+         * Set the value of an uniform to a Color3
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param color3 defines the color to store
+         */
         Engine.prototype.setColor3 = function (uniform, color3) {
             if (!uniform)
                 return;
             this._gl.uniform3f(uniform, color3.r, color3.g, color3.b);
         };
+        /**
+         * Set the value of an uniform to a Color3 and an alpha value
+         * @param uniform defines the webGL uniform location where to store the value
+         * @param color3 defines the color to store
+         * @param alpha defines the alpha component to store
+         */
         Engine.prototype.setColor4 = function (uniform, color3, alpha) {
             if (!uniform)
                 return;
             this._gl.uniform4f(uniform, color3.r, color3.g, color3.b, alpha);
         };
+        /**
+         * Sets a Color4 on a uniform variable
+         * @param uniform defines the uniform location
+         * @param color4 defines the value to be set
+         */
+        Engine.prototype.setDirectColor4 = function (uniform, color4) {
+            if (!uniform)
+                return;
+            this._gl.uniform4f(uniform, color4.r, color4.g, color4.b, color4.a);
+        };
         // States
+        /**
+         * Set various states to the webGL context
+         * @param culling defines backface culling state
+         * @param zOffset defines the value to apply to zOffset (0 by default)
+         * @param force defines if states must be applied even if cache is up to date
+         * @param reverseSide defines if culling must be reversed (CCW instead of CW and CW instead of CCW)
+         */
         Engine.prototype.setState = function (culling, zOffset, force, reverseSide) {
             if (zOffset === void 0) { zOffset = 0; }
             if (reverseSide === void 0) { reverseSide = false; }
@@ -2435,31 +3338,72 @@
                 this._depthCullingState.frontFace = frontFace;
             }
         };
+        /**
+         * Set the z offset to apply to current rendering
+         * @param value defines the offset to apply
+         */
         Engine.prototype.setZOffset = function (value) {
             this._depthCullingState.zOffset = value;
         };
+        /**
+         * Gets the current value of the zOffset
+         * @returns the current zOffset state
+         */
         Engine.prototype.getZOffset = function () {
             return this._depthCullingState.zOffset;
         };
+        /**
+         * Enable or disable depth buffering
+         * @param enable defines the state to set
+         */
         Engine.prototype.setDepthBuffer = function (enable) {
             this._depthCullingState.depthTest = enable;
         };
+        /**
+         * Gets a boolean indicating if depth writing is enabled
+         * @returns the current depth writing state
+         */
         Engine.prototype.getDepthWrite = function () {
             return this._depthCullingState.depthMask;
         };
+        /**
+         * Enable or disable depth writing
+         * @param enable defines the state to set
+         */
         Engine.prototype.setDepthWrite = function (enable) {
             this._depthCullingState.depthMask = enable;
         };
+        /**
+         * Enable or disable color writing
+         * @param enable defines the state to set
+         */
         Engine.prototype.setColorWrite = function (enable) {
             this._gl.colorMask(enable, enable, enable, enable);
             this._colorWrite = enable;
         };
+        /**
+         * Gets a boolean indicating if color writing is enabled
+         * @returns the current color writing state
+         */
         Engine.prototype.getColorWrite = function () {
             return this._colorWrite;
         };
+        /**
+         * Sets alpha constants used by some alpha blending modes
+         * @param r defines the red component
+         * @param g defines the green component
+         * @param b defines the blue component
+         * @param a defines the alpha component
+         */
         Engine.prototype.setAlphaConstants = function (r, g, b, a) {
             this._alphaState.setAlphaBlendConstants(r, g, b, a);
         };
+        /**
+         * Sets the current alpha mode
+         * @param mode defines the mode to use (one of the LIB.Engine.ALPHA_XXX)
+         * @param noDepthWriteChange defines if depth writing state should remains unchanged (false by default)
+         * @see http://doc.LIBjs.com/resources/transparency_and_how_meshes_are_rendered
+         */
         Engine.prototype.setAlphaMode = function (mode, noDepthWriteChange) {
             if (noDepthWriteChange === void 0) { noDepthWriteChange = false; }
             if (this._alphaMode === mode) {
@@ -2515,23 +3459,25 @@
             }
             this._alphaMode = mode;
         };
+        /**
+         * Gets the current alpha mode
+         * @see http://doc.LIBjs.com/resources/transparency_and_how_meshes_are_rendered
+         * @returns the current alpha mode
+         */
         Engine.prototype.getAlphaMode = function () {
             return this._alphaMode;
         };
-        Engine.prototype.setAlphaTesting = function (enable) {
-            this._alphaTest = enable;
-        };
-        Engine.prototype.getAlphaTesting = function () {
-            return !!this._alphaTest;
-        };
         // Textures
+        /**
+         * Force the entire cache to be cleared
+         * You should not have to use this function unless your engine needs to share the webGL context with another engine
+         * @param bruteForce defines a boolean to force clearing ALL caches (including stencil, detoh and alpha states)
+         */
         Engine.prototype.wipeCaches = function (bruteForce) {
             if (this.preventCacheWipeBetweenFrames && !bruteForce) {
                 return;
             }
             this._currentEffect = null;
-            // 6/8/2017: deltakosh: Should not be required anymore.
-            // This message is then mostly for the future myself who will scream out loud when seeing that it was actually required :)
             if (bruteForce) {
                 this.resetTextureCache();
                 this._currentProgram = null;
@@ -2540,12 +3486,11 @@
                 this.setDepthFunctionToLessOrEqual();
                 this._alphaState.reset();
             }
-            this._cachedVertexBuffers = null;
+            this._resetVertexBufferBinding();
             this._cachedIndexBuffer = null;
             this._cachedEffectForVertexBuffers = null;
             this._unbindVertexArrayObject();
             this.bindIndexBuffer(null);
-            this.bindArrayBuffer(null);
         };
         /**
          * Set the compressed texture format to use, based on the formats you have, and the formats
@@ -2561,7 +3506,7 @@
          *
          * Note: The result of this call is not taken into account when a texture is base64.
          *
-         * @param {Array<string>} formatsAvailable- The list of those format families you have created
+         * @param formatsAvailable defines the list of those format families you have created
          * on your server.  Syntax: '-' + format family + '.ktx'.  (Case and order do not matter.)
          *
          * Current families are astc, dxt, pvrtc, etc2, & etc1.
@@ -2580,6 +3525,7 @@
             this._textureFormatInUse = null;
             return null;
         };
+        /** @hidden */
         Engine.prototype._createTexture = function () {
             var texture = this._gl.createTexture();
             if (!texture) {
@@ -2588,45 +3534,44 @@
             return texture;
         };
         /**
-         * Usually called from LIB.Texture.ts.  Passed information to create a WebGLTexture.
-         * @param {string} urlArg- This contains one of the following:
-         *                         1. A conventional http URL, e.g. 'http://...' or 'file://...'
-         *                         2. A base64 string of in-line texture data, e.g. 'data:image/jpg;base64,/...'
-         *                         3. An indicator that data being passed using the buffer parameter, e.g. 'data:mytexture.jpg'
-         *
-         * @param {boolean} noMipmap- When true, no mipmaps shall be generated.  Ignored for compressed textures.  They must be in the file.
-         * @param {boolean} invertY- When true, image is flipped when loaded.  You probably want true. Ignored for compressed textures.  Must be flipped in the file.
-         * @param {Scene} scene- Needed for loading to the correct scene.
-         * @param {number} samplingMode- Mode with should be used sample / access the texture.  Default: TRILINEAR
-         * @param {callback} onLoad- Optional callback to be called upon successful completion.
-         * @param {callback} onError- Optional callback to be called upon failure.
-         * @param {ArrayBuffer | HTMLImageElement} buffer- A source of a file previously fetched as either an ArrayBuffer (compressed or image format) or HTMLImageElement (image format)
-         * @param {WebGLTexture} fallback- An internal argument in case the function must be called again, due to etc1 not having alpha capabilities.
-         * @param {number} format-  Internal format.  Default: RGB when extension is '.jpg' else RGBA.  Ignored for compressed textures.
-         *
-         * @returns {WebGLTexture} for assignment back into LIB.Texture
+         * Usually called from LIB.Texture.ts.
+         * Passed information to create a WebGLTexture
+         * @param urlArg defines a value which contains one of the following:
+         * * A conventional http URL, e.g. 'http://...' or 'file://...'
+         * * A base64 string of in-line texture data, e.g. 'data:image/jpg;base64,/...'
+         * * An indicator that data being passed using the buffer parameter, e.g. 'data:mytexture.jpg'
+         * @param noMipmap defines a boolean indicating that no mipmaps shall be generated.  Ignored for compressed textures.  They must be in the file
+         * @param invertY when true, image is flipped when loaded.  You probably want true. Ignored for compressed textures.  Must be flipped in the file
+         * @param scene needed for loading to the correct scene
+         * @param samplingMode mode with should be used sample / access the texture (Default: LIB.Texture.TRILINEAR_SAMPLINGMODE)
+         * @param onLoad optional callback to be called upon successful completion
+         * @param onError optional callback to be called upon failure
+         * @param buffer a source of a file previously fetched as either an ArrayBuffer (compressed or image format) or HTMLImageElement (image format)
+         * @param fallback an internal argument in case the function must be called again, due to etc1 not having alpha capabilities
+         * @param format internal format.  Default: RGB when extension is '.jpg' else RGBA.  Ignored for compressed textures
+         * @returns a InternalTexture for assignment back into LIB.Texture
          */
-        Engine.prototype.createTexture = function (urlArg, noMipmap, invertY, scene, samplingMode, onLoad, onError, buffer, fallBack, format) {
+        Engine.prototype.createTexture = function (urlArg, noMipmap, invertY, scene, samplingMode, onLoad, onError, buffer, fallback, format) {
             var _this = this;
             if (samplingMode === void 0) { samplingMode = LIB.Texture.TRILINEAR_SAMPLINGMODE; }
             if (onLoad === void 0) { onLoad = null; }
             if (onError === void 0) { onError = null; }
             if (buffer === void 0) { buffer = null; }
-            if (fallBack === void 0) { fallBack = null; }
+            if (fallback === void 0) { fallback = null; }
             if (format === void 0) { format = null; }
             var url = String(urlArg); // assign a new string, so that the original is still available in case of fallback
             var fromData = url.substr(0, 5) === "data:";
             var fromBlob = url.substr(0, 5) === "blob:";
             var isBase64 = fromData && url.indexOf("base64") !== -1;
-            var texture = fallBack ? fallBack : new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_URL);
+            var texture = fallback ? fallback : new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_URL);
             // establish the file extension, if possible
             var lastDot = url.lastIndexOf('.');
             var extension = (lastDot > 0) ? url.substring(lastDot).toLowerCase() : "";
-            var isDDS = this.getCaps().s3tc && (extension === ".dds");
-            var isTGA = (extension === ".tga");
+            var isDDS = this.getCaps().s3tc && (extension.indexOf(".dds") === 0);
+            var isTGA = (extension.indexOf(".tga") === 0);
             // determine if a ktx file should be substituted
             var isKTX = false;
-            if (this._textureFormatInUse && !isBase64 && !fallBack) {
+            if (this._textureFormatInUse && !isBase64 && !fallback) {
                 url = url.substring(0, lastDot) + this._textureFormatInUse;
                 isKTX = true;
             }
@@ -2642,10 +3587,10 @@
                 texture._buffer = buffer;
             }
             var onLoadObserver = null;
-            if (onLoad && !fallBack) {
+            if (onLoad && !fallback) {
                 onLoadObserver = texture.onLoadedObservable.add(onLoad);
             }
-            if (!fallBack)
+            if (!fallback)
                 this._internalTexturesCache.push(texture);
             var onerror = function (message, exception) {
                 if (scene) {
@@ -2670,7 +3615,7 @@
             if (isKTX || isTGA || isDDS) {
                 if (isKTX) {
                     callback = function (data) {
-                        var ktx = new LIB.Internals.KhronosTextureContainer(data, 1);
+                        var ktx = new LIB.KhronosTextureContainer(data, 1);
                         _this._prepareWebGLTexture(texture, scene, ktx.pixelWidth, ktx.pixelHeight, invertY, false, true, function () {
                             ktx.uploadLevels(_this._gl, !noMipmap);
                             return false;
@@ -2680,19 +3625,19 @@
                 else if (isTGA) {
                     callback = function (arrayBuffer) {
                         var data = new Uint8Array(arrayBuffer);
-                        var header = LIB.Internals.TGATools.GetTGAHeader(data);
+                        var header = LIB.TGATools.GetTGAHeader(data);
                         _this._prepareWebGLTexture(texture, scene, header.width, header.height, invertY, noMipmap, false, function () {
-                            LIB.Internals.TGATools.UploadContent(_this._gl, data);
+                            LIB.TGATools.UploadContent(_this._gl, data);
                             return false;
                         }, samplingMode);
                     };
                 }
                 else if (isDDS) {
                     callback = function (data) {
-                        var info = LIB.Internals.DDSTools.GetDDSInfo(data);
+                        var info = LIB.DDSTools.GetDDSInfo(data);
                         var loadMipmap = (info.isRGB || info.isLuminance || info.mipmapCount > 1) && !noMipmap && ((info.width >> (info.mipmapCount - 1)) === 1);
                         _this._prepareWebGLTexture(texture, scene, info.width, info.height, invertY, !loadMipmap, info.isFourCC, function () {
-                            LIB.Internals.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 1);
+                            LIB.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 1);
                             return false;
                         }, samplingMode);
                     };
@@ -2791,35 +3736,23 @@
                 }
             });
         };
-        Engine.prototype._getInternalFormat = function (format) {
-            var internalFormat = this._gl.RGBA;
-            switch (format) {
-                case Engine.TEXTUREFORMAT_ALPHA:
-                    internalFormat = this._gl.ALPHA;
-                    break;
-                case Engine.TEXTUREFORMAT_LUMINANCE:
-                    internalFormat = this._gl.LUMINANCE;
-                    break;
-                case Engine.TEXTUREFORMAT_LUMINANCE_ALPHA:
-                    internalFormat = this._gl.LUMINANCE_ALPHA;
-                    break;
-                case Engine.TEXTUREFORMAT_RGB:
-                    internalFormat = this._gl.RGB;
-                    break;
-                case Engine.TEXTUREFORMAT_RGBA:
-                    internalFormat = this._gl.RGBA;
-                    break;
-            }
-            return internalFormat;
-        };
+        /**
+         * Update a raw texture
+         * @param texture defines the texture to update
+         * @param data defines the data to store in the texture
+         * @param format defines the format of the data
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param compression defines the compression used (null by default)
+         * @param type defines the type fo the data (LIB.Engine.TEXTURETYPE_UNSIGNED_INT by default)
+         */
         Engine.prototype.updateRawTexture = function (texture, data, format, invertY, compression, type) {
             if (compression === void 0) { compression = null; }
             if (type === void 0) { type = Engine.TEXTURETYPE_UNSIGNED_INT; }
             if (!texture) {
                 return;
             }
+            var internalSizedFomat = this._getRGBABufferInternalSizedFormat(type, format);
             var internalFormat = this._getInternalFormat(format);
-            var internalSizedFomat = this._getRGBABufferInternalSizedFormat(type);
             var textureType = this._getWebGLTextureType(type);
             this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
             this._gl.pixelStorei(this._gl.UNPACK_FLIP_Y_WEBGL, invertY === undefined ? 1 : (invertY ? 1 : 0));
@@ -2846,6 +3779,19 @@
             //  this.resetTextureCache();
             texture.isReady = true;
         };
+        /**
+         * Creates a raw texture
+         * @param data defines the data to store in the texture
+         * @param width defines the width of the texture
+         * @param height defines the height of the texture
+         * @param format defines the format of the data
+         * @param generateMipMaps defines if the engine should generate the mip levels
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param samplingMode defines the required sampling mode (LIB.Texture.NEAREST_SAMPLINGMODE by default)
+         * @param compression defines the compression used (null by default)
+         * @param type defines the type fo the data (LIB.Engine.TEXTURETYPE_UNSIGNED_INT by default)
+         * @returns the raw texture inside an InternalTexture
+         */
         Engine.prototype.createRawTexture = function (data, width, height, format, generateMipMaps, invertY, samplingMode, compression, type) {
             if (compression === void 0) { compression = null; }
             if (type === void 0) { type = Engine.TEXTURETYPE_UNSIGNED_INT; }
@@ -2876,6 +3822,14 @@
             this._internalTexturesCache.push(texture);
             return texture;
         };
+        /**
+         * Creates a dynamic texture
+         * @param width defines the width of the texture
+         * @param height defines the height of the texture
+         * @param generateMipMaps defines if the engine should generate the mip levels
+         * @param samplingMode defines the required sampling mode (LIB.Texture.NEAREST_SAMPLINGMODE by default)
+         * @returns the dynamic texture inside an InternalTexture
+         */
         Engine.prototype.createDynamicTexture = function (width, height, generateMipMaps, samplingMode) {
             var texture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_DYNAMIC);
             texture.baseWidth = width;
@@ -2894,28 +3848,38 @@
             this._internalTexturesCache.push(texture);
             return texture;
         };
+        /**
+         * Update the sampling mode of a given texture
+         * @param samplingMode defines the required sampling mode
+         * @param texture defines the texture to update
+         */
         Engine.prototype.updateTextureSamplingMode = function (samplingMode, texture) {
             var filters = getSamplingParameters(samplingMode, texture.generateMipMaps, this._gl);
             if (texture.isCube) {
-                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
-                this._gl.texParameteri(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_MAG_FILTER, filters.mag);
-                this._gl.texParameteri(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_MIN_FILTER, filters.min);
+                this._setTextureParameterInteger(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_MAG_FILTER, filters.mag, texture);
+                this._setTextureParameterInteger(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_MIN_FILTER, filters.min);
                 this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
             }
             else if (texture.is3D) {
-                this._bindTextureDirectly(this._gl.TEXTURE_3D, texture, true);
-                this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_MAG_FILTER, filters.mag);
-                this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_MIN_FILTER, filters.min);
+                this._setTextureParameterInteger(this._gl.TEXTURE_3D, this._gl.TEXTURE_MAG_FILTER, filters.mag, texture);
+                this._setTextureParameterInteger(this._gl.TEXTURE_3D, this._gl.TEXTURE_MIN_FILTER, filters.min);
                 this._bindTextureDirectly(this._gl.TEXTURE_3D, null);
             }
             else {
-                this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
-                this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, filters.mag);
-                this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, filters.min);
+                this._setTextureParameterInteger(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, filters.mag, texture);
+                this._setTextureParameterInteger(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, filters.min);
                 this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
             }
             texture.samplingMode = samplingMode;
         };
+        /**
+         * Update the content of a dynamic texture
+         * @param texture defines the texture to update
+         * @param canvas defines the canvas containing the source
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param premulAlpha defines if alpha is stored as premultiplied
+         * @param format defines the format of the data
+         */
         Engine.prototype.updateDynamicTexture = function (texture, canvas, invertY, premulAlpha, format) {
             if (premulAlpha === void 0) { premulAlpha = false; }
             if (!texture) {
@@ -2937,6 +3901,12 @@
             }
             texture.isReady = true;
         };
+        /**
+         * Update a video texture
+         * @param texture defines the texture to update
+         * @param video defines the video element to use
+         * @param invertY defines if data must be stored with Y axis inverted
+         */
         Engine.prototype.updateVideoTexture = function (texture, video, invertY) {
             if (!texture || texture._isDisabled) {
                 return;
@@ -2985,6 +3955,195 @@
                 texture._isDisabled = true;
             }
         };
+        /**
+         * Updates a depth texture Comparison Mode and Function.
+         * If the comparison Function is equal to 0, the mode will be set to none.
+         * Otherwise, this only works in webgl 2 and requires a shadow sampler in the shader.
+         * @param texture The texture to set the comparison function for
+         * @param comparisonFunction The comparison function to set, 0 if no comparison required
+         */
+        Engine.prototype.updateTextureComparisonFunction = function (texture, comparisonFunction) {
+            if (this.webGLVersion === 1) {
+                LIB.Tools.Error("WebGL 1 does not support texture comparison.");
+                return;
+            }
+            var gl = this._gl;
+            if (texture.isCube) {
+                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, texture, true);
+                if (comparisonFunction === 0) {
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, Engine.LEQUAL);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+                }
+                else {
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+                }
+                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
+            }
+            else {
+                this._bindTextureDirectly(this._gl.TEXTURE_2D, texture, true);
+                if (comparisonFunction === 0) {
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, Engine.LEQUAL);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+                }
+                else {
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+                }
+                this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
+            }
+            texture._comparisonFunction = comparisonFunction;
+        };
+        Engine.prototype._setupDepthStencilTexture = function (internalTexture, size, generateStencil, bilinearFiltering, comparisonFunction) {
+            var width = size.width || size;
+            var height = size.height || size;
+            internalTexture.baseWidth = width;
+            internalTexture.baseHeight = height;
+            internalTexture.width = width;
+            internalTexture.height = height;
+            internalTexture.isReady = true;
+            internalTexture.samples = 1;
+            internalTexture.generateMipMaps = false;
+            internalTexture._generateDepthBuffer = true;
+            internalTexture._generateStencilBuffer = generateStencil;
+            internalTexture.samplingMode = bilinearFiltering ? LIB.Texture.BILINEAR_SAMPLINGMODE : LIB.Texture.NEAREST_SAMPLINGMODE;
+            internalTexture.type = Engine.TEXTURETYPE_UNSIGNED_INT;
+            internalTexture._comparisonFunction = comparisonFunction;
+            var gl = this._gl;
+            var target = internalTexture.isCube ? gl.TEXTURE_CUBE_MAP : gl.TEXTURE_2D;
+            var samplingParameters = getSamplingParameters(internalTexture.samplingMode, false, gl);
+            gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, samplingParameters.mag);
+            gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, samplingParameters.min);
+            gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            if (comparisonFunction === 0) {
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, Engine.LEQUAL);
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+            }
+            else {
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, comparisonFunction);
+                gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+            }
+        };
+        /**
+         * Creates a depth stencil texture.
+         * This is only available in WebGL 2 or with the depth texture extension available.
+         * @param size The size of face edge in the texture.
+         * @param options The options defining the texture.
+         * @returns The texture
+         */
+        Engine.prototype.createDepthStencilTexture = function (size, options) {
+            if (options.isCube) {
+                var width = size.width || size;
+                return this._createDepthStencilCubeTexture(width, options);
+            }
+            else {
+                return this._createDepthStencilTexture(size, options);
+            }
+        };
+        /**
+         * Creates a depth stencil texture.
+         * This is only available in WebGL 2 or with the depth texture extension available.
+         * @param size The size of face edge in the texture.
+         * @param options The options defining the texture.
+         * @returns The texture
+         */
+        Engine.prototype._createDepthStencilTexture = function (size, options) {
+            var internalTexture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_DEPTHTEXTURE);
+            if (!this._caps.depthTextureExtension) {
+                LIB.Tools.Error("Depth texture is not supported by your browser or hardware.");
+                return internalTexture;
+            }
+            var internalOptions = __assign({ bilinearFiltering: false, comparisonFunction: 0, generateStencil: false }, options);
+            var gl = this._gl;
+            this._bindTextureDirectly(gl.TEXTURE_2D, internalTexture, true);
+            this._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
+            if (this.webGLVersion > 1) {
+                if (internalOptions.generateStencil) {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, internalTexture.width, internalTexture.height, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+                }
+                else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, internalTexture.width, internalTexture.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+                }
+            }
+            else {
+                if (internalOptions.generateStencil) {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, internalTexture.width, internalTexture.height, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+                }
+                else {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, internalTexture.width, internalTexture.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+                }
+            }
+            this._bindTextureDirectly(gl.TEXTURE_2D, null);
+            return internalTexture;
+        };
+        /**
+         * Creates a depth stencil cube texture.
+         * This is only available in WebGL 2.
+         * @param size The size of face edge in the cube texture.
+         * @param options The options defining the cube texture.
+         * @returns The cube texture
+         */
+        Engine.prototype._createDepthStencilCubeTexture = function (size, options) {
+            var internalTexture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_UNKNOWN);
+            internalTexture.isCube = true;
+            if (this.webGLVersion === 1) {
+                LIB.Tools.Error("Depth cube texture is not supported by WebGL 1.");
+                return internalTexture;
+            }
+            var internalOptions = __assign({ bilinearFiltering: false, comparisonFunction: 0, generateStencil: false }, options);
+            var gl = this._gl;
+            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, internalTexture, true);
+            this._setupDepthStencilTexture(internalTexture, size, internalOptions.generateStencil, internalOptions.bilinearFiltering, internalOptions.comparisonFunction);
+            // Create the depth/stencil buffer
+            for (var face = 0; face < 6; face++) {
+                if (internalOptions.generateStencil) {
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, gl.DEPTH24_STENCIL8, size, size, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
+                }
+                else {
+                    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, gl.DEPTH_COMPONENT24, size, size, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+                }
+            }
+            this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
+            return internalTexture;
+        };
+        /**
+         * Sets the frame buffer Depth / Stencil attachement of the render target to the defined depth stencil texture.
+         * @param renderTarget The render target to set the frame buffer for
+         */
+        Engine.prototype.setFrameBufferDepthStencilTexture = function (renderTarget) {
+            // Create the framebuffer
+            var internalTexture = renderTarget.getInternalTexture();
+            if (!internalTexture || !internalTexture._framebuffer || !renderTarget.depthStencilTexture) {
+                return;
+            }
+            var gl = this._gl;
+            var depthStencilTexture = renderTarget.depthStencilTexture;
+            this.bindUnboundFramebuffer(internalTexture._framebuffer);
+            if (depthStencilTexture.isCube) {
+                if (depthStencilTexture._generateStencilBuffer) {
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_CUBE_MAP_POSITIVE_X, depthStencilTexture._webGLTexture, 0);
+                }
+                else {
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_CUBE_MAP_POSITIVE_X, depthStencilTexture._webGLTexture, 0);
+                }
+            }
+            else {
+                if (depthStencilTexture._generateStencilBuffer) {
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, 0);
+                }
+                else {
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthStencilTexture._webGLTexture, 0);
+                }
+            }
+            this.bindUnboundFramebuffer(null);
+        };
+        /**
+         * Creates a new render target texture
+         * @param size defines the size of the texture
+         * @param options defines the options used to create the texture
+         * @returns a new render target texture stored in an InternalTexture
+         */
         Engine.prototype.createRenderTargetTexture = function (size, options) {
             var fullOptions = new RenderTargetCreationOptions();
             if (options !== undefined && typeof options === "object") {
@@ -2993,6 +4152,7 @@
                 fullOptions.generateStencilBuffer = fullOptions.generateDepthBuffer && options.generateStencilBuffer;
                 fullOptions.type = options.type === undefined ? Engine.TEXTURETYPE_UNSIGNED_INT : options.type;
                 fullOptions.samplingMode = options.samplingMode === undefined ? LIB.Texture.TRILINEAR_SAMPLINGMODE : options.samplingMode;
+                fullOptions.format = options.format === undefined ? Engine.TEXTUREFORMAT_RGBA : options.format;
             }
             else {
                 fullOptions.generateMipMaps = options;
@@ -3000,6 +4160,7 @@
                 fullOptions.generateStencilBuffer = false;
                 fullOptions.type = Engine.TEXTURETYPE_UNSIGNED_INT;
                 fullOptions.samplingMode = LIB.Texture.TRILINEAR_SAMPLINGMODE;
+                fullOptions.format = Engine.TEXTUREFORMAT_RGBA;
             }
             if (fullOptions.type === Engine.TEXTURETYPE_FLOAT && !this._caps.textureFloatLinearFiltering) {
                 // if floating point linear (gl.FLOAT) then force to NEAREST_SAMPLINGMODE
@@ -3023,7 +4184,7 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filters.min);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texImage2D(gl.TEXTURE_2D, 0, this._getRGBABufferInternalSizedFormat(fullOptions.type), width, height, 0, gl.RGBA, this._getWebGLTextureType(fullOptions.type), null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, this._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), width, height, 0, this._getInternalFormat(fullOptions.format), this._getWebGLTextureType(fullOptions.type), null);
             // Create the framebuffer
             var framebuffer = gl.createFramebuffer();
             this.bindUnboundFramebuffer(framebuffer);
@@ -3052,6 +4213,13 @@
             this._internalTexturesCache.push(texture);
             return texture;
         };
+        /**
+         * Create a multi render target texture
+         * @see http://doc.LIBjs.com/features/webgl2#multiple-render-target
+         * @param size defines the size of the texture
+         * @param options defines the creation options
+         * @returns the cube texture as an InternalTexture
+         */
         Engine.prototype.createMultipleRenderTarget = function (size, options) {
             var generateMipMaps = false;
             var generateDepthBuffer = true;
@@ -3060,12 +4228,13 @@
             var textureCount = 1;
             var defaultType = Engine.TEXTURETYPE_UNSIGNED_INT;
             var defaultSamplingMode = LIB.Texture.TRILINEAR_SAMPLINGMODE;
-            var types = [], samplingModes = [];
+            var types = new Array();
+            var samplingModes = new Array();
             if (options !== undefined) {
-                generateMipMaps = options.generateMipMaps;
+                generateMipMaps = options.generateMipMaps === undefined ? false : options.generateMipMaps;
                 generateDepthBuffer = options.generateDepthBuffer === undefined ? true : options.generateDepthBuffer;
-                generateStencilBuffer = options.generateStencilBuffer;
-                generateDepthTexture = options.generateDepthTexture;
+                generateStencilBuffer = options.generateStencilBuffer === undefined ? false : options.generateStencilBuffer;
+                generateDepthTexture = options.generateDepthTexture === undefined ? false : options.generateDepthTexture;
                 textureCount = options.textureCount || 1;
                 if (options.types) {
                     types = options.types;
@@ -3129,6 +4298,7 @@
                 texture.type = type;
                 texture._generateDepthBuffer = generateDepthBuffer;
                 texture._generateStencilBuffer = generateStencilBuffer;
+                texture._attachments = attachments;
                 this._internalTexturesCache.push(texture);
             }
             if (generateDepthTexture && this._caps.depthTextureExtension) {
@@ -3191,6 +4361,13 @@
             }
             return depthStencilBuffer;
         };
+        /**
+         * Updates the sample count of a render target texture
+         * @see http://doc.LIBjs.com/features/webgl2#multisample-render-targets
+         * @param texture defines the texture to update
+         * @param samples defines the sample count to set
+         * @returns the effective sample count (could be 0 if multisample render targets are not supported)
+         */
         Engine.prototype.updateRenderTargetTextureSampleCount = function (texture, samples) {
             if (this.webGLVersion < 2 || !texture) {
                 return 1;
@@ -3203,12 +4380,15 @@
             // Dispose previous render buffers
             if (texture._depthStencilBuffer) {
                 gl.deleteRenderbuffer(texture._depthStencilBuffer);
+                texture._depthStencilBuffer = null;
             }
             if (texture._MSAAFramebuffer) {
                 gl.deleteFramebuffer(texture._MSAAFramebuffer);
+                texture._MSAAFramebuffer = null;
             }
             if (texture._MSAARenderBuffer) {
                 gl.deleteRenderbuffer(texture._MSAARenderBuffer);
+                texture._MSAARenderBuffer = null;
             }
             if (samples > 1) {
                 var framebuffer = gl.createFramebuffer();
@@ -3222,7 +4402,7 @@
                     throw new Error("Unable to create multi sampled framebuffer");
                 }
                 gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, texture.width, texture.height);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
                 texture._MSAARenderBuffer = colorRenderbuffer;
             }
@@ -3235,46 +4415,116 @@
             this.bindUnboundFramebuffer(null);
             return samples;
         };
+        /**
+         * Update the sample count for a given multiple render target texture
+         * @see http://doc.LIBjs.com/features/webgl2#multisample-render-targets
+         * @param textures defines the textures to update
+         * @param samples defines the sample count to set
+         * @returns the effective sample count (could be 0 if multisample render targets are not supported)
+         */
+        Engine.prototype.updateMultipleRenderTargetTextureSampleCount = function (textures, samples) {
+            if (this.webGLVersion < 2 || !textures || textures.length == 0) {
+                return 1;
+            }
+            if (textures[0].samples === samples) {
+                return samples;
+            }
+            var gl = this._gl;
+            samples = Math.min(samples, gl.getParameter(gl.MAX_SAMPLES));
+            // Dispose previous render buffers
+            if (textures[0]._depthStencilBuffer) {
+                gl.deleteRenderbuffer(textures[0]._depthStencilBuffer);
+                textures[0]._depthStencilBuffer = null;
+            }
+            if (textures[0]._MSAAFramebuffer) {
+                gl.deleteFramebuffer(textures[0]._MSAAFramebuffer);
+                textures[0]._MSAAFramebuffer = null;
+            }
+            for (var i = 0; i < textures.length; i++) {
+                if (textures[i]._MSAARenderBuffer) {
+                    gl.deleteRenderbuffer(textures[i]._MSAARenderBuffer);
+                    textures[i]._MSAARenderBuffer = null;
+                }
+            }
+            if (samples > 1) {
+                var framebuffer = gl.createFramebuffer();
+                if (!framebuffer) {
+                    throw new Error("Unable to create multi sampled framebuffer");
+                }
+                this.bindUnboundFramebuffer(framebuffer);
+                var depthStencilBuffer = this._setupFramebufferDepthAttachments(textures[0]._generateStencilBuffer, textures[0]._generateDepthBuffer, textures[0].width, textures[0].height, samples);
+                var attachments = [];
+                for (var i = 0; i < textures.length; i++) {
+                    var texture = textures[i];
+                    var attachment = gl[this.webGLVersion > 1 ? "COLOR_ATTACHMENT" + i : "COLOR_ATTACHMENT" + i + "_WEBGL"];
+                    var colorRenderbuffer = gl.createRenderbuffer();
+                    if (!colorRenderbuffer) {
+                        throw new Error("Unable to create multi sampled framebuffer");
+                    }
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, this._getRGBAMultiSampleBufferFormat(texture.type), texture.width, texture.height);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, colorRenderbuffer);
+                    texture._MSAAFramebuffer = framebuffer;
+                    texture._MSAARenderBuffer = colorRenderbuffer;
+                    texture.samples = samples;
+                    texture._depthStencilBuffer = depthStencilBuffer;
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                    attachments.push(attachment);
+                }
+                gl.drawBuffers(attachments);
+            }
+            else {
+                this.bindUnboundFramebuffer(textures[0]._framebuffer);
+            }
+            this.bindUnboundFramebuffer(null);
+            return samples;
+        };
+        /** @hidden */
         Engine.prototype._uploadDataToTexture = function (target, lod, internalFormat, width, height, format, type, data) {
             this._gl.texImage2D(target, lod, internalFormat, width, height, 0, format, type, data);
         };
+        /** @hidden */
         Engine.prototype._uploadCompressedDataToTexture = function (target, lod, internalFormat, width, height, data) {
             this._gl.compressedTexImage2D(target, lod, internalFormat, width, height, 0, data);
         };
+        /**
+         * Creates a new render target cube texture
+         * @param size defines the size of the texture
+         * @param options defines the options used to create the texture
+         * @returns a new render target cube texture stored in an InternalTexture
+         */
         Engine.prototype.createRenderTargetCubeTexture = function (size, options) {
+            var fullOptions = __assign({ generateMipMaps: true, generateDepthBuffer: true, generateStencilBuffer: false, type: Engine.TEXTURETYPE_UNSIGNED_INT, samplingMode: LIB.Texture.TRILINEAR_SAMPLINGMODE, format: Engine.TEXTUREFORMAT_RGBA }, options);
+            fullOptions.generateStencilBuffer = fullOptions.generateDepthBuffer && fullOptions.generateStencilBuffer;
+            if (fullOptions.type === Engine.TEXTURETYPE_FLOAT && !this._caps.textureFloatLinearFiltering) {
+                // if floating point linear (gl.FLOAT) then force to NEAREST_SAMPLINGMODE
+                fullOptions.samplingMode = LIB.Texture.NEAREST_SAMPLINGMODE;
+            }
+            else if (fullOptions.type === Engine.TEXTURETYPE_HALF_FLOAT && !this._caps.textureHalfFloatLinearFiltering) {
+                // if floating point linear (HALF_FLOAT) then force to NEAREST_SAMPLINGMODE
+                fullOptions.samplingMode = LIB.Texture.NEAREST_SAMPLINGMODE;
+            }
             var gl = this._gl;
             var texture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_RENDERTARGET);
-            var generateMipMaps = true;
-            var generateDepthBuffer = true;
-            var generateStencilBuffer = false;
-            var samplingMode = LIB.Texture.TRILINEAR_SAMPLINGMODE;
-            if (options !== undefined) {
-                generateMipMaps = options.generateMipMaps === undefined ? true : options.generateMipMaps;
-                generateDepthBuffer = options.generateDepthBuffer === undefined ? true : options.generateDepthBuffer;
-                generateStencilBuffer = (generateDepthBuffer && options.generateStencilBuffer) ? true : false;
-                if (options.samplingMode !== undefined) {
-                    samplingMode = options.samplingMode;
-                }
-            }
-            texture.isCube = true;
-            texture.generateMipMaps = generateMipMaps;
-            texture.samples = 1;
-            texture.samplingMode = samplingMode;
-            var filters = getSamplingParameters(samplingMode, generateMipMaps, gl);
             this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
-            for (var face = 0; face < 6; face++) {
-                gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            var filters = getSamplingParameters(fullOptions.samplingMode, fullOptions.generateMipMaps, gl);
+            if (fullOptions.type === Engine.TEXTURETYPE_FLOAT && !this._caps.textureFloat) {
+                fullOptions.type = Engine.TEXTURETYPE_UNSIGNED_INT;
+                LIB.Tools.Warn("Float textures are not supported. Cube render target forced to TEXTURETYPE_UNESIGNED_BYTE type");
             }
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, filters.mag);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, filters.min);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            for (var face = 0; face < 6; face++) {
+                gl.texImage2D((gl.TEXTURE_CUBE_MAP_POSITIVE_X + face), 0, this._getRGBABufferInternalSizedFormat(fullOptions.type, fullOptions.format), size, size, 0, this._getInternalFormat(fullOptions.format), this._getWebGLTextureType(fullOptions.type), null);
+            }
             // Create the framebuffer
             var framebuffer = gl.createFramebuffer();
             this.bindUnboundFramebuffer(framebuffer);
-            texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(generateStencilBuffer, generateDepthBuffer, size, size);
-            // Mipmaps
-            if (texture.generateMipMaps) {
+            texture._depthStencilBuffer = this._setupFramebufferDepthAttachments(fullOptions.generateStencilBuffer, fullOptions.generateDepthBuffer, size, size);
+            // MipMaps
+            if (fullOptions.generateMipMaps) {
                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             }
             // Unbind
@@ -3285,10 +4535,28 @@
             texture.width = size;
             texture.height = size;
             texture.isReady = true;
-            //this.resetTextureCache();
+            texture.isCube = true;
+            texture.samples = 1;
+            texture.generateMipMaps = fullOptions.generateMipMaps;
+            texture.samplingMode = fullOptions.samplingMode;
+            texture.type = fullOptions.type;
+            texture._generateDepthBuffer = fullOptions.generateDepthBuffer;
+            texture._generateStencilBuffer = fullOptions.generateStencilBuffer;
             this._internalTexturesCache.push(texture);
             return texture;
         };
+        /**
+         * Create a cube texture from prefiltered data (ie. the mipmaps contain ready to use data for PBR reflection)
+         * @param rootUrl defines the url where the file to load is located
+         * @param scene defines the current scene
+         * @param scale defines scale to apply to the mip map selection
+         * @param offset defines offset to apply to the mip map selection
+         * @param onLoad defines an optional callback raised when the texture is loaded
+         * @param onError defines an optional callback raised if there is an issue to load the texture
+         * @param format defines the format of the data
+         * @param forcedExtension defines the extension to use to pick the right loader
+         * @returns the cube texture as an InternalTexture
+         */
         Engine.prototype.createPrefilteredCubeTexture = function (rootUrl, scene, scale, offset, onLoad, onError, format, forcedExtension) {
             var _this = this;
             if (onLoad === void 0) { onLoad = null; }
@@ -3302,6 +4570,9 @@
                     return;
                 }
                 var texture = loadData.texture;
+                if (loadData.info.sphericalPolynomial) {
+                    texture._sphericalPolynomial = loadData.info.sphericalPolynomial;
+                }
                 texture._dataSource = LIB.InternalTexture.DATASOURCE_CUBEPREFILTERED;
                 texture._lodGenerationScale = scale;
                 texture._lodGenerationOffset = offset;
@@ -3338,7 +4609,7 @@
                         var info = loadData.info;
                         var data = loadData.data;
                         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, info.isCompressed ? 1 : 0);
-                        LIB.Internals.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, true, 6, mipmapIndex);
+                        LIB.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, true, 6, mipmapIndex);
                     }
                     else {
                         LIB.Tools.Warn("DDS is the only prefiltered cube map supported so far.");
@@ -3358,13 +4629,27 @@
                     onLoad(texture);
                 }
             };
-            return this.createCubeTexture(rootUrl, scene, null, false, callback, onError, format, forcedExtension);
+            return this.createCubeTexture(rootUrl, scene, null, false, callback, onError, format, forcedExtension, true);
         };
-        Engine.prototype.createCubeTexture = function (rootUrl, scene, files, noMipmap, onLoad, onError, format, forcedExtension) {
+        /**
+         * Creates a cube texture
+         * @param rootUrl defines the url where the files to load is located
+         * @param scene defines the current scene
+         * @param files defines the list of files to load (1 per face)
+         * @param noMipmap defines a boolean indicating that no mipmaps shall be generated (false by default)
+         * @param onLoad defines an optional callback raised when the texture is loaded
+         * @param onError defines an optional callback raised if there is an issue to load the texture
+         * @param format defines the format of the data
+         * @param forcedExtension defines the extension to use to pick the right loader
+         * @param createPolynomials if a polynomial sphere should be created for the cube texture
+         * @returns the cube texture as an InternalTexture
+         */
+        Engine.prototype.createCubeTexture = function (rootUrl, scene, files, noMipmap, onLoad, onError, format, forcedExtension, createPolynomials) {
             var _this = this;
             if (onLoad === void 0) { onLoad = null; }
             if (onError === void 0) { onError = null; }
             if (forcedExtension === void 0) { forcedExtension = null; }
+            if (createPolynomials === void 0) { createPolynomials = false; }
             var gl = this._gl;
             var texture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_CUBE);
             texture.isCube = true;
@@ -3393,7 +4678,7 @@
             };
             if (isKTX) {
                 this._loadFile(rootUrl, function (data) {
-                    var ktx = new LIB.Internals.KhronosTextureContainer(data, 6);
+                    var ktx = new LIB.KhronosTextureContainer(data, 6);
                     var loadMipmap = ktx.numberOfMipmapLevels > 1 && !noMipmap;
                     _this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
@@ -3406,17 +4691,17 @@
             }
             else if (isDDS) {
                 if (files && files.length === 6) {
-                    this._cascadeLoadFiles(rootUrl, scene, function (imgs) {
+                    this._cascadeLoadFiles(scene, function (imgs) {
                         var info;
                         var loadMipmap = false;
                         var width = 0;
                         for (var index = 0; index < imgs.length; index++) {
                             var data = imgs[index];
-                            info = LIB.Internals.DDSTools.GetDDSInfo(data);
+                            info = LIB.DDSTools.GetDDSInfo(data);
                             loadMipmap = (info.isRGB || info.isLuminance || info.mipmapCount > 1) && !noMipmap;
                             _this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
                             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, info.isCompressed ? 1 : 0);
-                            LIB.Internals.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 6, -1, index);
+                            LIB.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 6, -1, index);
                             if (!noMipmap && !info.isFourCC && info.mipmapCount === 1) {
                                 gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                             }
@@ -3434,11 +4719,14 @@
                 }
                 else {
                     this._loadFile(rootUrl, function (data) {
-                        var info = LIB.Internals.DDSTools.GetDDSInfo(data);
+                        var info = LIB.DDSTools.GetDDSInfo(data);
+                        if (createPolynomials) {
+                            info.sphericalPolynomial = new LIB.SphericalPolynomial();
+                        }
                         var loadMipmap = (info.isRGB || info.isLuminance || info.mipmapCount > 1) && !noMipmap;
                         _this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
                         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, info.isCompressed ? 1 : 0);
-                        LIB.Internals.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 6);
+                        LIB.DDSTools.UploadDDSLevels(_this, _this._gl, data, info, loadMipmap, 6);
                         if (!noMipmap && !info.isFourCC && info.mipmapCount === 1) {
                             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
                         }
@@ -3505,6 +4793,16 @@
             this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             //  this.resetTextureCache();
         };
+        /**
+         * Update a raw cube texture
+         * @param texture defines the texture to udpdate
+         * @param data defines the data to store
+         * @param format defines the data format
+         * @param type defines the type fo the data (LIB.Engine.TEXTURETYPE_UNSIGNED_INT by default)
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param compression defines the compression used (null by default)
+         * @param level defines which level of the texture to update
+         */
         Engine.prototype.updateRawCubeTexture = function (texture, data, format, type, invertY, compression, level) {
             if (compression === void 0) { compression = null; }
             if (level === void 0) { level = 0; }
@@ -3548,6 +4846,18 @@
             // this.resetTextureCache();
             texture.isReady = true;
         };
+        /**
+         * Creates a new raw cube texture
+         * @param data defines the array of data to use to create each face
+         * @param size defines the size of the textures
+         * @param format defines the format of the data
+         * @param type defines the type fo the data (like LIB.Engine.TEXTURETYPE_UNSIGNED_INT)
+         * @param generateMipMaps  defines if the engine should generate the mip levels
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param samplingMode defines the required sampling mode (like LIB.Texture.NEAREST_SAMPLINGMODE)
+         * @param compression defines the compression used (null by default)
+         * @returns the cube texture as an InternalTexture
+         */
         Engine.prototype.createRawCubeTexture = function (data, size, format, type, generateMipMaps, invertY, samplingMode, compression) {
             if (compression === void 0) { compression = null; }
             var gl = this._gl;
@@ -3600,7 +4910,23 @@
             this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, null);
             return texture;
         };
-        Engine.prototype.createRawCubeTextureFromUrl = function (url, scene, size, format, type, noMipmap, callback, mipmmapGenerator, onLoad, onError, samplingMode, invertY) {
+        /**
+         * Creates a new raw cube texture from a specified url
+         * @param url defines the url where the data is located
+         * @param scene defines the current scene
+         * @param size defines the size of the textures
+         * @param format defines the format of the data
+         * @param type defines the type fo the data (like LIB.Engine.TEXTURETYPE_UNSIGNED_INT)
+         * @param noMipmap defines if the engine should avoid generating the mip levels
+         * @param callback defines a callback used to extract texture data from loaded data
+         * @param mipmapGenerator defines to provide an optional tool to generate mip levels
+         * @param onLoad defines a callback called when texture is loaded
+         * @param onError defines a callback called if there is an error
+         * @param samplingMode defines the required sampling mode (like LIB.Texture.NEAREST_SAMPLINGMODE)
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @returns the cube texture as an InternalTexture
+         */
+        Engine.prototype.createRawCubeTextureFromUrl = function (url, scene, size, format, type, noMipmap, callback, mipmapGenerator, onLoad, onError, samplingMode, invertY) {
             var _this = this;
             if (onLoad === void 0) { onLoad = null; }
             if (onError === void 0) { onError = null; }
@@ -3623,7 +4949,7 @@
                 if (!faceDataArrays) {
                     return;
                 }
-                if (mipmmapGenerator) {
+                if (mipmapGenerator) {
                     var textureType = _this._getWebGLTextureType(type);
                     var internalFormat = _this._getInternalFormat(format);
                     var internalSizedFomat = _this._getRGBABufferInternalSizedFormat(type);
@@ -3634,7 +4960,7 @@
                     }
                     _this._bindTextureDirectly(gl.TEXTURE_CUBE_MAP, texture, true);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
-                    var mipData = mipmmapGenerator(faceDataArrays);
+                    var mipData = mipmapGenerator(faceDataArrays);
                     for (var level = 0; level < mipData.length; level++) {
                         var mipSize = width >> level;
                         for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
@@ -3664,6 +4990,14 @@
             return texture;
         };
         ;
+        /**
+         * Update a raw 3D texture
+         * @param texture defines the texture to update
+         * @param data defines the data to store
+         * @param format defines the data format
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param compression defines the used compression (can be null)
+         */
         Engine.prototype.updateRawTexture3D = function (texture, data, format, invertY, compression) {
             if (compression === void 0) { compression = null; }
             var internalFormat = this._getInternalFormat(format);
@@ -3691,6 +5025,19 @@
             // this.resetTextureCache();
             texture.isReady = true;
         };
+        /**
+         * Creates a new raw 3D texture
+         * @param data defines the data used to create the texture
+         * @param width defines the width of the texture
+         * @param height defines the height of the texture
+         * @param depth defines the depth of the texture
+         * @param format defines the format of the texture
+         * @param generateMipMaps defines if the engine must generate mip levels
+         * @param invertY defines if data must be stored with Y axis inverted
+         * @param samplingMode defines the required sampling mode (like LIB.Texture.NEAREST_SAMPLINGMODE)
+         * @param compression defines the compressed used (can be null)
+         * @returns a new raw 3D texture (stored in an InternalTexture)
+         */
         Engine.prototype.createRawTexture3D = function (data, width, height, depth, format, generateMipMaps, invertY, samplingMode, compression) {
             if (compression === void 0) { compression = null; }
             var texture = new LIB.InternalTexture(this, LIB.InternalTexture.DATASOURCE_RAW3D);
@@ -3794,6 +5141,7 @@
             }
             return rgbaData;
         };
+        /** @hidden */
         Engine.prototype._releaseFramebufferObjects = function (texture) {
             var gl = this._gl;
             if (texture._framebuffer) {
@@ -3813,6 +5161,7 @@
                 texture._MSAARenderBuffer = null;
             }
         };
+        /** @hidden */
         Engine.prototype._releaseTexture = function (texture) {
             var gl = this._gl;
             this._releaseFramebufferObjects(texture);
@@ -3833,6 +5182,23 @@
             if (texture._lodTextureLow) {
                 texture._lodTextureLow.dispose();
             }
+            // Set output texture of post process to null if the texture has been released/disposed
+            this.scenes.forEach(function (scene) {
+                scene.postProcesses.forEach(function (postProcess) {
+                    if (postProcess._outputTexture == texture) {
+                        postProcess._outputTexture = null;
+                    }
+                });
+                scene.cameras.forEach(function (camera) {
+                    camera._postProcesses.forEach(function (postProcess) {
+                        if (postProcess) {
+                            if (postProcess._outputTexture == texture) {
+                                postProcess._outputTexture = null;
+                            }
+                        }
+                    });
+                });
+            });
         };
         Engine.prototype.setProgram = function (program) {
             if (this._currentProgram !== program) {
@@ -3840,6 +5206,10 @@
                 this._currentProgram = program;
             }
         };
+        /**
+         * Binds an effect to the webGL context
+         * @param effect defines the effect to bind
+         */
         Engine.prototype.bindSamplers = function (effect) {
             this.setProgram(effect.getProgram());
             var samplers = effect.getSamplers();
@@ -3851,59 +5221,107 @@
             }
             this._currentEffect = null;
         };
-        Engine.prototype._activateTextureChannel = function (channel) {
-            if (this._activeChannel !== channel && channel > -1) {
-                this._gl.activeTexture(this._gl.TEXTURE0 + channel);
-                this._activeChannel = channel;
-            }
-        };
         Engine.prototype._moveBoundTextureOnTop = function (internalTexture) {
-            var index = this._boundTexturesStack.indexOf(internalTexture);
-            if (index > -1 && index !== this._boundTexturesStack.length - 1) {
-                this._boundTexturesStack.splice(index, 1);
-                this._boundTexturesStack.push(internalTexture);
+            if (this.disableTextureBindingOptimization || this._lastBoundInternalTextureTracker.previous === internalTexture) {
+                return;
             }
+            // Remove
+            this._linkTrackers(internalTexture.previous, internalTexture.next);
+            // Bind last to it
+            this._linkTrackers(this._lastBoundInternalTextureTracker.previous, internalTexture);
+            // Bind to dummy
+            this._linkTrackers(internalTexture, this._lastBoundInternalTextureTracker);
+        };
+        Engine.prototype._getCorrectTextureChannel = function (channel, internalTexture) {
+            if (!internalTexture) {
+                return -1;
+            }
+            internalTexture._initialSlot = channel;
+            if (this.disableTextureBindingOptimization) { // We want texture sampler ID === texture channel
+                if (channel !== internalTexture._designatedSlot) {
+                    this._textureCollisions.addCount(1, false);
+                }
+            }
+            else {
+                if (channel !== internalTexture._designatedSlot) {
+                    if (internalTexture._designatedSlot > -1) { // Texture is already assigned to a slot
+                        return internalTexture._designatedSlot;
+                    }
+                    else {
+                        // No slot for this texture, let's pick a new one (if we find a free slot)
+                        if (this._nextFreeTextureSlots.length) {
+                            return this._nextFreeTextureSlots[0];
+                        }
+                        // We need to recycle the oldest bound texture, sorry.
+                        this._textureCollisions.addCount(1, false);
+                        return this._removeDesignatedSlot(this._firstBoundInternalTextureTracker.next);
+                    }
+                }
+            }
+            return channel;
+        };
+        Engine.prototype._linkTrackers = function (previous, next) {
+            previous.next = next;
+            next.previous = previous;
         };
         Engine.prototype._removeDesignatedSlot = function (internalTexture) {
             var currentSlot = internalTexture._designatedSlot;
-            internalTexture._designatedSlot = -1;
-            var index = this._boundTexturesStack.indexOf(internalTexture);
-            if (index > -1) {
-                this._boundTexturesStack.splice(index, 1);
-                if (currentSlot > -1) {
-                    this._boundTexturesCache[currentSlot] = null;
-                    this._nextFreeTextureSlots.push(currentSlot);
-                }
+            if (currentSlot === -1) {
+                return -1;
             }
+            internalTexture._designatedSlot = -1;
+            if (this.disableTextureBindingOptimization) {
+                return -1;
+            }
+            // Remove from bound list
+            this._linkTrackers(internalTexture.previous, internalTexture.next);
+            // Free the slot
+            this._boundTexturesCache[currentSlot] = null;
+            this._nextFreeTextureSlots.push(currentSlot);
             return currentSlot;
         };
-        Engine.prototype._bindTextureDirectly = function (target, texture, doNotBindUniformToTextureChannel) {
-            if (doNotBindUniformToTextureChannel === void 0) { doNotBindUniformToTextureChannel = false; }
+        Engine.prototype._activateCurrentTexture = function () {
+            if (this._currentTextureChannel !== this._activeChannel) {
+                this._gl.activeTexture(this._gl.TEXTURE0 + this._activeChannel);
+                this._currentTextureChannel = this._activeChannel;
+            }
+        };
+        /** @hidden */
+        Engine.prototype._bindTextureDirectly = function (target, texture, forTextureDataUpdate, force) {
+            if (forTextureDataUpdate === void 0) { forTextureDataUpdate = false; }
+            if (force === void 0) { force = false; }
+            if (forTextureDataUpdate && texture && texture._designatedSlot > -1) {
+                this._activeChannel = texture._designatedSlot;
+            }
             var currentTextureBound = this._boundTexturesCache[this._activeChannel];
             var isTextureForRendering = texture && texture._initialSlot > -1;
-            if (currentTextureBound !== texture) {
+            if (currentTextureBound !== texture || force) {
                 if (currentTextureBound) {
                     this._removeDesignatedSlot(currentTextureBound);
                 }
+                this._activateCurrentTexture();
                 this._gl.bindTexture(target, texture ? texture._webGLTexture : null);
-                if (this._activeChannel >= 0) {
-                    this._boundTexturesCache[this._activeChannel] = texture;
-                    if (isTextureForRendering) {
+                this._boundTexturesCache[this._activeChannel] = texture;
+                if (texture) {
+                    if (!this.disableTextureBindingOptimization) {
                         var slotIndex = this._nextFreeTextureSlots.indexOf(this._activeChannel);
                         if (slotIndex > -1) {
                             this._nextFreeTextureSlots.splice(slotIndex, 1);
                         }
-                        this._boundTexturesStack.push(texture);
+                        this._linkTrackers(this._lastBoundInternalTextureTracker.previous, texture);
+                        this._linkTrackers(texture, this._lastBoundInternalTextureTracker);
                     }
+                    texture._designatedSlot = this._activeChannel;
                 }
             }
-            if (isTextureForRendering && this._activeChannel > -1) {
-                texture._designatedSlot = this._activeChannel;
-                if (!doNotBindUniformToTextureChannel) {
-                    this._bindSamplerUniformToChannel(texture._initialSlot, this._activeChannel);
-                }
+            else if (forTextureDataUpdate) {
+                this._activateCurrentTexture();
+            }
+            if (isTextureForRendering && !forTextureDataUpdate) {
+                this._bindSamplerUniformToChannel(texture._initialSlot, this._activeChannel);
             }
         };
+        /** @hidden */
         Engine.prototype._bindTexture = function (channel, texture) {
             if (channel < 0) {
                 return;
@@ -3911,15 +5329,31 @@
             if (texture) {
                 channel = this._getCorrectTextureChannel(channel, texture);
             }
-            this._activateTextureChannel(channel);
+            this._activeChannel = channel;
             this._bindTextureDirectly(this._gl.TEXTURE_2D, texture);
         };
+        /**
+         * Sets a texture to the webGL context from a postprocess
+         * @param channel defines the channel to use
+         * @param postProcess defines the source postprocess
+         */
         Engine.prototype.setTextureFromPostProcess = function (channel, postProcess) {
             this._bindTexture(channel, postProcess ? postProcess._textures.data[postProcess._currentRenderTextureInd] : null);
         };
+        /**
+         * Binds the output of the passed in post process to the texture channel specified
+         * @param channel The channel the texture should be bound to
+         * @param postProcess The post process which's output should be bound
+         */
+        Engine.prototype.setTextureFromPostProcessOutput = function (channel, postProcess) {
+            this._bindTexture(channel, postProcess ? postProcess._outputTexture : null);
+        };
+        /**
+         * Unbind all textures from the webGL context
+         */
         Engine.prototype.unbindAllTextures = function () {
-            for (var channel = 0; channel < this._caps.maxTexturesImageUnits; channel++) {
-                this._activateTextureChannel(channel);
+            for (var channel = 0; channel < this._maxSimultaneousTextures; channel++) {
+                this._activeChannel = channel;
                 this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
                 this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
                 if (this.webGLVersion > 1) {
@@ -3927,6 +5361,12 @@
                 }
             }
         };
+        /**
+         * Sets a texture to the according uniform.
+         * @param channel The texture channel
+         * @param uniform The uniform to set
+         * @param texture The texture to apply
+         */
         Engine.prototype.setTexture = function (channel, uniform, texture) {
             if (channel < 0) {
                 return;
@@ -3936,37 +5376,52 @@
             }
             this._setTexture(channel, texture);
         };
-        Engine.prototype._getCorrectTextureChannel = function (channel, internalTexture) {
-            if (!internalTexture) {
-                return -1;
+        /**
+         * Sets a depth stencil texture from a render target to the according uniform.
+         * @param channel The texture channel
+         * @param uniform The uniform to set
+         * @param texture The render target texture containing the depth stencil texture to apply
+         */
+        Engine.prototype.setDepthStencilTexture = function (channel, uniform, texture) {
+            if (channel < 0) {
+                return;
             }
-            internalTexture._initialSlot = channel;
-            if (channel !== internalTexture._designatedSlot) {
-                if (internalTexture._designatedSlot > -1) {
-                    return internalTexture._designatedSlot;
-                }
-                else {
-                    // No slot for this texture, let's pick a new one (if we find a free slot)
-                    if (this._nextFreeTextureSlots.length) {
-                        return this._nextFreeTextureSlots[0];
-                    }
-                    // We need to recycle the oldest bound texture, sorry.
-                    this._textureCollisions.addCount(1, false);
-                    return this._removeDesignatedSlot(this._boundTexturesStack[0]);
-                }
+            if (uniform) {
+                this._boundUniforms[channel] = uniform;
             }
-            return channel;
+            if (!texture || !texture.depthStencilTexture) {
+                this._setTexture(channel, null);
+            }
+            else {
+                this._setTexture(channel, texture, false, true);
+            }
         };
         Engine.prototype._bindSamplerUniformToChannel = function (sourceSlot, destination) {
             var uniform = this._boundUniforms[sourceSlot];
+            if (uniform._currentState === destination) {
+                return;
+            }
             this._gl.uniform1i(uniform, destination);
+            uniform._currentState = destination;
         };
-        Engine.prototype._setTexture = function (channel, texture, isPartOfTextureArray) {
+        Engine.prototype._getTextureWrapMode = function (mode) {
+            switch (mode) {
+                case LIB.Texture.WRAP_ADDRESSMODE:
+                    return this._gl.REPEAT;
+                case LIB.Texture.CLAMP_ADDRESSMODE:
+                    return this._gl.CLAMP_TO_EDGE;
+                case LIB.Texture.MIRROR_ADDRESSMODE:
+                    return this._gl.MIRRORED_REPEAT;
+            }
+            return this._gl.REPEAT;
+        };
+        Engine.prototype._setTexture = function (channel, texture, isPartOfTextureArray, depthStencilTexture) {
             if (isPartOfTextureArray === void 0) { isPartOfTextureArray = false; }
+            if (depthStencilTexture === void 0) { depthStencilTexture = false; }
             // Not ready?
             if (!texture) {
                 if (this._boundTexturesCache[channel] != null) {
-                    this._activateTextureChannel(channel);
+                    this._activeChannel = channel;
                     this._bindTextureDirectly(this._gl.TEXTURE_2D, null);
                     this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, null);
                     if (this.webGLVersion > 1) {
@@ -3976,18 +5431,19 @@
                 return false;
             }
             // Video
-            var alreadyActivated = false;
             if (texture.video) {
-                this._activateTextureChannel(channel);
-                alreadyActivated = true;
+                this._activeChannel = channel;
                 texture.update();
             }
-            else if (texture.delayLoadState === Engine.DELAYLOADSTATE_NOTLOADED) {
+            else if (texture.delayLoadState === Engine.DELAYLOADSTATE_NOTLOADED) { // Delay loading
                 texture.delayLoad();
                 return false;
             }
             var internalTexture;
-            if (texture.isReady()) {
+            if (depthStencilTexture) {
+                internalTexture = texture.depthStencilTexture;
+            }
+            else if (texture.isReady()) {
                 internalTexture = texture.getInternalTexture();
             }
             else if (texture.isCube) {
@@ -4002,107 +5458,68 @@
             if (!isPartOfTextureArray) {
                 channel = this._getCorrectTextureChannel(channel, internalTexture);
             }
+            var needToBind = true;
             if (this._boundTexturesCache[channel] === internalTexture) {
                 this._moveBoundTextureOnTop(internalTexture);
                 if (!isPartOfTextureArray) {
                     this._bindSamplerUniformToChannel(internalTexture._initialSlot, channel);
                 }
-                return false;
+                needToBind = false;
             }
-            if (!alreadyActivated) {
-                this._activateTextureChannel(channel);
-            }
+            this._activeChannel = channel;
             if (internalTexture && internalTexture.is3D) {
-                this._bindTextureDirectly(this._gl.TEXTURE_3D, internalTexture, isPartOfTextureArray);
+                if (needToBind) {
+                    this._bindTextureDirectly(this._gl.TEXTURE_3D, internalTexture, isPartOfTextureArray);
+                }
                 if (internalTexture && internalTexture._cachedWrapU !== texture.wrapU) {
                     internalTexture._cachedWrapU = texture.wrapU;
-                    switch (texture.wrapU) {
-                        case LIB.Texture.WRAP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
-                            break;
-                        case LIB.Texture.CLAMP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
-                            break;
-                        case LIB.Texture.MIRROR_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_S, this._gl.MIRRORED_REPEAT);
-                            break;
-                    }
+                    this._setTextureParameterInteger(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_S, this._getTextureWrapMode(texture.wrapU), internalTexture);
                 }
                 if (internalTexture && internalTexture._cachedWrapV !== texture.wrapV) {
                     internalTexture._cachedWrapV = texture.wrapV;
-                    switch (texture.wrapV) {
-                        case LIB.Texture.WRAP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
-                            break;
-                        case LIB.Texture.CLAMP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
-                            break;
-                        case LIB.Texture.MIRROR_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_T, this._gl.MIRRORED_REPEAT);
-                            break;
-                    }
+                    this._setTextureParameterInteger(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_T, this._getTextureWrapMode(texture.wrapV), internalTexture);
                 }
                 if (internalTexture && internalTexture._cachedWrapR !== texture.wrapR) {
                     internalTexture._cachedWrapR = texture.wrapR;
-                    switch (texture.wrapV) {
-                        case LIB.Texture.WRAP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_R, this._gl.REPEAT);
-                            break;
-                        case LIB.Texture.CLAMP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_R, this._gl.CLAMP_TO_EDGE);
-                            break;
-                        case LIB.Texture.MIRROR_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_R, this._gl.MIRRORED_REPEAT);
-                            break;
-                    }
+                    this._setTextureParameterInteger(this._gl.TEXTURE_3D, this._gl.TEXTURE_WRAP_R, this._getTextureWrapMode(texture.wrapR), internalTexture);
                 }
                 this._setAnisotropicLevel(this._gl.TEXTURE_3D, texture);
             }
             else if (internalTexture && internalTexture.isCube) {
-                this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, internalTexture, isPartOfTextureArray);
+                if (needToBind) {
+                    this._bindTextureDirectly(this._gl.TEXTURE_CUBE_MAP, internalTexture, isPartOfTextureArray);
+                }
                 if (internalTexture._cachedCoordinatesMode !== texture.coordinatesMode) {
                     internalTexture._cachedCoordinatesMode = texture.coordinatesMode;
                     // CUBIC_MODE and SKYBOX_MODE both require CLAMP_TO_EDGE.  All other modes use REPEAT.
                     var textureWrapMode = (texture.coordinatesMode !== LIB.Texture.CUBIC_MODE && texture.coordinatesMode !== LIB.Texture.SKYBOX_MODE) ? this._gl.REPEAT : this._gl.CLAMP_TO_EDGE;
-                    this._gl.texParameteri(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_WRAP_S, textureWrapMode);
-                    this._gl.texParameteri(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_WRAP_T, textureWrapMode);
+                    this._setTextureParameterInteger(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_WRAP_S, textureWrapMode, internalTexture);
+                    this._setTextureParameterInteger(this._gl.TEXTURE_CUBE_MAP, this._gl.TEXTURE_WRAP_T, textureWrapMode);
                 }
                 this._setAnisotropicLevel(this._gl.TEXTURE_CUBE_MAP, texture);
             }
             else {
-                this._bindTextureDirectly(this._gl.TEXTURE_2D, internalTexture, isPartOfTextureArray);
+                if (needToBind) {
+                    this._bindTextureDirectly(this._gl.TEXTURE_2D, internalTexture, isPartOfTextureArray);
+                }
                 if (internalTexture && internalTexture._cachedWrapU !== texture.wrapU) {
                     internalTexture._cachedWrapU = texture.wrapU;
-                    switch (texture.wrapU) {
-                        case LIB.Texture.WRAP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
-                            break;
-                        case LIB.Texture.CLAMP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
-                            break;
-                        case LIB.Texture.MIRROR_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.MIRRORED_REPEAT);
-                            break;
-                    }
+                    this._setTextureParameterInteger(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._getTextureWrapMode(texture.wrapU), internalTexture);
                 }
                 if (internalTexture && internalTexture._cachedWrapV !== texture.wrapV) {
                     internalTexture._cachedWrapV = texture.wrapV;
-                    switch (texture.wrapV) {
-                        case LIB.Texture.WRAP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
-                            break;
-                        case LIB.Texture.CLAMP_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
-                            break;
-                        case LIB.Texture.MIRROR_ADDRESSMODE:
-                            this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.MIRRORED_REPEAT);
-                            break;
-                    }
+                    this._setTextureParameterInteger(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._getTextureWrapMode(texture.wrapV), internalTexture);
                 }
                 this._setAnisotropicLevel(this._gl.TEXTURE_2D, texture);
             }
             return true;
         };
+        /**
+         * Sets an array of texture to the webGL context
+         * @param channel defines the channel where the texture array must be set
+         * @param uniform defines the associated uniform location
+         * @param textures defines the array of textures to bind
+         */
         Engine.prototype.setTextureArray = function (channel, uniform, textures) {
             if (channel < 0 || !uniform) {
                 return;
@@ -4118,7 +5535,8 @@
                 this._setTexture(this._textureUnits[index], textures[index], true);
             }
         };
-        Engine.prototype._setAnisotropicLevel = function (key, texture) {
+        /** @hidden */
+        Engine.prototype._setAnisotropicLevel = function (target, texture) {
             var internalTexture = texture.getInternalTexture();
             if (!internalTexture) {
                 return;
@@ -4131,10 +5549,28 @@
                 value = 1; // Forcing the anisotropic to 1 because else webgl will force filters to linear
             }
             if (anisotropicFilterExtension && internalTexture._cachedAnisotropicFilteringLevel !== value) {
-                this._gl.texParameterf(key, anisotropicFilterExtension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(value, this._caps.maxAnisotropy));
+                this._setTextureParameterFloat(target, anisotropicFilterExtension.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(value, this._caps.maxAnisotropy), internalTexture);
                 internalTexture._cachedAnisotropicFilteringLevel = value;
             }
         };
+        Engine.prototype._setTextureParameterFloat = function (target, parameter, value, texture) {
+            this._bindTextureDirectly(target, texture, true, true);
+            this._gl.texParameterf(target, parameter, value);
+        };
+        Engine.prototype._setTextureParameterInteger = function (target, parameter, value, texture) {
+            if (texture) {
+                this._bindTextureDirectly(target, texture, true, true);
+            }
+            this._gl.texParameteri(target, parameter, value);
+        };
+        /**
+         * Reads pixels from the current frame buffer. Please note that this function can be slow
+         * @param x defines the x coordinate of the rectangle where pixels must be read
+         * @param y defines the y coordinate of the rectangle where pixels must be read
+         * @param width defines the width of the rectangle where pixels must be read
+         * @param height defines the height of the rectangle where pixels must be read
+         * @returns a Uint8Array containing RGBA colors
+         */
         Engine.prototype.readPixels = function (x, y, width, height) {
             var data = new Uint8Array(height * width * 4);
             this._gl.readPixels(x, y, width, height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
@@ -4188,6 +5624,9 @@
             }
             return this._externalData.remove(key);
         };
+        /**
+         * Unbind all vertex attributes from the webGL context
+         */
         Engine.prototype.unbindAllAttributes = function () {
             if (this._mustWipeVertexAttributes) {
                 this._mustWipeVertexAttributes = false;
@@ -4207,13 +5646,18 @@
                 this._currentBufferPointers[i].active = false;
             }
         };
+        /**
+         * Force the engine to release all cached effects. This means that next effect compilation will have to be done completely even if a similar effect was already compiled
+         */
         Engine.prototype.releaseEffects = function () {
             for (var name in this._compiledEffects) {
                 this._deleteProgram(this._compiledEffects[name]._program);
             }
             this._compiledEffects = {};
         };
-        // Dispose
+        /**
+         * Dispose and release all associated resources
+         */
         Engine.prototype.dispose = function () {
             this.hideLoadingUI();
             this.stopRenderLoop();
@@ -4246,6 +5690,7 @@
             this.releaseEffects();
             // Unbind
             this.unbindAllAttributes();
+            this._boundUniforms = [];
             if (this._dummyFramebuffer) {
                 this._gl.deleteFramebuffer(this._dummyFramebuffer);
             }
@@ -4260,7 +5705,7 @@
                 if (this._renderingCanvas) {
                     this._renderingCanvas.removeEventListener("focus", this._onCanvasFocus);
                     this._renderingCanvas.removeEventListener("blur", this._onCanvasBlur);
-                    this._renderingCanvas.removeEventListener("pointerout", this._onCanvasBlur);
+                    this._renderingCanvas.removeEventListener("pointerout", this._onCanvasPointerOut);
                     if (!this._doNotHandleContextLost) {
                         this._renderingCanvas.removeEventListener("webglcontextlost", this._onContextLost);
                         this._renderingCanvas.removeEventListener("webglcontextrestored", this._onContextRestored);
@@ -4296,6 +5741,7 @@
             this._currentBufferPointers = [];
             this._renderingCanvas = null;
             this._currentProgram = null;
+            this._bindedRenderFunction = null;
             this.onResizeObservable.clear();
             this.onCanvasBlurObservable.clear();
             this.onCanvasFocusObservable.clear();
@@ -4310,6 +5756,10 @@
             }
         };
         // Loading screen
+        /**
+         * Display the loading screen
+         * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+         */
         Engine.prototype.displayLoadingUI = function () {
             if (!LIB.Tools.IsWindowObjectExist()) {
                 return;
@@ -4319,6 +5769,10 @@
                 loadingScreen.displayLoadingUI();
             }
         };
+        /**
+         * Hide the loading screen
+         * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+         */
         Engine.prototype.hideLoadingUI = function () {
             if (!LIB.Tools.IsWindowObjectExist()) {
                 return;
@@ -4329,11 +5783,19 @@
             }
         };
         Object.defineProperty(Engine.prototype, "loadingScreen", {
+            /**
+             * Gets the current loading screen object
+             * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+             */
             get: function () {
                 if (!this._loadingScreen && LIB.DefaultLoadingScreen && this._renderingCanvas)
                     this._loadingScreen = new LIB.DefaultLoadingScreen(this._renderingCanvas);
                 return this._loadingScreen;
             },
+            /**
+             * Sets the current loading screen object
+             * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+             */
             set: function (loadingScreen) {
                 this._loadingScreen = loadingScreen;
             },
@@ -4341,6 +5803,10 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "loadingUIText", {
+            /**
+             * Sets the current loading screen text
+             * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+             */
             set: function (text) {
                 this.loadingScreen.loadingUIText = text;
             },
@@ -4348,22 +5814,39 @@
             configurable: true
         });
         Object.defineProperty(Engine.prototype, "loadingUIBackgroundColor", {
+            /**
+             * Sets the current loading screen background color
+             * @see http://doc.LIBjs.com/how_to/creating_a_custom_loading_screen
+             */
             set: function (color) {
                 this.loadingScreen.loadingUIBackgroundColor = color;
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * Attach a new callback raised when context lost event is fired
+         * @param callback defines the callback to call
+         */
         Engine.prototype.attachContextLostEvent = function (callback) {
             if (this._renderingCanvas) {
                 this._renderingCanvas.addEventListener("webglcontextlost", callback, false);
             }
         };
+        /**
+         * Attach a new callback raised when context restored event is fired
+         * @param callback defines the callback to call
+         */
         Engine.prototype.attachContextRestoredEvent = function (callback) {
             if (this._renderingCanvas) {
                 this._renderingCanvas.addEventListener("webglcontextrestored", callback, false);
             }
         };
+        /**
+         * Gets the source code of the vertex shader associated with a specific webGL program
+         * @param program defines the program to use
+         * @returns a string containing the source code of the vertex shader associated with the program
+         */
         Engine.prototype.getVertexShaderSource = function (program) {
             var shaders = this._gl.getAttachedShaders(program);
             if (!shaders) {
@@ -4371,6 +5854,11 @@
             }
             return this._gl.getShaderSource(shaders[0]);
         };
+        /**
+         * Gets the source code of the fragment shader associated with a specific webGL program
+         * @param program defines the program to use
+         * @returns a string containing the source code of the fragment shader associated with the program
+         */
         Engine.prototype.getFragmentShaderSource = function (program) {
             var shaders = this._gl.getAttachedShaders(program);
             if (!shaders) {
@@ -4378,13 +5866,26 @@
             }
             return this._gl.getShaderSource(shaders[1]);
         };
+        /**
+         * Get the current error code of the webGL context
+         * @returns the error code
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getError
+         */
         Engine.prototype.getError = function () {
             return this._gl.getError();
         };
         // FPS
+        /**
+         * Gets the current framerate
+         * @returns a number representing the framerate
+         */
         Engine.prototype.getFps = function () {
             return this._fps;
         };
+        /**
+         * Gets the time spent between current and previous frame
+         * @returns a number representing the delta time in ms
+         */
         Engine.prototype.getDeltaTime = function () {
             return this._deltaTime;
         };
@@ -4393,6 +5894,7 @@
             this._fps = this._performanceMonitor.averageFPS;
             this._deltaTime = this._performanceMonitor.instantaneousFrameTime || 0;
         };
+        /** @hidden */
         Engine.prototype._readTexturePixels = function (texture, width, height, faceIndex) {
             if (faceIndex === void 0) { faceIndex = -1; }
             var gl = this._gl;
@@ -4478,6 +5980,7 @@
             while (!successful && (gl.getError() !== gl.NO_ERROR)) { }
             return successful;
         };
+        /** @hidden */
         Engine.prototype._getWebGLTextureType = function (type) {
             if (type === Engine.TEXTURETYPE_FLOAT) {
                 return this._gl.FLOAT;
@@ -4489,37 +5992,134 @@
             return this._gl.UNSIGNED_BYTE;
         };
         ;
-        Engine.prototype._getRGBABufferInternalSizedFormat = function (type) {
+        Engine.prototype._getInternalFormat = function (format) {
+            var internalFormat = this._gl.RGBA;
+            switch (format) {
+                case Engine.TEXTUREFORMAT_ALPHA:
+                    internalFormat = this._gl.ALPHA;
+                    break;
+                case Engine.TEXTUREFORMAT_LUMINANCE:
+                    internalFormat = this._gl.LUMINANCE;
+                    break;
+                case Engine.TEXTUREFORMAT_LUMINANCE_ALPHA:
+                    internalFormat = this._gl.LUMINANCE_ALPHA;
+                    break;
+                case Engine.TEXTUREFORMAT_RGB:
+                case Engine.TEXTUREFORMAT_RGB32F:
+                    internalFormat = this._gl.RGB;
+                    break;
+                case Engine.TEXTUREFORMAT_RGBA:
+                case Engine.TEXTUREFORMAT_RGBA32F:
+                    internalFormat = this._gl.RGBA;
+                    break;
+                case Engine.TEXTUREFORMAT_R32F:
+                    internalFormat = this._gl.RED;
+                    break;
+                case Engine.TEXTUREFORMAT_RG32F:
+                    internalFormat = this._gl.RG;
+                    break;
+            }
+            return internalFormat;
+        };
+        /** @hidden */
+        Engine.prototype._getRGBABufferInternalSizedFormat = function (type, format) {
             if (this._webGLVersion === 1) {
+                if (format) {
+                    switch (format) {
+                        case Engine.TEXTUREFORMAT_LUMINANCE:
+                            return this._gl.LUMINANCE;
+                    }
+                }
                 return this._gl.RGBA;
             }
+            if (type === Engine.TEXTURETYPE_FLOAT) {
+                if (format) {
+                    switch (format) {
+                        case Engine.TEXTUREFORMAT_R32F:
+                            return this._gl.R32F;
+                        case Engine.TEXTUREFORMAT_RG32F:
+                            return this._gl.RG32F;
+                        case Engine.TEXTUREFORMAT_RGB32F:
+                            return this._gl.RGB32F;
+                    }
+                }
+                return this._gl.RGBA32F;
+            }
+            else if (type === Engine.TEXTURETYPE_HALF_FLOAT) {
+                return this._gl.RGBA16F;
+            }
+            if (format) {
+                switch (format) {
+                    case Engine.TEXTUREFORMAT_LUMINANCE:
+                        return this._gl.LUMINANCE;
+                    case Engine.TEXTUREFORMAT_RGB:
+                        return this._gl.RGB;
+                }
+            }
+            return this._gl.RGBA;
+        };
+        ;
+        /** @hidden */
+        Engine.prototype._getRGBAMultiSampleBufferFormat = function (type) {
             if (type === Engine.TEXTURETYPE_FLOAT) {
                 return this._gl.RGBA32F;
             }
             else if (type === Engine.TEXTURETYPE_HALF_FLOAT) {
                 return this._gl.RGBA16F;
             }
-            return this._gl.RGBA;
+            return this._gl.RGBA8;
         };
         ;
+        /**
+         * Create a new webGL query (you must be sure that queries are supported by checking getCaps() function)
+         * @return the new query
+         */
         Engine.prototype.createQuery = function () {
             return this._gl.createQuery();
         };
+        /**
+         * Delete and release a webGL query
+         * @param query defines the query to delete
+         * @return the current engine
+         */
         Engine.prototype.deleteQuery = function (query) {
             this._gl.deleteQuery(query);
             return this;
         };
+        /**
+         * Check if a given query has resolved and got its value
+         * @param query defines the query to check
+         * @returns true if the query got its value
+         */
         Engine.prototype.isQueryResultAvailable = function (query) {
             return this._gl.getQueryParameter(query, this._gl.QUERY_RESULT_AVAILABLE);
         };
+        /**
+         * Gets the value of a given query
+         * @param query defines the query to check
+         * @returns the value of the query
+         */
         Engine.prototype.getQueryResult = function (query) {
             return this._gl.getQueryParameter(query, this._gl.QUERY_RESULT);
         };
+        /**
+         * Initiates an occlusion query
+         * @param algorithmType defines the algorithm to use
+         * @param query defines the query to use
+         * @returns the current engine
+         * @see http://doc.LIBjs.com/features/occlusionquery
+         */
         Engine.prototype.beginOcclusionQuery = function (algorithmType, query) {
             var glAlgorithm = this.getGlAlgorithmType(algorithmType);
             this._gl.beginQuery(glAlgorithm, query);
             return this;
         };
+        /**
+         * Ends an occlusion query
+         * @see http://doc.LIBjs.com/features/occlusionquery
+         * @param algorithmType defines the algorithm to use
+         * @returns the current engine
+         */
         Engine.prototype.endOcclusionQuery = function (algorithmType) {
             var glAlgorithm = this.getGlAlgorithmType(algorithmType);
             this._gl.endQuery(glAlgorithm);
@@ -4555,6 +6155,11 @@
             }
             return this.isQueryResultAvailable(query);
         };
+        /**
+         * Starts a time query (used to measure time spent by the GPU on a specific frame)
+         * Please note that only one query can be issued at a time
+         * @returns a time token used to track the time span
+         */
         Engine.prototype.startTimeQuery = function () {
             var timerQuery = this._caps.timerQuery;
             if (!timerQuery) {
@@ -4581,6 +6186,11 @@
             }
             return token;
         };
+        /**
+         * Ends a time query
+         * @param token defines the token used to measure the time span
+         * @returns the time spent (in ns)
+         */
         Engine.prototype.endTimeQuery = function (token) {
             var timerQuery = this._caps.timerQuery;
             if (!timerQuery || !token) {
@@ -4647,28 +6257,58 @@
             return algorithmType === LIB.AbstractMesh.OCCLUSION_ALGORITHM_TYPE_CONSERVATIVE ? this._gl.ANY_SAMPLES_PASSED_CONSERVATIVE : this._gl.ANY_SAMPLES_PASSED;
         };
         // Transform feedback
+        /**
+         * Creates a webGL transform feedback object
+         * Please makes sure to check webGLVersion property to check if you are running webGL 2+
+         * @returns the webGL transform feedback object
+         */
         Engine.prototype.createTransformFeedback = function () {
             return this._gl.createTransformFeedback();
         };
+        /**
+         * Delete a webGL transform feedback object
+         * @param value defines the webGL transform feedback object to delete
+         */
         Engine.prototype.deleteTransformFeedback = function (value) {
             this._gl.deleteTransformFeedback(value);
         };
+        /**
+         * Bind a webGL transform feedback object to the webgl context
+         * @param value defines the webGL transform feedback object to bind
+         */
         Engine.prototype.bindTransformFeedback = function (value) {
             this._gl.bindTransformFeedback(this._gl.TRANSFORM_FEEDBACK, value);
         };
+        /**
+         * Begins a transform feedback operation
+         * @param usePoints defines if points or triangles must be used
+         */
         Engine.prototype.beginTransformFeedback = function (usePoints) {
             if (usePoints === void 0) { usePoints = true; }
             this._gl.beginTransformFeedback(usePoints ? this._gl.POINTS : this._gl.TRIANGLES);
         };
+        /**
+         * Ends a transform feedback operation
+         */
         Engine.prototype.endTransformFeedback = function () {
             this._gl.endTransformFeedback();
         };
+        /**
+         * Specify the varyings to use with transform feedback
+         * @param program defines the associated webGL program
+         * @param value defines the list of strings representing the varying names
+         */
         Engine.prototype.setTranformFeedbackVaryings = function (program, value) {
             this._gl.transformFeedbackVaryings(program, value, this._gl.INTERLEAVED_ATTRIBS);
         };
+        /**
+         * Bind a webGL buffer for a transform feedback operation
+         * @param value defines the webGL buffer to bind
+         */
         Engine.prototype.bindTransformFeedbackBuffer = function (value) {
             this._gl.bindBufferBase(this._gl.TRANSFORM_FEEDBACK_BUFFER, 0, value);
         };
+        /** @hidden */
         Engine.prototype._loadFile = function (url, onSuccess, onProgress, database, useArrayBuffer, onError) {
             var _this = this;
             var request = LIB.Tools.LoadFile(url, onSuccess, onProgress, database, useArrayBuffer, onError);
@@ -4677,6 +6317,17 @@
                 _this._activeRequests.splice(_this._activeRequests.indexOf(request), 1);
             });
             return request;
+        };
+        /** @hidden */
+        Engine.prototype._loadFileAsync = function (url, database, useArrayBuffer) {
+            var _this = this;
+            return new Promise(function (resolve, reject) {
+                _this._loadFile(url, function (data) {
+                    resolve(data);
+                }, undefined, database, useArrayBuffer, function (request, exception) {
+                    reject(exception);
+                });
+            });
         };
         Engine.prototype._partialLoadFile = function (url, index, loadedFiles, scene, onfinish, onErrorCallBack) {
             if (onErrorCallBack === void 0) { onErrorCallBack = null; }
@@ -4694,7 +6345,7 @@
             };
             this._loadFile(url, onload, undefined, undefined, true, onerror);
         };
-        Engine.prototype._cascadeLoadFiles = function (rootUrl, scene, onfinish, files, onError) {
+        Engine.prototype._cascadeLoadFiles = function (scene, onfinish, files, onError) {
             if (onError === void 0) { onError = null; }
             var loadedFiles = [];
             loadedFiles._internalCount = 0;
@@ -4703,6 +6354,11 @@
             }
         };
         // Statics
+        /**
+         * Gets a boolean indicating if the engine can be instanciated (ie. if a webGL context can be found)
+         * @returns true if the engine can be created
+         * @ignorenaming
+         */
         Engine.isSupported = function () {
             try {
                 var tempcanvas = document.createElement("canvas");
@@ -4714,7 +6370,15 @@
             }
         };
         /** Use this array to turn off some WebGL2 features on known buggy browsers version */
-        Engine.WebGL2UniformBuffersExceptionList = ["Chrome/63"];
+        Engine.ExceptionList = [
+            { key: "Chrome/63.0", capture: "63\\.0\\.3239\\.(\\d+)", captureConstraint: 108, targets: ["uniformBuffer"] },
+            { key: "Firefox/58", capture: null, captureConstraint: null, targets: ["uniformBuffer"] },
+            { key: "Firefox/59", capture: null, captureConstraint: null, targets: ["uniformBuffer"] },
+            { key: "Macintosh", capture: null, captureConstraint: null, targets: ["textureBindingOptimization"] },
+            { key: "iPhone", capture: null, captureConstraint: null, targets: ["textureBindingOptimization"] },
+            { key: "iPad", capture: null, captureConstraint: null, targets: ["textureBindingOptimization"] }
+        ];
+        /** Gets the list of created engines */
         Engine.Instances = new Array();
         // Const statics
         Engine._ALPHA_DISABLE = 0;
@@ -4737,17 +6401,21 @@
         Engine._TEXTUREFORMAT_LUMINANCE_ALPHA = 2;
         Engine._TEXTUREFORMAT_RGB = 4;
         Engine._TEXTUREFORMAT_RGBA = 5;
+        Engine._TEXTUREFORMAT_R32F = 6;
+        Engine._TEXTUREFORMAT_RG32F = 7;
+        Engine._TEXTUREFORMAT_RGB32F = 8;
+        Engine._TEXTUREFORMAT_RGBA32F = 9;
         Engine._TEXTURETYPE_UNSIGNED_INT = 0;
         Engine._TEXTURETYPE_FLOAT = 1;
         Engine._TEXTURETYPE_HALF_FLOAT = 2;
         // Depht or Stencil test Constants.
-        Engine._NEVER = 0x0200; //  Passed to depthFunction or stencilFunction to specify depth or stencil tests will never pass. i.e. Nothing will be drawn.
-        Engine._ALWAYS = 0x0207; // Passed to depthFunction or stencilFunction to specify depth or stencil tests will always pass. i.e. Pixels will be drawn in the order they are drawn.
-        Engine._LESS = 0x0201; //   Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than the stored value.
-        Engine._EQUAL = 0x0202; //  Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is equals to the stored value.
-        Engine._LEQUAL = 0x0203; // Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than or equal to the stored value.
-        Engine._GREATER = 0x0204; //    Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than the stored value.
-        Engine._GEQUAL = 0x0206; // Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than or equal to the stored value.
+        Engine._NEVER = 0x0200; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will never pass. i.e. Nothing will be drawn.
+        Engine._ALWAYS = 0x0207; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will always pass. i.e. Pixels will be drawn in the order they are drawn.
+        Engine._LESS = 0x0201; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than the stored value.
+        Engine._EQUAL = 0x0202; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is equals to the stored value.
+        Engine._LEQUAL = 0x0203; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is less than or equal to the stored value.
+        Engine._GREATER = 0x0204; // Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than the stored value.
+        Engine._GEQUAL = 0x0206; //	Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is greater than or equal to the stored value.
         Engine._NOTEQUAL = 0x0205; //  Passed to depthFunction or stencilFunction to specify depth or stencil tests will pass if the new depth value is not equal to the stored value.
         // Stencil Actions Constants.
         Engine._KEEP = 0x1E00;
@@ -4762,12 +6430,22 @@
         Engine._SCALEMODE_NEAREST = 2;
         Engine._SCALEMODE_CEILING = 3;
         // Updatable statics so stick with vars here
+        /**
+         * Gets or sets the epsilon value used by collision engine
+         */
         Engine.CollisionsEpsilon = 0.001;
+        /**
+         * Gets or sets the relative url used to load code if using the engine in non-minified mode
+         */
         Engine.CodeRepository = "src/";
+        /**
+         * Gets or sets the relative url used to load shaders if using the engine in non-minified mode
+         */
         Engine.ShadersRepository = "src/Shaders/";
         return Engine;
     }());
     LIB.Engine = Engine;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.engine.js.map
 //# sourceMappingURL=LIB.engine.js.map

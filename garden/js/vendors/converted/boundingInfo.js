@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var computeBoxExtents = function (axis, box) {
         var p = LIB.Vector3.Dot(box.centerWorld, axis);
@@ -141,4 +143,5 @@
     LIB.BoundingInfo = BoundingInfo;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boundingInfo.js.map
 //# sourceMappingURL=LIB.boundingInfo.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
     * Creates a refraction texture used by refraction channel of the standard material.
@@ -51,4 +54,5 @@
     LIB.RefractionTexture = RefractionTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.refractionTexture.js.map
 //# sourceMappingURL=LIB.refractionTexture.js.map

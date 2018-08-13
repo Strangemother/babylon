@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var Sprite = /** @class */ (function () {
         function Sprite(name, manager) {
@@ -83,4 +85,5 @@
     LIB.Sprite = Sprite;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.sprite.js.map
 //# sourceMappingURL=LIB.sprite.js.map

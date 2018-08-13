@@ -1,5 +1,15 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * This renderer is helpfull to fill one of the render target with a geometry buffer.
+     */
     var GeometryBufferRenderer = /** @class */ (function () {
+        /**
+         * Creates a new G Buffer for the scene
+         * @param scene The scene the buffer belongs to
+         * @param ratio How big is the buffer related to the main canvas.
+         */
         function GeometryBufferRenderer(scene, ratio) {
             if (ratio === void 0) { ratio = 1; }
             this._enablePosition = false;
@@ -9,6 +19,9 @@
             this._createRenderTargets();
         }
         Object.defineProperty(GeometryBufferRenderer.prototype, "renderList", {
+            /**
+             * Set the render list (meshes to be rendered) used in the G buffer.
+             */
             set: function (meshes) {
                 this._multiRenderTarget.renderList = meshes;
             },
@@ -16,6 +29,10 @@
             configurable: true
         });
         Object.defineProperty(GeometryBufferRenderer.prototype, "isSupported", {
+            /**
+             * Gets wether or not G buffer are supported by the running hardware.
+             * This requires draw buffer supports
+             */
             get: function () {
                 return this._multiRenderTarget.isSupported;
             },
@@ -23,9 +40,15 @@
             configurable: true
         });
         Object.defineProperty(GeometryBufferRenderer.prototype, "enablePosition", {
+            /**
+             * Gets wether or not position are enabled for the G buffer.
+             */
             get: function () {
                 return this._enablePosition;
             },
+            /**
+             * Sets wether or not position are enabled for the G buffer.
+             */
             set: function (enable) {
                 this._enablePosition = enable;
                 this.dispose();
@@ -34,6 +57,33 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(GeometryBufferRenderer.prototype, "scene", {
+            /**
+             * Gets the scene associated with the buffer.
+             */
+            get: function () {
+                return this._scene;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(GeometryBufferRenderer.prototype, "ratio", {
+            /**
+             * Gets the ratio used by the buffer during its creation.
+             * How big is the buffer related to the main canvas.
+             */
+            get: function () {
+                return this._ratio;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * Checks wether everything is ready to render a submesh to the G buffer.
+         * @param subMesh the submesh to check readiness for
+         * @param useInstances is the mesh drawn using instance or not
+         * @returns true if ready otherwise false
+         */
         GeometryBufferRenderer.prototype.isReady = function (subMesh, useInstances) {
             var material = subMesh.getMaterial();
             if (material && material.disableDepthWrite) {
@@ -80,7 +130,7 @@
                 attribs.push("world2");
                 attribs.push("world3");
             }
-            // Get correct effect
+            // Get correct effect      
             var join = defines.join("\n");
             if (this._cachedDefines !== join) {
                 this._cachedDefines = join;
@@ -88,10 +138,32 @@
             }
             return this._effect.isReady();
         };
+        /**
+         * Gets the current underlying G Buffer.
+         * @returns the buffer
+         */
         GeometryBufferRenderer.prototype.getGBuffer = function () {
             return this._multiRenderTarget;
         };
-        // Methods
+        Object.defineProperty(GeometryBufferRenderer.prototype, "samples", {
+            /**
+             * Gets the number of samples used to render the buffer (anti aliasing).
+             */
+            get: function () {
+                return this._multiRenderTarget.samples;
+            },
+            /**
+             * Sets the number of samples used to render the buffer (anti aliasing).
+             */
+            set: function (value) {
+                this._multiRenderTarget.samples = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * Disposes the renderer and frees up associated resources.
+         */
         GeometryBufferRenderer.prototype.dispose = function () {
             this.getGBuffer().dispose();
         };
@@ -99,7 +171,7 @@
             var _this = this;
             var engine = this._scene.getEngine();
             var count = this._enablePosition ? 3 : 2;
-            this._multiRenderTarget = new LIB.MultiRenderTarget("gBuffer", { width: engine.getRenderWidth() * this._ratio, height: engine.getRenderHeight() * this._ratio }, count, this._scene, { generateMipMaps: false, generateDepthTexture: true });
+            this._multiRenderTarget = new LIB.MultiRenderTarget("gBuffer", { width: engine.getRenderWidth() * this._ratio, height: engine.getRenderHeight() * this._ratio }, count, this._scene, { generateMipMaps: false, generateDepthTexture: true, defaultType: LIB.Engine.TEXTURETYPE_FLOAT });
             if (!this.isSupported) {
                 return;
             }
@@ -172,4 +244,5 @@
     LIB.GeometryBufferRenderer = GeometryBufferRenderer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.geometryBufferRenderer.js.map
 //# sourceMappingURL=LIB.geometryBufferRenderer.js.map

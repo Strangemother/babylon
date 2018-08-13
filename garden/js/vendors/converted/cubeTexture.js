@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var CubeTexture = /** @class */ (function (_super) {
         __extends(CubeTexture, _super);
@@ -12,6 +20,12 @@
             if (forcedExtension === void 0) { forcedExtension = null; }
             var _this = _super.call(this, scene) || this;
             _this.coordinatesMode = LIB.Texture.CUBIC_MODE;
+            /**
+             * Gets or sets the center of the bounding box associated with the cube texture
+             * It must define where the camera used to render the texture was set
+             */
+            _this.boundingBoxPosition = LIB.Vector3.Zero();
+            _this._rotationY = 0;
             _this.name = rootUrl;
             _this.url = rootUrl;
             _this._noMipmap = noMipmap;
@@ -65,8 +79,50 @@
             }
             return _this;
         }
+        Object.defineProperty(CubeTexture.prototype, "boundingBoxSize", {
+            get: function () {
+                return this._boundingBoxSize;
+            },
+            /**
+             * Gets or sets the size of the bounding box associated with the cube texture
+             * When defined, the cubemap will switch to local mode
+             * @see https://community.arm.com/graphics/b/blog/posts/reflections-based-on-local-cubemaps-in-unity
+             * @example https://www.LIBjs-playground.com/#RNASML
+             */
+            set: function (value) {
+                if (this._boundingBoxSize && this._boundingBoxSize.equals(value)) {
+                    return;
+                }
+                this._boundingBoxSize = value;
+                var scene = this.getScene();
+                if (scene) {
+                    scene.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(CubeTexture.prototype, "rotationY", {
+            /**
+             * Gets texture matrix rotation angle around Y axis radians.
+             */
+            get: function () {
+                return this._rotationY;
+            },
+            /**
+             * Sets texture matrix rotation angle around Y axis in radians.
+             */
+            set: function (value) {
+                this._rotationY = value;
+                this.setReflectionTextureMatrix(LIB.Matrix.RotationY(this._rotationY));
+            },
+            enumerable: true,
+            configurable: true
+        });
         CubeTexture.CreateFromImages = function (files, scene, noMipmap) {
-            return new CubeTexture("", scene, null, noMipmap, files);
+            var rootUrlKey = "";
+            files.forEach(function (url) { return rootUrlKey += url; });
+            return new CubeTexture(rootUrlKey, scene, null, noMipmap, files);
         };
         CubeTexture.CreateFromPrefilteredData = function (url, scene, forcedExtension) {
             if (forcedExtension === void 0) { forcedExtension = null; }
@@ -100,8 +156,19 @@
         };
         CubeTexture.Parse = function (parsedTexture, scene, rootUrl) {
             var texture = LIB.SerializationHelper.Parse(function () {
-                return new CubeTexture(rootUrl + parsedTexture.name, scene, parsedTexture.extensions);
+                var prefiltered = false;
+                if (parsedTexture.prefiltered) {
+                    prefiltered = parsedTexture.prefiltered;
+                }
+                return new CubeTexture(rootUrl + parsedTexture.name, scene, parsedTexture.extensions, false, null, null, null, undefined, prefiltered);
             }, parsedTexture, scene);
+            // Local Cubemaps
+            if (parsedTexture.boundingBoxPosition) {
+                texture.boundingBoxPosition = LIB.Vector3.FromArray(parsedTexture.boundingBoxPosition);
+            }
+            if (parsedTexture.boundingBoxSize) {
+                texture.boundingBoxSize = LIB.Vector3.FromArray(parsedTexture.boundingBoxSize);
+            }
             // Animations
             if (parsedTexture.animations) {
                 for (var animationIndex = 0; animationIndex < parsedTexture.animations.length; animationIndex++) {
@@ -121,9 +188,13 @@
                 return new CubeTexture(_this.url, scene, _this._extensions, _this._noMipmap, _this._files);
             }, this);
         };
+        __decorate([
+            LIB.serialize("rotationY")
+        ], CubeTexture.prototype, "_rotationY", void 0);
         return CubeTexture;
     }(LIB.BaseTexture));
     LIB.CubeTexture = CubeTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.cubeTexture.js.map
 //# sourceMappingURL=LIB.cubeTexture.js.map

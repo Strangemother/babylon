@@ -1,19 +1,49 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * A Condition applied to an Action
+     */
     var Condition = /** @class */ (function () {
+        /**
+         * Creates a new Condition
+         * @param actionManager the manager of the action the condition is applied to
+         */
         function Condition(actionManager) {
             this._actionManager = actionManager;
         }
+        /**
+         * Check if the current condition is valid
+         * @returns a boolean
+         */
         Condition.prototype.isValid = function () {
             return true;
         };
+        /**
+         * Internal only
+         * @hidden
+         */
         Condition.prototype._getProperty = function (propertyPath) {
             return this._actionManager._getProperty(propertyPath);
         };
+        /**
+         * Internal only
+         * @hidden
+         */
         Condition.prototype._getEffectiveTarget = function (target, propertyPath) {
             return this._actionManager._getEffectiveTarget(target, propertyPath);
         };
+        /**
+         * Serialize placeholder for child classes
+         * @returns the serialized object
+         */
         Condition.prototype.serialize = function () {
         };
+        /**
+         * Internal only
+         * @hidden
+         */
         Condition.prototype._serialize = function (serializedCondition) {
             return {
                 type: 2,
@@ -25,9 +55,26 @@
         return Condition;
     }());
     LIB.Condition = Condition;
+    /**
+     * Defines specific conditional operators as extensions of Condition
+     */
     var ValueCondition = /** @class */ (function (_super) {
         __extends(ValueCondition, _super);
-        function ValueCondition(actionManager, target, propertyPath, value, operator) {
+        /**
+         * Creates a new ValueCondition
+         * @param actionManager manager for the action the condition applies to
+         * @param target for the action
+         * @param propertyPath path to specify the property of the target the conditional operator uses
+         * @param value the value compared by the conditional operator against the current value of the property
+         * @param operator the conditional operator, default ValueCondition.IsEqual
+         */
+        function ValueCondition(actionManager, target, 
+        /** path to specify the property of the target the conditional operator uses  */
+        propertyPath, 
+        /** the value compared by the conditional operator against the current value of the property */
+        value, 
+        /** the conditional operator, default ValueCondition.IsEqual */
+        operator) {
             if (operator === void 0) { operator = ValueCondition.IsEqual; }
             var _this = _super.call(this, actionManager) || this;
             _this.propertyPath = propertyPath;
@@ -39,6 +86,9 @@
             return _this;
         }
         Object.defineProperty(ValueCondition, "IsEqual", {
+            /**
+             * returns the number for IsEqual
+             */
             get: function () {
                 return ValueCondition._IsEqual;
             },
@@ -46,6 +96,9 @@
             configurable: true
         });
         Object.defineProperty(ValueCondition, "IsDifferent", {
+            /**
+             * Returns the number for IsDifferent
+             */
             get: function () {
                 return ValueCondition._IsDifferent;
             },
@@ -53,6 +106,9 @@
             configurable: true
         });
         Object.defineProperty(ValueCondition, "IsGreater", {
+            /**
+             * Returns the number for IsGreater
+             */
             get: function () {
                 return ValueCondition._IsGreater;
             },
@@ -60,13 +116,19 @@
             configurable: true
         });
         Object.defineProperty(ValueCondition, "IsLesser", {
+            /**
+             * Returns the number for IsLesser
+             */
             get: function () {
                 return ValueCondition._IsLesser;
             },
             enumerable: true,
             configurable: true
         });
-        // Methods
+        /**
+         * Compares the given value with the property value for the specified conditional operator
+         * @returns the result of the comparison
+         */
         ValueCondition.prototype.isValid = function () {
             switch (this.operator) {
                 case ValueCondition.IsGreater:
@@ -86,6 +148,10 @@
             }
             return false;
         };
+        /**
+         * Serialize the ValueCondition into a JSON compatible object
+         * @returns serialization object
+         */
         ValueCondition.prototype.serialize = function () {
             return this._serialize({
                 name: "ValueCondition",
@@ -97,6 +163,11 @@
                 ]
             });
         };
+        /**
+         * Gets the name of the conditional operator for the ValueCondition
+         * @param operator the conditional operator
+         * @returns the name
+         */
         ValueCondition.GetOperatorName = function (operator) {
             switch (operator) {
                 case ValueCondition._IsEqual: return "IsEqual";
@@ -106,39 +177,82 @@
                 default: return "";
             }
         };
-        // Statics
+        /**
+         * Internal only
+         * @hidden
+         */
         ValueCondition._IsEqual = 0;
+        /**
+         * Internal only
+         * @hidden
+         */
         ValueCondition._IsDifferent = 1;
+        /**
+         * Internal only
+         * @hidden
+         */
         ValueCondition._IsGreater = 2;
+        /**
+         * Internal only
+         * @hidden
+         */
         ValueCondition._IsLesser = 3;
         return ValueCondition;
     }(Condition));
     LIB.ValueCondition = ValueCondition;
+    /**
+     * Defines a predicate condition as an extension of Condition
+     */
     var PredicateCondition = /** @class */ (function (_super) {
         __extends(PredicateCondition, _super);
-        function PredicateCondition(actionManager, predicate) {
+        /**
+         * Creates a new PredicateCondition
+         * @param actionManager manager for the action the condition applies to
+         * @param predicate defines the predicate function used to validate the condition
+         */
+        function PredicateCondition(actionManager, 
+        /** defines the predicate function used to validate the condition */
+        predicate) {
             var _this = _super.call(this, actionManager) || this;
             _this.predicate = predicate;
             return _this;
         }
+        /**
+         * @returns the validity of the predicate condition
+         */
         PredicateCondition.prototype.isValid = function () {
             return this.predicate();
         };
         return PredicateCondition;
     }(Condition));
     LIB.PredicateCondition = PredicateCondition;
+    /**
+     * Defines a state condition as an extension of Condition
+     */
     var StateCondition = /** @class */ (function (_super) {
         __extends(StateCondition, _super);
+        /**
+         * Creates a new StateCondition
+         * @param actionManager manager for the action the condition applies to
+         * @param target of the condition
+         * @param value to compare with target state
+         */
         function StateCondition(actionManager, target, value) {
             var _this = _super.call(this, actionManager) || this;
             _this.value = value;
             _this._target = target;
             return _this;
         }
-        // Methods
+        /**
+         * @returns the validity of the state
+         */
         StateCondition.prototype.isValid = function () {
             return this._target.state === this.value;
         };
+        /**
+         * Serialize the StateCondition into a JSON compatible object
+         * @returns serialization object
+         */
         StateCondition.prototype.serialize = function () {
             return this._serialize({
                 name: "StateCondition",
@@ -153,4 +267,5 @@
     LIB.StateCondition = StateCondition;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.condition.js.map
 //# sourceMappingURL=LIB.condition.js.map

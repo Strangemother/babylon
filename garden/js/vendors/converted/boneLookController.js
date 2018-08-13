@@ -1,4 +1,10 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to make a bone look toward a point in space
+     * @see http://doc.LIBjs.com/how_to/how_to_use_bones_and_skeletons#bonelookcontroller
+     */
     var BoneLookController = /** @class */ (function () {
         /**
          * Create a BoneLookController
@@ -6,42 +12,42 @@
          * @param bone the bone that will be looking to the target
          * @param target the target Vector3 to look at
          * @param settings optional settings:
-         * - maxYaw: the maximum angle the bone will yaw to
-         * - minYaw: the minimum angle the bone will yaw to
-         * - maxPitch: the maximum angle the bone will pitch to
-         * - minPitch: the minimum angle the bone will yaw to
-         * - slerpAmount: set the between 0 and 1 to make the bone slerp to the target.
-         * - upAxis: the up axis of the coordinate system
-         * - upAxisSpace: the space that the up axis is in - LIB.Space.BONE, LIB.Space.LOCAL (default), or LIB.Space.WORLD.
-         * - yawAxis: set yawAxis if the bone does not yaw on the y axis
-         * - pitchAxis: set pitchAxis if the bone does not pitch on the x axis
-         * - adjustYaw: used to make an adjustment to the yaw of the bone
-         * - adjustPitch: used to make an adjustment to the pitch of the bone
-         * - adjustRoll: used to make an adjustment to the roll of the bone
+         * * maxYaw: the maximum angle the bone will yaw to
+         * * minYaw: the minimum angle the bone will yaw to
+         * * maxPitch: the maximum angle the bone will pitch to
+         * * minPitch: the minimum angle the bone will yaw to
+         * * slerpAmount: set the between 0 and 1 to make the bone slerp to the target.
+         * * upAxis: the up axis of the coordinate system
+         * * upAxisSpace: the space that the up axis is in - LIB.Space.BONE, LIB.Space.LOCAL (default), or LIB.Space.WORLD.
+         * * yawAxis: set yawAxis if the bone does not yaw on the y axis
+         * * pitchAxis: set pitchAxis if the bone does not pitch on the x axis
+         * * adjustYaw: used to make an adjustment to the yaw of the bone
+         * * adjustPitch: used to make an adjustment to the pitch of the bone
+         * * adjustRoll: used to make an adjustment to the roll of the bone
          **/
         function BoneLookController(mesh, bone, target, options) {
             /**
-             * The up axis of the coordinate system that is used when the bone is rotated.
+             * The up axis of the coordinate system that is used when the bone is rotated
              */
             this.upAxis = LIB.Vector3.Up();
             /**
-             * The space that the up axis is in - LIB.Space.BONE, LIB.Space.LOCAL (default), or LIB.Space.WORLD.
+             * The space that the up axis is in - LIB.Space.BONE, LIB.Space.LOCAL (default), or LIB.Space.WORLD
              */
             this.upAxisSpace = LIB.Space.LOCAL;
             /**
-             * Used to make an adjustment to the yaw of the bone.
+             * Used to make an adjustment to the yaw of the bone
              */
             this.adjustYaw = 0;
             /**
-             * Used to make an adjustment to the pitch of the bone.
+             * Used to make an adjustment to the pitch of the bone
              */
             this.adjustPitch = 0;
             /**
-             * Used to make an adjustment to the roll of the bone.
+             * Used to make an adjustment to the roll of the bone
              */
             this.adjustRoll = 0;
             /**
-             * The amount to slerp (spherical linear interpolation) to the target.  Set this to a value between 0 and 1 (a value of 1 disables slerp).
+             * The amount to slerp (spherical linear interpolation) to the target.  Set this to a value between 0 and 1 (a value of 1 disables slerp)
              */
             this.slerpAmount = 1;
             this._boneQuat = LIB.Quaternion.Identity();
@@ -118,7 +124,7 @@
         }
         Object.defineProperty(BoneLookController.prototype, "minYaw", {
             /**
-             * Get/set the minimum yaw angle that the bone can look to.
+             * Gets or sets the minimum yaw angle that the bone can look to
              */
             get: function () {
                 return this._minYaw;
@@ -137,7 +143,7 @@
         });
         Object.defineProperty(BoneLookController.prototype, "maxYaw", {
             /**
-             * Get/set the maximum yaw angle that the bone can look to.
+             * Gets or sets the maximum yaw angle that the bone can look to
              */
             get: function () {
                 return this._maxYaw;
@@ -156,7 +162,7 @@
         });
         Object.defineProperty(BoneLookController.prototype, "minPitch", {
             /**
-             * Get/set the minimum pitch angle that the bone can look to.
+             * Gets or sets the minimum pitch angle that the bone can look to
              */
             get: function () {
                 return this._minPitch;
@@ -170,7 +176,7 @@
         });
         Object.defineProperty(BoneLookController.prototype, "maxPitch", {
             /**
-             * Get/set the maximum pitch angle that the bone can look to.
+             * Gets or sets the maximum pitch angle that the bone can look to
              */
             get: function () {
                 return this._maxPitch;
@@ -183,7 +189,7 @@
             configurable: true
         });
         /**
-         * Update the bone to look at the target.  This should be called before the scene is rendered (use scene.registerBeforeRender()).
+         * Update the bone to look at the target.  This should be called before the scene is rendered (use scene.registerBeforeRender())
          */
         BoneLookController.prototype.update = function () {
             //skip the first frame when slerping so that the mesh rotation is correct
@@ -444,4 +450,5 @@
     LIB.BoneLookController = BoneLookController;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boneLookController.js.map
 //# sourceMappingURL=LIB.boneLookController.js.map

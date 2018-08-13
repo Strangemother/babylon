@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var UniformBuffer = /** @class */ (function () {
         /**
@@ -471,4 +473,5 @@
     LIB.UniformBuffer = UniformBuffer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.uniformBuffer.js.map
 //# sourceMappingURL=LIB.uniformBuffer.js.map

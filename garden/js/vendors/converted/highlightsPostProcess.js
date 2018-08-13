@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var HighlightsPostProcess = /** @class */ (function (_super) {
         __extends(HighlightsPostProcess, _super);
@@ -10,4 +13,5 @@
     LIB.HighlightsPostProcess = HighlightsPostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.highlightsPostProcess.js.map
 //# sourceMappingURL=LIB.highlightsPostProcess.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraInputsManager = /** @class */ (function (_super) {
         __extends(ArcRotateCameraInputsManager, _super);
@@ -29,4 +32,5 @@
     LIB.ArcRotateCameraInputsManager = ArcRotateCameraInputsManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraInputsManager.js.map
 //# sourceMappingURL=LIB.arcRotateCameraInputsManager.js.map

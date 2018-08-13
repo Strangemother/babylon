@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var SimplificationSettings = /** @class */ (function () {
         function SimplificationSettings(quality, distance, optimizeMesh) {
@@ -79,11 +81,12 @@
     }());
     LIB.SimplificationQueue = SimplificationQueue;
     /**
-     * The implemented types of simplification.
-     * At the moment only Quadratic Error Decimation is implemented.
+     * The implemented types of simplification
+     * At the moment only Quadratic Error Decimation is implemented
      */
     var SimplificationType;
     (function (SimplificationType) {
+        /** Quadratic error decimation */
         SimplificationType[SimplificationType["QUADRATIC"] = 0] = "QUADRATIC";
     })(SimplificationType = LIB.SimplificationType || (LIB.SimplificationType = {}));
     var DecimationTriangle = /** @class */ (function () {
@@ -640,4 +643,5 @@
     LIB.QuadraticErrorSimplification = QuadraticErrorSimplification;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.meshSimplification.js.map
 //# sourceMappingURL=LIB.meshSimplification.js.map

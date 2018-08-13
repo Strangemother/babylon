@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var BaseSubMesh = /** @class */ (function () {
         function BaseSubMesh() {
@@ -90,7 +93,10 @@
          */
         SubMesh.prototype.getMaterial = function () {
             var rootMaterial = this._renderingMesh.material;
-            if (rootMaterial && rootMaterial.getSubMaterial) {
+            if (rootMaterial === null || rootMaterial === undefined) {
+                return this._mesh.getScene().defaultMaterial;
+            }
+            else if (rootMaterial.getSubMaterial) {
                 var multiMaterial = rootMaterial;
                 var effectiveMaterial = multiMaterial.getSubMaterial(this.materialIndex);
                 if (this._currentMaterial !== effectiveMaterial) {
@@ -98,9 +104,6 @@
                     this._materialDefines = null;
                 }
                 return effectiveMaterial;
-            }
-            if (!rootMaterial) {
-                return this._mesh.getScene().defaultMaterial;
             }
             return rootMaterial;
         };
@@ -134,7 +137,7 @@
             return this;
         };
         SubMesh.prototype._checkCollision = function (collider) {
-            var boundingInfo = this._renderingMesh.getBoundingInfo();
+            var boundingInfo = this.getBoundingInfo();
             return boundingInfo._checkCollision(collider);
         };
         /**
@@ -211,6 +214,19 @@
          */
         SubMesh.prototype.intersects = function (ray, positions, indices, fastCheck) {
             var intersectInfo = null;
+            var material = this.getMaterial();
+            if (!material) {
+                return null;
+            }
+            switch (material.fillMode) {
+                case LIB.Material.PointListDrawMode:
+                case LIB.Material.LineListDrawMode:
+                case LIB.Material.LineLoopDrawMode:
+                case LIB.Material.LineStripDrawMode:
+                case LIB.Material.TriangleFanDrawMode:
+                case LIB.Material.TriangleStripDrawMode:
+                    return null;
+            }
             // LineMesh first as it's also a Mesh...
             if (LIB.LinesMesh && this._mesh instanceof LIB.LinesMesh) {
                 var lineMesh = this._mesh;
@@ -258,7 +274,7 @@
                 this._linesIndexBuffer = null;
             }
         };
-        // Clone
+        // Clone    
         /**
          * Creates a new Submesh from the passed Mesh.
          */
@@ -315,4 +331,5 @@
     LIB.SubMesh = SubMesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.subMesh.js.map
 //# sourceMappingURL=LIB.subMesh.js.map

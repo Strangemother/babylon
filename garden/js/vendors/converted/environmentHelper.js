@@ -1,3 +1,13 @@
+
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
+var LIB;
 (function (LIB) {
     /**
      * The Environment helper class can be used to add a fully featuread none expensive background to your scene.
@@ -11,8 +21,13 @@
          * @param scene The scene to add the material to
          */
         function EnvironmentHelper(options, scene) {
+            var _this = this;
+            this._errorHandler = function (message, exception) {
+                _this.onErrorObservable.notifyObservers({ message: message, exception: exception });
+            };
             this._options = __assign({}, EnvironmentHelper._getDefaultOptions(), options);
             this._scene = scene;
+            this.onErrorObservable = new LIB.Observable();
             this._setupBackground();
             this._setupImageProcessing();
         }
@@ -35,6 +50,7 @@
                 groundMirrorFresnelWeight: 1,
                 groundMirrorFallOffDistance: 0,
                 groundMirrorTextureType: LIB.Engine.TEXTURETYPE_UNSIGNED_INT,
+                groundYBias: 0.00001,
                 createSkybox: true,
                 skyboxSize: 20,
                 skyboxTexture: this._skyboxTextureCDNUrl,
@@ -192,7 +208,7 @@
         };
         /**
          * Sets the primary color of all the available elements.
-         * @param color
+         * @param color the main color to affect to the ground and the background
          */
         EnvironmentHelper.prototype.setMainColor = function (color) {
             if (this.groundMaterial) {
@@ -261,32 +277,33 @@
          * Get the scene sizes according to the setup.
          */
         EnvironmentHelper.prototype._getSceneSize = function () {
+            var _this = this;
             var groundSize = this._options.groundSize;
             var skyboxSize = this._options.skyboxSize;
             var rootPosition = this._options.rootPosition;
-            if (!this._scene.meshes || this._scene.meshes.length === 1) {
+            if (!this._scene.meshes || this._scene.meshes.length === 1) { // 1 only means the root of the helper.
                 return { groundSize: groundSize, skyboxSize: skyboxSize, rootPosition: rootPosition };
             }
-            var sceneExtends = this._scene.getWorldExtends();
+            var sceneExtends = this._scene.getWorldExtends(function (mesh) {
+                return (mesh !== _this._ground && mesh !== _this._rootMesh && mesh !== _this._skybox);
+            });
             var sceneDiagonal = sceneExtends.max.subtract(sceneExtends.min);
-            var bias = 0.0001;
             if (this._options.sizeAuto) {
                 if (this._scene.activeCamera instanceof LIB.ArcRotateCamera &&
                     this._scene.activeCamera.upperRadiusLimit) {
                     groundSize = this._scene.activeCamera.upperRadiusLimit * 2;
-                }
-                if (this._scene.activeCamera) {
-                    bias = (this._scene.activeCamera.maxZ - this._scene.activeCamera.minZ) / 10000;
+                    skyboxSize = groundSize;
                 }
                 var sceneDiagonalLenght = sceneDiagonal.length();
                 if (sceneDiagonalLenght > groundSize) {
                     groundSize = sceneDiagonalLenght * 2;
+                    skyboxSize = groundSize;
                 }
                 // 10 % bigger.
                 groundSize *= 1.1;
                 skyboxSize *= 1.5;
                 rootPosition = sceneExtends.min.add(sceneDiagonal.scale(0.5));
-                rootPosition.y = sceneExtends.min.y - bias;
+                rootPosition.y = sceneExtends.min.y - this._options.groundYBias;
             }
             return { groundSize: groundSize, skyboxSize: skyboxSize, rootPosition: rootPosition };
         };
@@ -313,10 +330,7 @@
             this._groundMaterial.alpha = this._options.groundOpacity;
             this._groundMaterial.alphaMode = LIB.Engine.ALPHA_PREMULTIPLIED_PORTERDUFF;
             this._groundMaterial.shadowLevel = this._options.groundShadowLevel;
-            this._groundMaterial.primaryLevel = 1;
             this._groundMaterial.primaryColor = this._options.groundColor;
-            this._groundMaterial.secondaryLevel = 0;
-            this._groundMaterial.tertiaryLevel = 0;
             this._groundMaterial.useRGBColor = false;
             this._groundMaterial.enableNoise = true;
             if (this._ground) {
@@ -337,7 +351,7 @@
                 this._groundMaterial.diffuseTexture = this._options.groundTexture;
                 return;
             }
-            var diffuseTexture = new LIB.Texture(this._options.groundTexture, this._scene);
+            var diffuseTexture = new LIB.Texture(this._options.groundTexture, this._scene, undefined, undefined, undefined, undefined, this._errorHandler);
             diffuseTexture.gammaSpace = false;
             diffuseTexture.hasAlpha = true;
             this._groundMaterial.diffuseTexture = diffuseTexture;
@@ -386,7 +400,7 @@
         EnvironmentHelper.prototype._setupSkybox = function (sceneSize) {
             var _this = this;
             if (!this._skybox) {
-                this._skybox = LIB.Mesh.CreateBox("BackgroundSkybox", sceneSize.skyboxSize, this._scene, undefined, LIB.Mesh.BACKSIDE);
+                this._skybox = LIB.Mesh.CreateCube("BackgroundSkybox", sceneSize.skyboxSize, this._scene, undefined, LIB.Mesh.BACKSIDE);
                 this._skybox.onDisposeObservable.add(function () { _this._skybox = null; });
             }
             this._skybox.parent = this._rootMesh;
@@ -402,10 +416,7 @@
                 this._skyboxMaterial = new LIB.BackgroundMaterial("BackgroundSkyboxMaterial", this._scene);
             }
             this._skyboxMaterial.useRGBColor = false;
-            this._skyboxMaterial.primaryLevel = 1;
             this._skyboxMaterial.primaryColor = this._options.skyboxColor;
-            this._skyboxMaterial.secondaryLevel = 0;
-            this._skyboxMaterial.tertiaryLevel = 0;
             this._skyboxMaterial.enableNoise = true;
             this._skybox.material = this._skyboxMaterial;
         };
@@ -420,10 +431,10 @@
                 return;
             }
             if (this._options.skyboxTexture instanceof LIB.BaseTexture) {
-                this._skyboxMaterial.reflectionTexture = this._skyboxTexture;
+                this._skyboxMaterial.reflectionTexture = this._options.skyboxTexture;
                 return;
             }
-            this._skyboxTexture = new LIB.CubeTexture(this._options.skyboxTexture, this._scene);
+            this._skyboxTexture = new LIB.CubeTexture(this._options.skyboxTexture, this._scene, undefined, undefined, undefined, undefined, this._errorHandler);
             this._skyboxTexture.coordinatesMode = LIB.Texture.SKYBOX_MODE;
             this._skyboxTexture.gammaSpace = false;
             this._skyboxMaterial.reflectionTexture = this._skyboxTexture;
@@ -457,4 +468,5 @@
     LIB.EnvironmentHelper = EnvironmentHelper;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.environmentHelper.js.map
 //# sourceMappingURL=LIB.environmentHelper.js.map

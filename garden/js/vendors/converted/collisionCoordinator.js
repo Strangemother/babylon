@@ -1,15 +1,24 @@
+
+var LIB;
 (function (LIB) {
     //WebWorker code will be inserted to this variable.
     LIB.CollisionWorker = "";
+    /** Defines supported task for worker process */
     var WorkerTaskType;
     (function (WorkerTaskType) {
+        /** Initialization */
         WorkerTaskType[WorkerTaskType["INIT"] = 0] = "INIT";
+        /** Update of geometry */
         WorkerTaskType[WorkerTaskType["UPDATE"] = 1] = "UPDATE";
+        /** Evaluate collision */
         WorkerTaskType[WorkerTaskType["COLLIDE"] = 2] = "COLLIDE";
     })(WorkerTaskType = LIB.WorkerTaskType || (LIB.WorkerTaskType = {}));
+    /** Defines kind of replies returned by worker */
     var WorkerReplyType;
     (function (WorkerReplyType) {
+        /** Success */
         WorkerReplyType[WorkerReplyType["SUCCESS"] = 0] = "SUCCESS";
+        /** Unkown error */
         WorkerReplyType[WorkerReplyType["UNKNOWN_ERROR"] = 1] = "UNKNOWN_ERROR";
     })(WorkerReplyType = LIB.WorkerReplyType || (LIB.WorkerReplyType = {}));
     var CollisionCoordinatorWorker = /** @class */ (function () {
@@ -185,7 +194,7 @@
                 geometryId = geometry ? geometry.id : null;
             }
             else if (mesh instanceof LIB.InstancedMesh) {
-                var geometry = mesh.sourceMesh.geometry;
+                var geometry = mesh.sourceMesh && mesh.sourceMesh.geometry;
                 geometryId = geometry ? geometry.id : null;
             }
             var boundingInfo = mesh.getBoundingInfo();
@@ -281,4 +290,5 @@
     LIB.CollisionCoordinatorLegacy = CollisionCoordinatorLegacy;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.collisionCoordinator.js.map
 //# sourceMappingURL=LIB.collisionCoordinator.js.map

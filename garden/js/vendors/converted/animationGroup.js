@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     /**
      * This class defines the direct association between an animation and a target
@@ -18,12 +20,32 @@
             this._targetedAnimations = new Array();
             this._animatables = new Array();
             this._from = Number.MAX_VALUE;
-            this._to = Number.MIN_VALUE;
+            this._to = -Number.MAX_VALUE;
             this._speedRatio = 1;
             this.onAnimationEndObservable = new LIB.Observable();
             this._scene = scene || LIB.Engine.LastCreatedScene;
             this._scene.animationGroups.push(this);
         }
+        Object.defineProperty(AnimationGroup.prototype, "from", {
+            /**
+             * Gets the first frame
+             */
+            get: function () {
+                return this._from;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AnimationGroup.prototype, "to", {
+            /**
+             * Gets the last frame
+             */
+            get: function () {
+                return this._to;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(AnimationGroup.prototype, "isStarted", {
             /**
              * Define if the animations are started
@@ -48,10 +70,31 @@
                 if (this._speedRatio === value) {
                     return;
                 }
+                this._speedRatio = value;
                 for (var index = 0; index < this._animatables.length; index++) {
                     var animatable = this._animatables[index];
                     animatable.speedRatio = this._speedRatio;
                 }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AnimationGroup.prototype, "targetedAnimations", {
+            /**
+             * Gets the targeted animations for this animation group
+             */
+            get: function () {
+                return this._targetedAnimations;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AnimationGroup.prototype, "animatables", {
+            /**
+             * returning the list of animatables controlled by this animation group.
+             */
+            get: function () {
+                return this._animatables;
             },
             enumerable: true,
             configurable: true
@@ -80,12 +123,16 @@
         /**
          * This function will normalize every animation in the group to make sure they all go from beginFrame to endFrame
          * It can add constant keys at begin or end
-         * @param beginFrame defines the new begin frame for all animations. It can't be bigger than the smaller begin frame of all animations
-         * @param endFrame defines the new end frame for all animations. It can't be smaller than the larger end frame of all animations
+         * @param beginFrame defines the new begin frame for all animations or the smallest begin frame of all animations if null (defaults to null)
+         * @param endFrame defines the new end frame for all animations or the largest end frame of all animations if null (defaults to null)
          */
         AnimationGroup.prototype.normalize = function (beginFrame, endFrame) {
-            beginFrame = Math.min(beginFrame, this._from);
-            endFrame = Math.min(endFrame, this._to);
+            if (beginFrame === void 0) { beginFrame = null; }
+            if (endFrame === void 0) { endFrame = null; }
+            if (beginFrame == null)
+                beginFrame = this._from;
+            if (endFrame == null)
+                endFrame = this._to;
             for (var index = 0; index < this._targetedAnimations.length; index++) {
                 var targetedAnimation = this._targetedAnimations[index];
                 var keys = targetedAnimation.animation.getKeys();
@@ -96,7 +143,8 @@
                         frame: beginFrame,
                         value: startKey.value,
                         inTangent: startKey.inTangent,
-                        outTangent: startKey.outTangent
+                        outTangent: startKey.outTangent,
+                        interpolation: startKey.interpolation
                     };
                     keys.splice(0, 0, newKey);
                 }
@@ -104,35 +152,41 @@
                     var newKey = {
                         frame: endFrame,
                         value: endKey.value,
-                        inTangent: startKey.outTangent,
-                        outTangent: startKey.outTangent
+                        inTangent: endKey.outTangent,
+                        outTangent: endKey.outTangent,
+                        interpolation: endKey.interpolation
                     };
                     keys.push(newKey);
                 }
             }
+            this._from = beginFrame;
+            this._to = endFrame;
             return this;
         };
         /**
          * Start all animations on given targets
          * @param loop defines if animations must loop
          * @param speedRatio defines the ratio to apply to animation speed (1 by default)
+         * @param from defines the from key (optional)
+         * @param to defines the to key (optional)
+         * @returns the current animation group
          */
-        AnimationGroup.prototype.start = function (loop, speedRatio) {
+        AnimationGroup.prototype.start = function (loop, speedRatio, from, to) {
             var _this = this;
             if (loop === void 0) { loop = false; }
             if (speedRatio === void 0) { speedRatio = 1; }
             if (this._isStarted || this._targetedAnimations.length === 0) {
                 return this;
             }
-            var _loop_1 = function () {
-                var targetedAnimation = this_1._targetedAnimations[index];
-                this_1._animatables.push(this_1._scene.beginDirectAnimation(targetedAnimation.target, [targetedAnimation.animation], this_1._from, this_1._to, loop, speedRatio, function () {
+            var _loop_1 = function (targetedAnimation) {
+                this_1._animatables.push(this_1._scene.beginDirectAnimation(targetedAnimation.target, [targetedAnimation.animation], from !== undefined ? from : this_1._from, to !== undefined ? to : this_1._to, loop, speedRatio, function () {
                     _this.onAnimationEndObservable.notifyObservers(targetedAnimation);
                 }));
             };
             var this_1 = this;
-            for (var index = 0; index < this._targetedAnimations.length; index++) {
-                _loop_1();
+            for (var _i = 0, _a = this._targetedAnimations; _i < _a.length; _i++) {
+                var targetedAnimation = _a[_i];
+                _loop_1(targetedAnimation);
             }
             this._speedRatio = speedRatio;
             this._isStarted = true;
@@ -167,7 +221,7 @@
                 this.restart();
             }
             else {
-                this.start(loop);
+                this.start(loop, this._speedRatio);
             }
             return this;
         };
@@ -212,6 +266,47 @@
             return this;
         };
         /**
+         * Set animation weight for all animatables
+         * @param weight defines the weight to use
+         * @return the animationGroup
+         * @see http://doc.LIBjs.com/LIB101/animations#animation-weights
+         */
+        AnimationGroup.prototype.setWeightForAllAnimatables = function (weight) {
+            for (var index = 0; index < this._animatables.length; index++) {
+                var animatable = this._animatables[index];
+                animatable.weight = weight;
+            }
+            return this;
+        };
+        /**
+         * Synchronize and normalize all animatables with a source animatable
+         * @param root defines the root animatable to synchronize with
+         * @return the animationGroup
+         * @see http://doc.LIBjs.com/LIB101/animations#animation-weights
+         */
+        AnimationGroup.prototype.syncAllAnimationsWith = function (root) {
+            for (var index = 0; index < this._animatables.length; index++) {
+                var animatable = this._animatables[index];
+                animatable.syncWith(root);
+            }
+            return this;
+        };
+        /**
+         * Goes to a specific frame in this animation group
+         * @param frame the frame number to go to
+         * @return the animationGroup
+         */
+        AnimationGroup.prototype.goToFrame = function (frame) {
+            if (!this._isStarted) {
+                return this;
+            }
+            for (var index = 0; index < this._animatables.length; index++) {
+                var animatable = this._animatables[index];
+                animatable.goToFrame(frame);
+            }
+            return this;
+        };
+        /**
          * Dispose all associated resources
          */
         AnimationGroup.prototype.dispose = function () {
@@ -227,4 +322,5 @@
     LIB.AnimationGroup = AnimationGroup;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.animationGroup.js.map
 //# sourceMappingURL=LIB.animationGroup.js.map

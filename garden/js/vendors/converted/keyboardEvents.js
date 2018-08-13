@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var KeyboardEventTypes = /** @class */ (function () {
         function KeyboardEventTypes() {
@@ -45,4 +48,5 @@
     LIB.KeyboardInfoPre = KeyboardInfoPre;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.keyboardEvents.js.map
 //# sourceMappingURL=LIB.keyboardEvents.js.map

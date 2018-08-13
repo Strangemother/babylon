@@ -1,7 +1,10 @@
+
+
+var LIB;
 (function (LIB) {
     var PostProcessRenderPipeline = /** @class */ (function () {
         function PostProcessRenderPipeline(engine, name) {
-            this._engine = engine;
+            this.engine = engine;
             this._name = name;
             this._renderEffects = {};
             this._renderEffectsForIsolatedPass = new Array();
@@ -84,58 +87,6 @@
                 this._cameras.splice(this._cameras.indexOf(cams[i]), 1);
             }
         };
-        PostProcessRenderPipeline.prototype._enableDisplayOnlyPass = function (passName, cameras) {
-            var _this = this;
-            var cams = LIB.Tools.MakeArray(cameras || this._cameras);
-            if (!cams) {
-                return;
-            }
-            var pass = null;
-            var renderEffectName;
-            for (renderEffectName in this._renderEffects) {
-                if (this._renderEffects.hasOwnProperty(renderEffectName)) {
-                    pass = this._renderEffects[renderEffectName].getPass(passName);
-                    if (pass != null) {
-                        break;
-                    }
-                }
-            }
-            if (pass === null) {
-                return;
-            }
-            for (renderEffectName in this._renderEffects) {
-                if (this._renderEffects.hasOwnProperty(renderEffectName)) {
-                    this._renderEffects[renderEffectName]._disable(cams);
-                }
-            }
-            pass._name = PostProcessRenderPipeline.PASS_SAMPLER_NAME;
-            for (var i = 0; i < cams.length; i++) {
-                var camera = cams[i];
-                var cameraName = camera.name;
-                this._renderEffectsForIsolatedPass[cameraName] = this._renderEffectsForIsolatedPass[cameraName] || new LIB.PostProcessRenderEffect(this._engine, PostProcessRenderPipeline.PASS_EFFECT_NAME, function () { return new LIB.DisplayPassPostProcess(PostProcessRenderPipeline.PASS_EFFECT_NAME, 1.0, null, undefined, _this._engine, true); });
-                this._renderEffectsForIsolatedPass[cameraName].emptyPasses();
-                this._renderEffectsForIsolatedPass[cameraName].addPass(pass);
-                this._renderEffectsForIsolatedPass[cameraName]._attachCameras(camera);
-            }
-        };
-        PostProcessRenderPipeline.prototype._disableDisplayOnlyPass = function (cameras) {
-            var _this = this;
-            var cams = LIB.Tools.MakeArray(cameras || this._cameras);
-            if (!cams) {
-                return;
-            }
-            for (var i = 0; i < cams.length; i++) {
-                var camera = cams[i];
-                var cameraName = camera.name;
-                this._renderEffectsForIsolatedPass[cameraName] = this._renderEffectsForIsolatedPass[cameraName] || new LIB.PostProcessRenderEffect(this._engine, PostProcessRenderPipeline.PASS_EFFECT_NAME, function () { return new LIB.DisplayPassPostProcess(PostProcessRenderPipeline.PASS_EFFECT_NAME, 1.0, null, undefined, _this._engine, true); });
-                this._renderEffectsForIsolatedPass[cameraName]._disable(camera);
-            }
-            for (var renderEffectName in this._renderEffects) {
-                if (this._renderEffects.hasOwnProperty(renderEffectName)) {
-                    this._renderEffects[renderEffectName]._enable(cams);
-                }
-            }
-        };
         PostProcessRenderPipeline.prototype._update = function () {
             for (var renderEffectName in this._renderEffects) {
                 if (this._renderEffects.hasOwnProperty(renderEffectName)) {
@@ -153,11 +104,21 @@
             this._renderEffects = {};
             this._renderEffectsForIsolatedPass = new Array();
         };
-        PostProcessRenderPipeline.prototype.dispose = function () {
-            // Must be implemented by children
+        PostProcessRenderPipeline.prototype._enableMSAAOnFirstPostProcess = function (sampleCount) {
+            // Set samples of the very first post process to 4 to enable native anti-aliasing in browsers that support webGL 2.0 (See: https://github.com/LIBJS/LIB.js/issues/3754)
+            var effectKeys = Object.keys(this._renderEffects);
+            if (this.engine.webGLVersion >= 2 && effectKeys.length > 0) {
+                var postProcesses = this._renderEffects[effectKeys[0]].getPostProcesses();
+                if (postProcesses) {
+                    postProcesses[0].samples = sampleCount;
+                    return true;
+                }
+            }
+            return false;
         };
-        PostProcessRenderPipeline.PASS_EFFECT_NAME = "passEffect";
-        PostProcessRenderPipeline.PASS_SAMPLER_NAME = "passSampler";
+        PostProcessRenderPipeline.prototype.dispose = function () {
+            // Must be implemented by children 
+        };
         __decorate([
             LIB.serialize()
         ], PostProcessRenderPipeline.prototype, "_name", void 0);
@@ -166,4 +127,5 @@
     LIB.PostProcessRenderPipeline = PostProcessRenderPipeline;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.postProcessRenderPipeline.js.map
 //# sourceMappingURL=LIB.postProcessRenderPipeline.js.map

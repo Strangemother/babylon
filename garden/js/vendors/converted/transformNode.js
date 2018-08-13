@@ -1,3 +1,7 @@
+
+
+
+var LIB;
 (function (LIB) {
     var TransformNode = /** @class */ (function (_super) {
         __extends(TransformNode, _super);
@@ -5,11 +9,16 @@
             if (scene === void 0) { scene = null; }
             if (isPure === void 0) { isPure = true; }
             var _this = _super.call(this, name, scene) || this;
+            _this._forward = new LIB.Vector3(0, 0, 1);
+            _this._forwardInverted = new LIB.Vector3(0, 0, -1);
+            _this._up = new LIB.Vector3(0, 1, 0);
+            _this._right = new LIB.Vector3(1, 0, 0);
+            _this._rightInverted = new LIB.Vector3(-1, 0, 0);
             // Properties
             _this._rotation = LIB.Vector3.Zero();
             _this._scaling = LIB.Vector3.One();
             _this._isDirty = false;
-            _this.billboardMode = LIB.AbstractMesh.BILLBOARDMODE_NONE;
+            _this.billboardMode = TransformNode.BILLBOARDMODE_NONE;
             _this.scalingDeterminant = 1;
             _this.infiniteDistance = false;
             _this.position = LIB.Vector3.Zero();
@@ -22,7 +31,6 @@
             _this._isWorldMatrixFrozen = false;
             /**
             * An event triggered after the world matrix is updated
-            * @type {LIB.Observable}
             */
             _this.onAfterWorldMatrixUpdateObservable = new LIB.Observable();
             _this._nonUniformScaling = false;
@@ -31,6 +39,13 @@
             }
             return _this;
         }
+        /**
+         * Gets a string idenfifying the name of the class
+         * @returns "TransformNode" string
+         */
+        TransformNode.prototype.getClassName = function () {
+            return "TransformNode";
+        };
         Object.defineProperty(TransformNode.prototype, "rotation", {
             /**
               * Rotation property : a Vector3 depicting the rotation value in radians around each local axis X, Y, Z.
@@ -75,10 +90,40 @@
             },
             set: function (quaternion) {
                 this._rotationQuaternion = quaternion;
-                //reset the rotation vector.
+                //reset the rotation vector. 
                 if (quaternion && this.rotation.length()) {
                     this.rotation.copyFromFloats(0.0, 0.0, 0.0);
                 }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TransformNode.prototype, "forward", {
+            /**
+             * The forward direction of that transform in world space.
+             */
+            get: function () {
+                return LIB.Vector3.Normalize(LIB.Vector3.TransformNormal(this.getScene().useRightHandedSystem ? this._forwardInverted : this._forward, this.getWorldMatrix()));
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TransformNode.prototype, "up", {
+            /**
+             * The up direction of that transform in world space.
+             */
+            get: function () {
+                return LIB.Vector3.Normalize(LIB.Vector3.TransformNormal(this._up, this.getWorldMatrix()));
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TransformNode.prototype, "right", {
+            /**
+             * The right direction of that transform in world space.
+             */
+            get: function () {
+                return LIB.Vector3.Normalize(LIB.Vector3.TransformNormal(this.getScene().useRightHandedSystem ? this._rightInverted : this._right, this.getWorldMatrix()));
             },
             enumerable: true,
             configurable: true
@@ -93,13 +138,8 @@
             }
             return this._worldMatrix;
         };
-        /**
-         * Returns the latest update of the World matrix determinant.
-         */
+        /** @hidden */
         TransformNode.prototype._getWorldMatrixDeterminant = function () {
-            if (this._currentRenderId !== this.getScene().getRenderId()) {
-                this._worldMatrixDeterminant = this.computeWorldMatrix().determinant();
-            }
             return this._worldMatrixDeterminant;
         };
         Object.defineProperty(TransformNode.prototype, "worldMatrixFromCache", {
@@ -115,7 +155,7 @@
         });
         /**
          * Copies the paramater passed Matrix into the mesh Pose matrix.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.updatePoseMatrix = function (matrix) {
             this._poseMatrix.copyFrom(matrix);
@@ -132,7 +172,7 @@
             if (this._isDirty) {
                 return false;
             }
-            if (this.billboardMode !== this._cache.billboardMode || this.billboardMode !== LIB.AbstractMesh.BILLBOARDMODE_NONE)
+            if (this.billboardMode !== this._cache.billboardMode || this.billboardMode !== TransformNode.BILLBOARDMODE_NONE)
                 return false;
             if (this._cache.pivotMatrixUpdated) {
                 return false;
@@ -181,16 +221,31 @@
             configurable: true
         });
         /**
-         * Sets a new pivot matrix to the mesh.
-         * Returns the AbstractMesh.
+         * Sets a new matrix to apply before all other transformation
+         * @param matrix defines the transform matrix
+         * @returns the current TransformNode
+         */
+        TransformNode.prototype.setPreTransformMatrix = function (matrix) {
+            return this.setPivotMatrix(matrix, false);
+        };
+        /**
+         * Sets a new pivot matrix to the current node
+         * @param matrix defines the new pivot matrix to use
+         * @param postMultiplyPivotMatrix defines if the pivot matrix must be cancelled in the world matrix. When this parameter is set to true (default), the inverse of the pivot matrix is also applied at the end to cancel the transformation effect
+         * @returns the current TransformNode
         */
         TransformNode.prototype.setPivotMatrix = function (matrix, postMultiplyPivotMatrix) {
-            if (postMultiplyPivotMatrix === void 0) { postMultiplyPivotMatrix = false; }
+            if (postMultiplyPivotMatrix === void 0) { postMultiplyPivotMatrix = true; }
             this._pivotMatrix = matrix.clone();
             this._cache.pivotMatrixUpdated = true;
             this._postMultiplyPivotMatrix = postMultiplyPivotMatrix;
             if (this._postMultiplyPivotMatrix) {
-                this._pivotMatrixInverse = LIB.Matrix.Invert(matrix);
+                if (!this._pivotMatrixInverse) {
+                    this._pivotMatrixInverse = LIB.Matrix.Invert(this._pivotMatrix);
+                }
+                else {
+                    this._pivotMatrix.invertToRef(this._pivotMatrixInverse);
+                }
             }
             return this;
         };
@@ -204,7 +259,7 @@
         };
         /**
          * Prevents the World matrix to be computed any longer.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.freezeWorldMatrix = function () {
             this._isWorldMatrixFrozen = false; // no guarantee world is not already frozen, switch off temporarily
@@ -214,7 +269,7 @@
         };
         /**
          * Allows back the World matrix computation.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.unfreezeWorldMatrix = function () {
             this._isWorldMatrixFrozen = false;
@@ -242,7 +297,7 @@
         };
         /**
          * Sets the mesh absolute position in the World from a Vector3 or an Array(3).
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.setAbsolutePosition = function (absolutePosition) {
             if (!absolutePosition) {
@@ -279,7 +334,7 @@
         };
         /**
            * Sets the mesh position in its local space.
-           * Returns the AbstractMesh.
+           * Returns the TransformNode.
            */
         TransformNode.prototype.setPositionWithLocalVector = function (vector3) {
             this.computeWorldMatrix();
@@ -298,7 +353,7 @@
         };
         /**
          * Translates the mesh along the passed Vector3 in its local space.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.locallyTranslate = function (vector3) {
             this.computeWorldMatrix(true);
@@ -319,7 +374,7 @@
             if (pitchCor === void 0) { pitchCor = 0; }
             if (rollCor === void 0) { rollCor = 0; }
             if (space === void 0) { space = LIB.Space.LOCAL; }
-            var dv = LIB.AbstractMesh._lookAtVectorCache;
+            var dv = TransformNode._lookAtVectorCache;
             var pos = space === LIB.Space.LOCAL ? this.position : this.getAbsolutePosition();
             targetPoint.subtractToRef(pos, dv);
             var yaw = -Math.atan2(dv.z, dv.x) - Math.PI / 2;
@@ -348,12 +403,18 @@
          * Sets the Vector3 "result" as the rotated Vector3 "localAxis" in the same rotation than the mesh.
          * localAxis is expressed in the mesh local space.
          * result is computed in the Wordl space from the mesh World matrix.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.getDirectionToRef = function (localAxis, result) {
             LIB.Vector3.TransformNormalToRef(localAxis, this.getWorldMatrix(), result);
             return this;
         };
+        /**
+         * Sets a new pivot point to the current node
+         * @param point defines the new pivot point to use
+         * @param space defines if the point is in world or local space (local by default)
+         * @returns the current TransformNode
+        */
         TransformNode.prototype.setPivotPoint = function (point, space) {
             if (space === void 0) { space = LIB.Space.LOCAL; }
             if (this.getScene().getRenderId() == 0) {
@@ -365,12 +426,7 @@
                 wm.invertToRef(tmat);
                 point = LIB.Vector3.TransformCoordinates(point, tmat);
             }
-            LIB.Vector3.TransformCoordinatesToRef(point, wm, this.position);
-            this._pivotMatrix.m[12] = -point.x;
-            this._pivotMatrix.m[13] = -point.y;
-            this._pivotMatrix.m[14] = -point.z;
-            this._cache.pivotMatrixUpdated = true;
-            return this;
+            return this.setPivotMatrix(LIB.Matrix.Translation(-point.x, -point.y, -point.z), true);
         };
         /**
          * Returns a new Vector3 set with the mesh pivot point coordinates in the local space.
@@ -382,7 +438,7 @@
         };
         /**
          * Sets the passed Vector3 "result" with the coordinates of the mesh pivot point in the local space.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.getPivotPointToRef = function (result) {
             result.x = -this._pivotMatrix.m[12];
@@ -400,7 +456,7 @@
         };
         /**
          * Sets the Vector3 "result" coordinates with the mesh pivot point World coordinates.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.getAbsolutePivotPointToRef = function (result) {
             result.x = this._pivotMatrix.m[12];
@@ -416,7 +472,7 @@
          * Returns the TransformNode.
          */
         TransformNode.prototype.setParent = function (node) {
-            if (node == null) {
+            if (node === null) {
                 var rotation = LIB.Tmp.Quaternion[0];
                 var position = LIB.Tmp.Vector3[0];
                 var scale = LIB.Tmp.Vector3[1];
@@ -508,7 +564,7 @@
          * space (default LOCAL) can be either LIB.Space.LOCAL, either LIB.Space.WORLD.
          * Note that the property `rotationQuaternion` is then automatically updated and the property `rotation` is set to (0,0,0) and no longer used.
          * The passed axis is also normalized.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.rotate = function (axis, amount, space) {
             axis.normalize();
@@ -518,7 +574,7 @@
             }
             var rotationQuaternion;
             if (!space || space === LIB.Space.LOCAL) {
-                rotationQuaternion = LIB.Quaternion.RotationAxisToRef(axis, amount, LIB.AbstractMesh._rotationAxisCache);
+                rotationQuaternion = LIB.Quaternion.RotationAxisToRef(axis, amount, TransformNode._rotationAxisCache);
                 this.rotationQuaternion.multiplyToRef(rotationQuaternion, this.rotationQuaternion);
             }
             else {
@@ -527,7 +583,7 @@
                     invertParentWorldMatrix.invert();
                     axis = LIB.Vector3.TransformNormal(axis, invertParentWorldMatrix);
                 }
-                rotationQuaternion = LIB.Quaternion.RotationAxisToRef(axis, amount, LIB.AbstractMesh._rotationAxisCache);
+                rotationQuaternion = LIB.Quaternion.RotationAxisToRef(axis, amount, TransformNode._rotationAxisCache);
                 rotationQuaternion.multiplyToRef(this.rotationQuaternion, this.rotationQuaternion);
             }
             return this;
@@ -536,7 +592,7 @@
          * Rotates the mesh around the axis vector for the passed angle (amount) expressed in radians, in world space.
          * Note that the property `rotationQuaternion` is then automatically updated and the property `rotation` is set to (0,0,0) and no longer used.
          * The passed axis is also normalized.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          * Method is based on http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/index.htm
          */
         TransformNode.prototype.rotateAround = function (point, axis, amount) {
@@ -559,7 +615,7 @@
         /**
          * Translates the mesh along the axis vector for the passed distance in the given space.
          * space (default LOCAL) can be either LIB.Space.LOCAL, either LIB.Space.WORLD.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.translate = function (axis, distance, space) {
             var displacementVector = axis.scale(distance);
@@ -584,7 +640,7 @@
          * ```
          * Note that `addRotation()` accumulates the passed rotation values to the current ones and computes the .rotation or .rotationQuaternion updated values.
          * Under the hood, only quaternions are used. So it's a little faster is you use .rotationQuaternion because it doesn't need to translate them back to Euler angles.
-         * Returns the AbstractMesh.
+         * Returns the TransformNode.
          */
         TransformNode.prototype.addRotation = function (x, y, z) {
             var rotationQuaternion;
@@ -615,6 +671,7 @@
                 return this._worldMatrix;
             }
             if (!force && this.isSynchronized(true)) {
+                this._currentRenderId = this.getScene().getRenderId();
                 return this._worldMatrix;
             }
             this._cache.position.copyFrom(this.position);
@@ -622,6 +679,7 @@
             this._cache.pivotMatrixUpdated = false;
             this._cache.billboardMode = this.billboardMode;
             this._currentRenderId = this.getScene().getRenderId();
+            this._childRenderId = this.getScene().getRenderId();
             this._isDirty = false;
             // Scaling
             LIB.Matrix.ScalingToRef(this.scaling.x * this.scalingDeterminant, this.scaling.y * this.scalingDeterminant, this.scaling.z * this.scalingDeterminant, LIB.Tmp.Matrix[1]);
@@ -656,8 +714,8 @@
             this._pivotMatrix.multiplyToRef(LIB.Tmp.Matrix[1], LIB.Tmp.Matrix[4]);
             LIB.Tmp.Matrix[4].multiplyToRef(LIB.Tmp.Matrix[0], LIB.Tmp.Matrix[5]);
             // Billboarding (testing PG:http://www.LIBjs-playground.com/#UJEIL#13)
-            if (this.billboardMode !== LIB.AbstractMesh.BILLBOARDMODE_NONE && camera) {
-                if ((this.billboardMode & LIB.AbstractMesh.BILLBOARDMODE_ALL) !== LIB.AbstractMesh.BILLBOARDMODE_ALL) {
+            if (this.billboardMode !== TransformNode.BILLBOARDMODE_NONE && camera) {
+                if ((this.billboardMode & TransformNode.BILLBOARDMODE_ALL) !== TransformNode.BILLBOARDMODE_ALL) {
                     // Need to decompose each rotation here
                     var currentPosition = LIB.Tmp.Vector3[3];
                     if (this.parent && this.parent.getWorldMatrix) {
@@ -674,13 +732,13 @@
                     }
                     currentPosition.subtractInPlace(camera.globalPosition);
                     var finalEuler = LIB.Tmp.Vector3[4].copyFromFloats(0, 0, 0);
-                    if ((this.billboardMode & LIB.AbstractMesh.BILLBOARDMODE_X) === LIB.AbstractMesh.BILLBOARDMODE_X) {
+                    if ((this.billboardMode & TransformNode.BILLBOARDMODE_X) === TransformNode.BILLBOARDMODE_X) {
                         finalEuler.x = Math.atan2(-currentPosition.y, currentPosition.z);
                     }
-                    if ((this.billboardMode & LIB.AbstractMesh.BILLBOARDMODE_Y) === LIB.AbstractMesh.BILLBOARDMODE_Y) {
+                    if ((this.billboardMode & TransformNode.BILLBOARDMODE_Y) === TransformNode.BILLBOARDMODE_Y) {
                         finalEuler.y = Math.atan2(currentPosition.x, currentPosition.z);
                     }
-                    if ((this.billboardMode & LIB.AbstractMesh.BILLBOARDMODE_Z) === LIB.AbstractMesh.BILLBOARDMODE_Z) {
+                    if ((this.billboardMode & TransformNode.BILLBOARDMODE_Z) === TransformNode.BILLBOARDMODE_Z) {
                         finalEuler.z = Math.atan2(currentPosition.y, currentPosition.x);
                     }
                     LIB.Matrix.RotationYawPitchRollToRef(finalEuler.y, finalEuler.x, finalEuler.z, LIB.Tmp.Matrix[0]);
@@ -697,7 +755,7 @@
             LIB.Tmp.Matrix[5].multiplyToRef(LIB.Tmp.Matrix[2], this._localWorld);
             // Parent
             if (this.parent && this.parent.getWorldMatrix) {
-                if (this.billboardMode !== LIB.AbstractMesh.BILLBOARDMODE_NONE) {
+                if (this.billboardMode !== TransformNode.BILLBOARDMODE_NONE) {
                     if (this._transformToBoneReferal) {
                         this.parent.getWorldMatrix().multiplyToRef(this._transformToBoneReferal.getWorldMatrix(), LIB.Tmp.Matrix[6]);
                         LIB.Tmp.Matrix[5].copyFrom(LIB.Tmp.Matrix[6]);
@@ -746,6 +804,8 @@
             if (!this._poseMatrix) {
                 this._poseMatrix = LIB.Matrix.Invert(this._worldMatrix);
             }
+            // Cache the determinant
+            this._worldMatrixDeterminant = this._worldMatrix.determinant();
             return this._worldMatrix;
         };
         TransformNode.prototype._afterComputeWorldMatrix = function () {
@@ -825,7 +885,7 @@
                 LIB.Tags.AddTagsTo(transformNode, parsedTransformNode.tags);
             }
             if (parsedTransformNode.localMatrix) {
-                transformNode.setPivotMatrix(LIB.Matrix.FromArray(parsedTransformNode.localMatrix));
+                transformNode.setPreTransformMatrix(LIB.Matrix.FromArray(parsedTransformNode.localMatrix));
             }
             else if (parsedTransformNode.pivotMatrix) {
                 transformNode.setPivotMatrix(LIB.Matrix.FromArray(parsedTransformNode.pivotMatrix));
@@ -838,33 +898,18 @@
             return transformNode;
         };
         /**
-         * Disposes the TransformNode.
-         * By default, all the children are also disposed unless the parameter `doNotRecurse` is set to `true`.
-         * Returns nothing.
+         * Releases resources associated with this transform node.
+         * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
+         * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
          */
-        TransformNode.prototype.dispose = function (doNotRecurse) {
+        TransformNode.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
+            if (disposeMaterialAndTextures === void 0) { disposeMaterialAndTextures = false; }
             // Animations
             this.getScene().stopAnimation(this);
             // Remove from scene
             this.getScene().removeTransformNode(this);
-            this._cache = {};
-            if (!doNotRecurse) {
-                // Children
-                var objects = this.getDescendants(true);
-                for (var index = 0; index < objects.length; index++) {
-                    objects[index].dispose();
-                }
-            }
-            else {
-                var childMeshes = this.getChildMeshes(true);
-                for (index = 0; index < childMeshes.length; index++) {
-                    var child = childMeshes[index];
-                    child.parent = null;
-                    child.computeWorldMatrix(true);
-                }
-            }
             this.onAfterWorldMatrixUpdateObservable.clear();
-            _super.prototype.dispose.call(this);
+            _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
         };
         // Statics
         TransformNode.BILLBOARDMODE_NONE = 0;
@@ -900,4 +945,5 @@
     LIB.TransformNode = TransformNode;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.transformNode.js.map
 //# sourceMappingURL=LIB.transformNode.js.map

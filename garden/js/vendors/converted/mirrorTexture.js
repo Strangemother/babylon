@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var MirrorTexture = /** @class */ (function (_super) {
         __extends(MirrorTexture, _super);
@@ -6,6 +9,7 @@
             if (samplingMode === void 0) { samplingMode = LIB.Texture.BILINEAR_SAMPLINGMODE; }
             if (generateDepthBuffer === void 0) { generateDepthBuffer = true; }
             var _this = _super.call(this, name, size, scene, generateMipMaps, true, type, false, samplingMode, generateDepthBuffer) || this;
+            _this.scene = scene;
             _this.mirrorPlane = new LIB.Plane(0, 1, 0, 1);
             _this._transformMatrix = LIB.Matrix.Zero();
             _this._mirrorMatrix = LIB.Matrix.Zero();
@@ -14,6 +18,10 @@
             _this._blurKernelY = 0;
             _this._blurRatio = 1.0;
             _this.ignoreCameraViewport = true;
+            _this._updateGammaSpace();
+            _this._imageProcessingConfigChangeObserver = scene.imageProcessingConfiguration.onUpdateParameters.add(function () {
+                _this._updateGammaSpace;
+            });
             _this.onBeforeRenderObservable.add(function () {
                 LIB.Matrix.ReflectionToRef(_this.mirrorPlane, _this._mirrorMatrix);
                 _this._savedViewMatrix = scene.getViewMatrix();
@@ -107,6 +115,9 @@
                 this._autoComputeBlurKernel();
             }
         };
+        MirrorTexture.prototype._updateGammaSpace = function () {
+            this.gammaSpace = !this.scene.imageProcessingConfiguration.isEnabled || !this.scene.imageProcessingConfiguration.applyByPostProcess;
+        };
         MirrorTexture.prototype._preparePostProcesses = function () {
             this.clearPostProcesses(true);
             if (this._blurKernelX && this._blurKernelY) {
@@ -115,7 +126,7 @@
                 this._blurX = new LIB.BlurPostProcess("horizontal blur", new LIB.Vector2(1.0, 0), this._blurKernelX, this._blurRatio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, engine, false, textureType);
                 this._blurX.autoClear = false;
                 if (this._blurRatio === 1 && this.samples < 2 && this._texture) {
-                    this._blurX.outputTexture = this._texture;
+                    this._blurX.inputTexture = this._texture;
                 }
                 else {
                     this._blurX.alwaysForcePOT = true;
@@ -164,9 +175,14 @@
             serializationObject.mirrorPlane = this.mirrorPlane.asArray();
             return serializationObject;
         };
+        MirrorTexture.prototype.dispose = function () {
+            _super.prototype.dispose.call(this);
+            this.scene.imageProcessingConfiguration.onUpdateParameters.remove(this._imageProcessingConfigChangeObserver);
+        };
         return MirrorTexture;
     }(LIB.RenderTargetTexture));
     LIB.MirrorTexture = MirrorTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.mirrorTexture.js.map
 //# sourceMappingURL=LIB.mirrorTexture.js.map

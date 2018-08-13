@@ -1,19 +1,45 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to handle skinning animations
+     * @see http://doc.LIBjs.com/how_to/how_to_use_bones_and_skeletons
+     */
     var Skeleton = /** @class */ (function () {
-        function Skeleton(name, id, scene) {
+        /**
+         * Creates a new skeleton
+         * @param name defines the skeleton name
+         * @param id defines the skeleton Id
+         * @param scene defines the hosting scene
+         */
+        function Skeleton(
+        /** defines the skeleton name */
+        name, 
+        /** defines the skeleton Id */
+        id, scene) {
             this.name = name;
             this.id = id;
+            /**
+             * Gets the list of child bones
+             */
             this.bones = new Array();
+            /**
+             * Gets a boolean indicating if the root matrix is provided by meshes or by the current skeleton (this is the default value)
+             */
             this.needInitialSkinMatrix = false;
             this._isDirty = true;
             this._meshesWithPoseMatrix = new Array();
             this._identity = LIB.Matrix.Identity();
             this._ranges = {};
             this._lastAbsoluteTransformsUpdateId = -1;
+            /**
+             * Specifies if the skeleton should be serialized
+             */
+            this.doNotSerialize = false;
+            this._animationPropertiesOverride = null;
             // Events
             /**
-             * An event triggered before computing the skeleton's matrices
-             * @type {LIB.Observable}
+             * An observable triggered before computing the skeleton's matrices
              */
             this.onBeforeComputeObservable = new LIB.Observable();
             this.bones = [];
@@ -22,7 +48,28 @@
             //make sure it will recalculate the matrix next time prepare is called.
             this._isDirty = true;
         }
+        Object.defineProperty(Skeleton.prototype, "animationPropertiesOverride", {
+            /**
+             * Gets or sets the animation properties override
+             */
+            get: function () {
+                if (!this._animationPropertiesOverride) {
+                    return this._scene.animationPropertiesOverride;
+                }
+                return this._animationPropertiesOverride;
+            },
+            set: function (value) {
+                this._animationPropertiesOverride = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
         // Members
+        /**
+         * Gets the list of transform matrices to send to shaders (one matrix per bone)
+         * @param mesh defines the mesh to use to get the root matrix (if needInitialSkinMatrix === true)
+         * @returns a Float32Array containing matrices data
+         */
         Skeleton.prototype.getTransformMatrices = function (mesh) {
             if (this.needInitialSkinMatrix && mesh._bonesTransformMatrices) {
                 return mesh._bonesTransformMatrices;
@@ -32,12 +79,18 @@
             }
             return this._transformMatrices;
         };
+        /**
+         * Gets the current hosting scene
+         * @returns a scene object
+         */
         Skeleton.prototype.getScene = function () {
             return this._scene;
         };
         // Methods
         /**
-         * @param {boolean} fullDetails - support for multiple levels of logging within scene loading
+         * Gets a string representing the current skeleton data
+         * @param fullDetails defines a boolean indicating if we want a verbose version
+         * @returns a string representing the current skeleton data
          */
         Skeleton.prototype.toString = function (fullDetails) {
             var ret = "Name: " + this.name + ", nBones: " + this.bones.length;
@@ -58,8 +111,8 @@
         };
         /**
         * Get bone's index searching by name
-        * @param {string} name is bone's name to search for
-        * @return {number} Indice of the bone. Returns -1 if not found
+        * @param name defines bone's name to search for
+        * @return the indice of the bone. Returns -1 if not found
         */
         Skeleton.prototype.getBoneIndexByName = function (name) {
             for (var boneIndex = 0, cache = this.bones.length; boneIndex < cache; boneIndex++) {
@@ -69,6 +122,12 @@
             }
             return -1;
         };
+        /**
+         * Creater a new animation range
+         * @param name defines the name of the range
+         * @param from defines the start key
+         * @param to defines the end key
+         */
         Skeleton.prototype.createAnimationRange = function (name, from, to) {
             // check name not already in use
             if (!this._ranges[name]) {
@@ -80,6 +139,11 @@
                 }
             }
         };
+        /**
+         * Delete a specific animation range
+         * @param name defines the name of the range
+         * @param deleteFrames defines if frames must be removed as well
+         */
         Skeleton.prototype.deleteAnimationRange = function (name, deleteFrames) {
             if (deleteFrames === void 0) { deleteFrames = true; }
             for (var i = 0, nBones = this.bones.length; i < nBones; i++) {
@@ -87,13 +151,19 @@
                     this.bones[i].animations[0].deleteRange(name, deleteFrames);
                 }
             }
-            this._ranges[name] = null; // said much faster than 'delete this._range[name]'
+            this._ranges[name] = null; // said much faster than 'delete this._range[name]' 
         };
+        /**
+         * Gets a specific animation range
+         * @param name defines the name of the range to look for
+         * @returns the requested animation range or null if not found
+         */
         Skeleton.prototype.getAnimationRange = function (name) {
             return this._ranges[name];
         };
         /**
-         *  Returns as an Array, all AnimationRanges defined on this skeleton
+         * Gets the list of all animation ranges defined on this skeleton
+         * @returns an array
          */
         Skeleton.prototype.getAnimationRanges = function () {
             var animationRanges = [];
@@ -106,7 +176,12 @@
             return animationRanges;
         };
         /**
-         *  note: This is not for a complete retargeting, only between very similar skeleton's with only possible bone length differences
+         * Copy animation range from a source skeleton.
+         * This is not for a complete retargeting, only between very similar skeleton's with only possible bone length differences
+         * @param source defines the source skeleton
+         * @param name defines the name of the range to copy
+         * @param rescaleAsRequired defines if rescaling must be applied if required
+         * @returns true if operation was successful
          */
         Skeleton.prototype.copyAnimationRange = function (source, name, rescaleAsRequired) {
             if (rescaleAsRequired === void 0) { rescaleAsRequired = false; }
@@ -146,6 +221,9 @@
             }
             return ret;
         };
+        /**
+         * Forces the skeleton to go to rest pose
+         */
         Skeleton.prototype.returnToRest = function () {
             for (var index = 0; index < this.bones.length; index++) {
                 this.bones[index].returnToRest();
@@ -163,6 +241,14 @@
             }
             return ret;
         };
+        /**
+         * Begin a specific animation range
+         * @param name defines the name of the range to start
+         * @param loop defines if looping must be turned on (false by default)
+         * @param speedRatio defines the speed ratio to apply (1 by default)
+         * @param onAnimationEnd defines a callback which will be called when animation will end
+         * @returns a new animatable
+         */
         Skeleton.prototype.beginAnimation = function (name, loop, speedRatio, onAnimationEnd) {
             var range = this.getAnimationRange(name);
             if (!range) {
@@ -170,18 +256,22 @@
             }
             return this._scene.beginAnimation(this, range.from, range.to, loop, speedRatio, onAnimationEnd);
         };
+        /** @hidden */
         Skeleton.prototype._markAsDirty = function () {
             this._isDirty = true;
         };
+        /** @hidden */
         Skeleton.prototype._registerMeshWithPoseMatrix = function (mesh) {
             this._meshesWithPoseMatrix.push(mesh);
         };
+        /** @hidden */
         Skeleton.prototype._unregisterMeshWithPoseMatrix = function (mesh) {
             var index = this._meshesWithPoseMatrix.indexOf(mesh);
             if (index > -1) {
                 this._meshesWithPoseMatrix.splice(index, 1);
             }
         };
+        /** @hidden */
         Skeleton.prototype._computeTransformMatrices = function (targetMatrix, initialSkinMatrix) {
             this.onBeforeComputeObservable.notifyObservers(this);
             for (var index = 0; index < this.bones.length; index++) {
@@ -205,6 +295,9 @@
             }
             this._identity.copyToArray(targetMatrix, this.bones.length * 16);
         };
+        /**
+         * Build all resources required to render a skeleton
+         */
         Skeleton.prototype.prepare = function () {
             if (!this._isDirty) {
                 return;
@@ -240,6 +333,10 @@
             this._isDirty = false;
             this._scene._activeBones.addCount(this.bones.length, false);
         };
+        /**
+         * Gets the list of animatables currently running for this skeleton
+         * @returns an array of animatables
+         */
         Skeleton.prototype.getAnimatables = function () {
             if (!this._animatables || this._animatables.length !== this.bones.length) {
                 this._animatables = [];
@@ -249,6 +346,12 @@
             }
             return this._animatables;
         };
+        /**
+         * Clone the current skeleton
+         * @param name defines the name of the new skeleton
+         * @param id defines the id of the enw skeleton
+         * @returns the new skeleton
+         */
         Skeleton.prototype.clone = function (name, id) {
             var result = new Skeleton(name, id || name, this._scene);
             result.needInitialSkinMatrix = this.needInitialSkinMatrix;
@@ -275,6 +378,11 @@
             this._isDirty = true;
             return result;
         };
+        /**
+         * Enable animation blending for this skeleton
+         * @param blendingSpeed defines the blending speed to apply
+         * @see http://doc.LIBjs.com/LIB101/animations#animation-blending
+         */
         Skeleton.prototype.enableBlending = function (blendingSpeed) {
             if (blendingSpeed === void 0) { blendingSpeed = 0.01; }
             this.bones.forEach(function (bone) {
@@ -284,6 +392,9 @@
                 });
             });
         };
+        /**
+         * Releases all resources associated with the current skeleton
+         */
         Skeleton.prototype.dispose = function () {
             this._meshesWithPoseMatrix = [];
             // Animations
@@ -291,11 +402,17 @@
             // Remove from scene
             this.getScene().removeSkeleton(this);
         };
+        /**
+         * Serialize the skeleton in a JSON object
+         * @returns a JSON object
+         */
         Skeleton.prototype.serialize = function () {
             var serializationObject = {};
             serializationObject.name = this.name;
             serializationObject.id = this.id;
-            serializationObject.dimensionsAtRest = this.dimensionsAtRest;
+            if (this.dimensionsAtRest) {
+                serializationObject.dimensionsAtRest = this.dimensionsAtRest.asArray();
+            }
             serializationObject.bones = [];
             serializationObject.needInitialSkinMatrix = this.needInitialSkinMatrix;
             for (var index = 0; index < this.bones.length; index++) {
@@ -310,6 +427,9 @@
                 serializationObject.bones.push(serializedBone);
                 if (bone.length) {
                     serializedBone.length = bone.length;
+                }
+                if (bone.metadata) {
+                    serializedBone.metadata = bone.metadata;
                 }
                 if (bone.animations && bone.animations.length > 0) {
                     serializedBone.animation = bone.animations[0].serialize();
@@ -329,6 +449,12 @@
             }
             return serializationObject;
         };
+        /**
+         * Creates a new skeleton from serialized data
+         * @param parsedSkeleton defines the serialized data
+         * @param scene defines the hosting scene
+         * @returns a new skeleton
+         */
         Skeleton.Parse = function (parsedSkeleton, scene) {
             var skeleton = new Skeleton(parsedSkeleton.name, parsedSkeleton.id, scene);
             if (parsedSkeleton.dimensionsAtRest) {
@@ -347,6 +473,9 @@
                 if (parsedBone.length) {
                     bone.length = parsedBone.length;
                 }
+                if (parsedBone.metadata) {
+                    bone.metadata = parsedBone.metadata;
+                }
                 if (parsedBone.animation) {
                     bone.animations.push(LIB.Animation.Parse(parsedBone.animation));
                 }
@@ -360,6 +489,10 @@
             }
             return skeleton;
         };
+        /**
+         * Compute all node absolute transforms
+         * @param forceUpdate defines if computation must be done even if cache is up to date
+         */
         Skeleton.prototype.computeAbsoluteTransforms = function (forceUpdate) {
             if (forceUpdate === void 0) { forceUpdate = false; }
             var renderId = this._scene.getRenderId();
@@ -368,6 +501,10 @@
                 this._lastAbsoluteTransformsUpdateId = renderId;
             }
         };
+        /**
+         * Gets the root pose matrix
+         * @returns a matrix
+         */
         Skeleton.prototype.getPoseMatrix = function () {
             var poseMatrix = null;
             if (this._meshesWithPoseMatrix.length > 0) {
@@ -375,6 +512,9 @@
             }
             return poseMatrix;
         };
+        /**
+         * Sorts bones per internal index
+         */
         Skeleton.prototype.sortBones = function () {
             var bones = new Array();
             var visited = new Array(this.bones.length);
@@ -403,4 +543,5 @@
     LIB.Skeleton = Skeleton;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.skeleton.js.map
 //# sourceMappingURL=LIB.skeleton.js.map

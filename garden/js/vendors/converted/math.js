@@ -1,12 +1,32 @@
+
+var LIB;
 (function (LIB) {
     LIB.ToGammaSpace = 1 / 2.2;
     LIB.ToLinearSpace = 2.2;
     LIB.Epsilon = 0.001;
+    /**
+     * Class used to hold a RBG color
+     */
     var Color3 = /** @class */ (function () {
         /**
-         * Creates a new Color3 object from red, green, blue values, all between 0 and 1.
+         * Creates a new Color3 object from red, green, blue values, all between 0 and 1
+         * @param r defines the red component (between 0 and 1, default is 0)
+         * @param g defines the green component (between 0 and 1, default is 0)
+         * @param b defines the blue component (between 0 and 1, default is 0)
          */
-        function Color3(r, g, b) {
+        function Color3(
+        /**
+         * Defines the red component (between 0 and 1, default is 0)
+         */
+        r, 
+        /**
+         * Defines the green component (between 0 and 1, default is 0)
+         */
+        g, 
+        /**
+         * Defines the blue component (between 0 and 1, default is 0)
+         */
+        b) {
             if (r === void 0) { r = 0; }
             if (g === void 0) { g = 0; }
             if (b === void 0) { b = 0; }
@@ -15,19 +35,22 @@
             this.b = b;
         }
         /**
-         * Returns a string with the Color3 current values.
+         * Creates a string with the Color3 current values
+         * @returns the string representation of the Color3 object
          */
         Color3.prototype.toString = function () {
             return "{R: " + this.r + " G:" + this.g + " B:" + this.b + "}";
         };
         /**
-         * Returns the string "Color3".
+         * Returns the string "Color3"
+         * @returns "Color3"
          */
         Color3.prototype.getClassName = function () {
             return "Color3";
         };
         /**
-         * Returns the Color3 hash code.
+         * Compute the Color3 hash code
+         * @returns an unique number that can be used to hash Color3 objects
          */
         Color3.prototype.getHashCode = function () {
             var hash = this.r || 0;
@@ -37,8 +60,10 @@
         };
         // Operators
         /**
-         * Stores in the passed array from the passed starting index the red, green, blue values as successive elements.
-         * Returns the Color3.
+         * Stores in the given array from the given starting index the red, green, blue values as successive elements
+         * @param array defines the array where to store the r,g,b components
+         * @param index defines an optional index in the target array to define where to start storing values
+         * @returns the current Color3 object
          */
         Color3.prototype.toArray = function (array, index) {
             if (index === undefined) {
@@ -50,14 +75,17 @@
             return this;
         };
         /**
-         * Returns a new Color4 object from the current Color3 and the passed alpha.
+         * Returns a new {LIB.Color4} object from the current Color3 and the given alpha
+         * @param alpha defines the alpha component on the new {LIB.Color4} object (default is 1)
+         * @returns a new {LIB.Color4} object
          */
         Color3.prototype.toColor4 = function (alpha) {
             if (alpha === void 0) { alpha = 1; }
             return new Color4(this.r, this.g, this.b, alpha);
         };
         /**
-         * Returns a new array populated with 3 numeric elements : red, green and blue values.
+         * Returns a new array populated with 3 numeric elements : red, green and blue values
+         * @returns the new array
          */
         Color3.prototype.asArray = function () {
             var result = new Array();
@@ -65,21 +93,25 @@
             return result;
         };
         /**
-         * Returns the luminance value (float).
+         * Returns the luminance value
+         * @returns a float value
          */
         Color3.prototype.toLuminance = function () {
             return this.r * 0.3 + this.g * 0.59 + this.b * 0.11;
         };
         /**
-         * Multiply each Color3 rgb values by the passed Color3 rgb values in a new Color3 object.
-         * Returns this new object.
+         * Multiply each Color3 rgb values by the given Color3 rgb values in a new Color3 object
+         * @param otherColor defines the second operand
+         * @returns the new Color3 object
          */
         Color3.prototype.multiply = function (otherColor) {
             return new Color3(this.r * otherColor.r, this.g * otherColor.g, this.b * otherColor.b);
         };
         /**
-         * Multiply the rgb values of the Color3 and the passed Color3 and stores the result in the object "result".
-         * Returns the current Color3.
+         * Multiply the rgb values of the Color3 and the given Color3 and stores the result in the object "result"
+         * @param otherColor defines the second operand
+         * @param result defines the Color3 object where to store the result
+         * @returns the current Color3
          */
         Color3.prototype.multiplyToRef = function (otherColor, result) {
             result.r = this.r * otherColor.r;
@@ -88,27 +120,36 @@
             return this;
         };
         /**
-         * Boolean : True if the rgb values are equal to the passed ones.
+         * Determines equality between Color3 objects
+         * @param otherColor defines the second operand
+         * @returns true if the rgb values are equal to the given ones
          */
         Color3.prototype.equals = function (otherColor) {
             return otherColor && this.r === otherColor.r && this.g === otherColor.g && this.b === otherColor.b;
         };
         /**
-         * Boolean : True if the rgb values are equal to the passed ones.
+         * Determines equality between the current Color3 object and a set of r,b,g values
+         * @param r defines the red component to check
+         * @param g defines the green component to check
+         * @param b defines the blue component to check
+         * @returns true if the rgb values are equal to the given ones
          */
         Color3.prototype.equalsFloats = function (r, g, b) {
             return this.r === r && this.g === g && this.b === b;
         };
         /**
-         * Multiplies in place each rgb value by scale.
-         * Returns the updated Color3.
+         * Multiplies in place each rgb value by scale
+         * @param scale defines the scaling factor
+         * @returns the updated Color3
          */
         Color3.prototype.scale = function (scale) {
             return new Color3(this.r * scale, this.g * scale, this.b * scale);
         };
         /**
-         * Multiplies the rgb values by scale and stores the result into "result".
-         * Returns the unmodified current Color3.
+         * Multiplies the rgb values by scale and stores the result into "result"
+         * @param scale defines the scaling factor
+         * @param result defines the Color3 object where to store the result
+         * @returns the unmodified current Color3
          */
         Color3.prototype.scaleToRef = function (scale, result) {
             result.r = this.r * scale;
@@ -117,14 +158,45 @@
             return this;
         };
         /**
-         * Returns a new Color3 set with the added values of the current Color3 and of the passed one.
+         * Scale the current Color3 values by a factor and add the result to a given Color3
+         * @param scale defines the scale factor
+         * @param result defines color to store the result into
+         * @returns the unmodified current Color3
+         */
+        Color3.prototype.scaleAndAddToRef = function (scale, result) {
+            result.r += this.r * scale;
+            result.g += this.g * scale;
+            result.b += this.b * scale;
+            return this;
+        };
+        /**
+         * Clamps the rgb values by the min and max values and stores the result into "result"
+         * @param min defines minimum clamping value (default is 0)
+         * @param max defines maximum clamping value (default is 1)
+         * @param result defines color to store the result into
+         * @returns the original Color3
+         */
+        Color3.prototype.clampToRef = function (min, max, result) {
+            if (min === void 0) { min = 0; }
+            if (max === void 0) { max = 1; }
+            result.r = LIB.Scalar.Clamp(this.r, min, max);
+            result.g = LIB.Scalar.Clamp(this.g, min, max);
+            result.b = LIB.Scalar.Clamp(this.b, min, max);
+            return this;
+        };
+        /**
+         * Creates a new Color3 set with the added values of the current Color3 and of the given one
+         * @param otherColor defines the second operand
+         * @returns the new Color3
          */
         Color3.prototype.add = function (otherColor) {
             return new Color3(this.r + otherColor.r, this.g + otherColor.g, this.b + otherColor.b);
         };
         /**
-         * Stores the result of the addition of the current Color3 and passed one rgb values into "result".
-         * Returns the unmodified current Color3.
+         * Stores the result of the addition of the current Color3 and given one rgb values into "result"
+         * @param otherColor defines the second operand
+         * @param result defines Color3 object to store the result into
+         * @returns the unmodified current Color3
          */
         Color3.prototype.addToRef = function (otherColor, result) {
             result.r = this.r + otherColor.r;
@@ -133,14 +205,18 @@
             return this;
         };
         /**
-         * Returns a new Color3 set with the subtracted values of the passed one from the current Color3 .
+         * Returns a new Color3 set with the subtracted values of the given one from the current Color3
+         * @param otherColor defines the second operand
+         * @returns the new Color3
          */
         Color3.prototype.subtract = function (otherColor) {
             return new Color3(this.r - otherColor.r, this.g - otherColor.g, this.b - otherColor.b);
         };
         /**
-         * Stores the result of the subtraction of passed one from the current Color3 rgb values into "result".
-         * Returns the unmodified current Color3.
+         * Stores the result of the subtraction of given one from the current Color3 rgb values into "result"
+         * @param otherColor defines the second operand
+         * @param result defines Color3 object to store the result into
+         * @returns the unmodified current Color3
          */
         Color3.prototype.subtractToRef = function (otherColor, result) {
             result.r = this.r - otherColor.r;
@@ -149,14 +225,16 @@
             return this;
         };
         /**
-         * Returns a new Color3 copied the current one.
+         * Copy the current object
+         * @returns a new Color3 copied the current one
          */
         Color3.prototype.clone = function () {
             return new Color3(this.r, this.g, this.b);
         };
         /**
-         * Copies the rgb values from the source in the current Color3.
-         * Returns the updated Color3.
+         * Copies the rgb values from the source in the current Color3
+         * @param source defines the source Color3 object
+         * @returns the updated Color3 object
          */
         Color3.prototype.copyFrom = function (source) {
             this.r = source.r;
@@ -165,8 +243,11 @@
             return this;
         };
         /**
-         * Updates the Color3 rgb values from the passed floats.
-         * Returns the Color3.
+         * Updates the Color3 rgb values from the given floats
+         * @param r defines the red component to read from
+         * @param g defines the green component to read from
+         * @param b defines the blue component to read from
+         * @returns the current Color3 object
          */
         Color3.prototype.copyFromFloats = function (r, g, b) {
             this.r = r;
@@ -175,14 +256,18 @@
             return this;
         };
         /**
-         * Updates the Color3 rgb values from the passed floats.
-         * Returns the Color3.
+         * Updates the Color3 rgb values from the given floats
+         * @param r defines the red component to read from
+         * @param g defines the green component to read from
+         * @param b defines the blue component to read from
+         * @returns the current Color3 object
          */
         Color3.prototype.set = function (r, g, b) {
             return this.copyFromFloats(r, g, b);
         };
         /**
-         * Returns the Color3 hexadecimal code as a string.
+         * Compute the Color3 hexadecimal code as a string
+         * @returns a string containing the hexadecimal representation of the Color3 object
          */
         Color3.prototype.toHexString = function () {
             var intR = (this.r * 255) | 0;
@@ -191,7 +276,8 @@
             return "#" + LIB.Scalar.ToHex(intR) + LIB.Scalar.ToHex(intG) + LIB.Scalar.ToHex(intB);
         };
         /**
-         * Returns a new Color3 converted to linear space.
+         * Computes a new Color3 converted from the current one to linear space
+         * @returns a new Color3 object
          */
         Color3.prototype.toLinearSpace = function () {
             var convertedColor = new Color3();
@@ -199,8 +285,9 @@
             return convertedColor;
         };
         /**
-         * Converts the Color3 values to linear space and stores the result in "convertedColor".
-         * Returns the unmodified Color3.
+         * Converts the Color3 values to linear space and stores the result in "convertedColor"
+         * @param convertedColor defines the Color3 object where to store the linear space version
+         * @returns the unmodified Color3
          */
         Color3.prototype.toLinearSpaceToRef = function (convertedColor) {
             convertedColor.r = Math.pow(this.r, LIB.ToLinearSpace);
@@ -209,7 +296,8 @@
             return this;
         };
         /**
-         * Returns a new Color3 converted to gamma space.
+         * Computes a new Color3 converted from the current one to gamma space
+         * @returns a new Color3 object
          */
         Color3.prototype.toGammaSpace = function () {
             var convertedColor = new Color3();
@@ -217,8 +305,9 @@
             return convertedColor;
         };
         /**
-         * Converts the Color3 values to gamma space and stores the result in "convertedColor".
-         * Returns the unmodified Color3.
+         * Converts the Color3 values to gamma space and stores the result in "convertedColor"
+         * @param convertedColor defines the Color3 object where to store the gamma space version
+         * @returns the unmodified Color3
          */
         Color3.prototype.toGammaSpaceToRef = function (convertedColor) {
             convertedColor.r = Math.pow(this.r, LIB.ToGammaSpace);
@@ -228,11 +317,12 @@
         };
         // Statics
         /**
-         * Creates a new Color3 from the string containing valid hexadecimal values.
+         * Creates a new Color3 from the string containing valid hexadecimal values
+         * @param hex defines a string containing valid hexadecimal values
+         * @returns a new Color3 object
          */
         Color3.FromHexString = function (hex) {
             if (hex.substring(0, 1) !== "#" || hex.length !== 7) {
-                //Tools.Warn("Color3.FromHexString must be called with a string like #FFFFFF");
                 return new Color3(0, 0, 0);
             }
             var r = parseInt(hex.substring(1, 3), 16);
@@ -241,20 +331,31 @@
             return Color3.FromInts(r, g, b);
         };
         /**
-         * Creates a new Vector3 from the startind index of the passed array.
+         * Creates a new Vector3 from the starting index of the given array
+         * @param array defines the source array
+         * @param offset defines an offset in the source array
+         * @returns a new Color3 object
          */
         Color3.FromArray = function (array, offset) {
             if (offset === void 0) { offset = 0; }
             return new Color3(array[offset], array[offset + 1], array[offset + 2]);
         };
         /**
-         * Creates a new Color3 from integer values ( < 256).
+         * Creates a new Color3 from integer values (< 256)
+         * @param r defines the red component to read from (value between 0 and 255)
+         * @param g defines the green component to read from (value between 0 and 255)
+         * @param b defines the blue component to read from (value between 0 and 255)
+         * @returns a new Color3 object
          */
         Color3.FromInts = function (r, g, b) {
             return new Color3(r / 255.0, g / 255.0, b / 255.0);
         };
         /**
-         * Creates a new Color3 with values linearly interpolated of "amount" between the start Color3 and the end Color3.
+         * Creates a new Color3 with values linearly interpolated of "amount" between the start Color3 and the end Color3
+         * @param start defines the start Color3 value
+         * @param end defines the end Color3 value
+         * @param amount defines the gradient value between start and end
+         * @returns a new Color3 object
          */
         Color3.Lerp = function (start, end, amount) {
             var r = start.r + ((end.r - start.r) * amount);
@@ -262,25 +363,92 @@
             var b = start.b + ((end.b - start.b) * amount);
             return new Color3(r, g, b);
         };
+        /**
+         * Returns a Color3 value containing a red color
+         * @returns a new Color3 object
+         */
         Color3.Red = function () { return new Color3(1, 0, 0); };
+        /**
+         * Returns a Color3 value containing a green color
+         * @returns a new Color3 object
+         */
         Color3.Green = function () { return new Color3(0, 1, 0); };
+        /**
+         * Returns a Color3 value containing a blue color
+         * @returns a new Color3 object
+         */
         Color3.Blue = function () { return new Color3(0, 0, 1); };
+        /**
+         * Returns a Color3 value containing a black color
+         * @returns a new Color3 object
+         */
         Color3.Black = function () { return new Color3(0, 0, 0); };
+        /**
+         * Returns a Color3 value containing a white color
+         * @returns a new Color3 object
+         */
         Color3.White = function () { return new Color3(1, 1, 1); };
+        /**
+         * Returns a Color3 value containing a purple color
+         * @returns a new Color3 object
+         */
         Color3.Purple = function () { return new Color3(0.5, 0, 0.5); };
+        /**
+         * Returns a Color3 value containing a magenta color
+         * @returns a new Color3 object
+         */
         Color3.Magenta = function () { return new Color3(1, 0, 1); };
+        /**
+         * Returns a Color3 value containing a yellow color
+         * @returns a new Color3 object
+         */
         Color3.Yellow = function () { return new Color3(1, 1, 0); };
+        /**
+         * Returns a Color3 value containing a gray color
+         * @returns a new Color3 object
+         */
         Color3.Gray = function () { return new Color3(0.5, 0.5, 0.5); };
+        /**
+         * Returns a Color3 value containing a teal color
+         * @returns a new Color3 object
+         */
         Color3.Teal = function () { return new Color3(0, 1.0, 1.0); };
+        /**
+         * Returns a Color3 value containing a random color
+         * @returns a new Color3 object
+         */
         Color3.Random = function () { return new Color3(Math.random(), Math.random(), Math.random()); };
         return Color3;
     }());
     LIB.Color3 = Color3;
+    /**
+     * Class used to hold a RBGA color
+     */
     var Color4 = /** @class */ (function () {
         /**
-         * Creates a new Color4 object from the passed float values ( < 1) : red, green, blue, alpha.
+         * Creates a new Color4 object from red, green, blue values, all between 0 and 1
+         * @param r defines the red component (between 0 and 1, default is 0)
+         * @param g defines the green component (between 0 and 1, default is 0)
+         * @param b defines the blue component (between 0 and 1, default is 0)
+         * @param a defines the alpha component (between 0 and 1, default is 1)
          */
-        function Color4(r, g, b, a) {
+        function Color4(
+        /**
+         * Defines the red component (between 0 and 1, default is 0)
+         */
+        r, 
+        /**
+         * Defines the green component (between 0 and 1, default is 0)
+         */
+        g, 
+        /**
+         * Defines the blue component (between 0 and 1, default is 0)
+         */
+        b, 
+        /**
+         * Defines the alpha component (between 0 and 1, default is 1)
+         */
+        a) {
             if (r === void 0) { r = 0; }
             if (g === void 0) { g = 0; }
             if (b === void 0) { b = 0; }
@@ -292,8 +460,9 @@
         }
         // Operators
         /**
-         * Adds in place the passed Color4 values to the current Color4.
-         * Returns the updated Color4.
+         * Adds in place the given Color4 values to the current Color4 object
+         * @param right defines the second operand
+         * @returns the current updated Color4 object
          */
         Color4.prototype.addInPlace = function (right) {
             this.r += right.r;
@@ -303,7 +472,8 @@
             return this;
         };
         /**
-         * Returns a new array populated with 4 numeric elements : red, green, blue, alpha values.
+         * Creates a new array populated with 4 numeric elements : red, green, blue, alpha values
+         * @returns the new array
          */
         Color4.prototype.asArray = function () {
             var result = new Array();
@@ -311,8 +481,10 @@
             return result;
         };
         /**
-         * Stores from the starting index in the passed array the Color4 successive values.
-         * Returns the Color4.
+         * Stores from the starting index in the given array the Color4 successive values
+         * @param array defines the array where to store the r,g,b components
+         * @param index defines an optional index in the target array to define where to start storing values
+         * @returns the current Color4 object
          */
         Color4.prototype.toArray = function (array, index) {
             if (index === undefined) {
@@ -325,20 +497,26 @@
             return this;
         };
         /**
-         * Returns a new Color4 set with the added values of the current Color4 and of the passed one.
+         * Creates a new Color4 set with the added values of the current Color4 and of the given one
+         * @param right defines the second operand
+         * @returns a new Color4 object
          */
         Color4.prototype.add = function (right) {
             return new Color4(this.r + right.r, this.g + right.g, this.b + right.b, this.a + right.a);
         };
         /**
-         * Returns a new Color4 set with the subtracted values of the passed one from the current Color4.
+         * Creates a new Color4 set with the subtracted values of the given one from the current Color4
+         * @param right defines the second operand
+         * @returns a new Color4 object
          */
         Color4.prototype.subtract = function (right) {
             return new Color4(this.r - right.r, this.g - right.g, this.b - right.b, this.a - right.a);
         };
         /**
-         * Subtracts the passed ones from the current Color4 values and stores the results in "result".
-         * Returns the Color4.
+         * Subtracts the given ones from the current Color4 values and stores the results in "result"
+         * @param right defines the second operand
+         * @param result defines the Color4 object where to store the result
+         * @returns the current Color4 object
          */
         Color4.prototype.subtractToRef = function (right, result) {
             result.r = this.r - right.r;
@@ -348,14 +526,18 @@
             return this;
         };
         /**
-         * Creates a new Color4 with the current Color4 values multiplied by scale.
+         * Creates a new Color4 with the current Color4 values multiplied by scale
+         * @param scale defines the scaling factor to apply
+         * @returns a new Color4 object
          */
         Color4.prototype.scale = function (scale) {
             return new Color4(this.r * scale, this.g * scale, this.b * scale, this.a * scale);
         };
         /**
-         * Multiplies the current Color4 values by scale and stores the result in "result".
-         * Returns the Color4.
+         * Multiplies the current Color4 values by scale and stores the result in "result"
+         * @param scale defines the scaling factor to apply
+         * @param result defines the Color4 object where to store the result
+         * @returns the current unmodified Color4
          */
         Color4.prototype.scaleToRef = function (scale, result) {
             result.r = this.r * scale;
@@ -365,18 +547,47 @@
             return this;
         };
         /**
-          * Multipy an RGBA Color4 value by another and return a new Color4 object
-          * @param color The Color4 (RGBA) value to multiply by
-          * @returns A new Color4.
+         * Scale the current Color4 values by a factor and add the result to a given Color4
+         * @param scale defines the scale factor
+         * @param result defines the Color4 object where to store the result
+         * @returns the unmodified current Color4
+         */
+        Color4.prototype.scaleAndAddToRef = function (scale, result) {
+            result.r += this.r * scale;
+            result.g += this.g * scale;
+            result.b += this.b * scale;
+            result.a += this.a * scale;
+            return this;
+        };
+        /**
+         * Clamps the rgb values by the min and max values and stores the result into "result"
+         * @param min defines minimum clamping value (default is 0)
+         * @param max defines maximum clamping value (default is 1)
+         * @param result defines color to store the result into.
+         * @returns the cuurent Color4
+         */
+        Color4.prototype.clampToRef = function (min, max, result) {
+            if (min === void 0) { min = 0; }
+            if (max === void 0) { max = 1; }
+            result.r = LIB.Scalar.Clamp(this.r, min, max);
+            result.g = LIB.Scalar.Clamp(this.g, min, max);
+            result.b = LIB.Scalar.Clamp(this.b, min, max);
+            result.a = LIB.Scalar.Clamp(this.a, min, max);
+            return this;
+        };
+        /**
+          * Multipy an Color4 value by another and return a new Color4 object
+          * @param color defines the Color4 value to multiply by
+          * @returns a new Color4 object
           */
         Color4.prototype.multiply = function (color) {
             return new Color4(this.r * color.r, this.g * color.g, this.b * color.b, this.a * color.a);
         };
         /**
-         * Multipy an RGBA Color4 value by another and push the result in a reference value
-         * @param color The Color4 (RGBA) value to multiply by
-         * @param result The Color4 (RGBA) to fill the result in
-         * @returns the result Color4.
+         * Multipy a Color4 value by another and push the result in a reference value
+         * @param color defines the Color4 value to multiply by
+         * @param result defines the Color4 to fill the result in
+         * @returns the result Color4
          */
         Color4.prototype.multiplyToRef = function (color, result) {
             result.r = this.r * color.r;
@@ -386,19 +597,22 @@
             return result;
         };
         /**
-         * Returns a string with the Color4 values.
+         * Creates a string with the Color4 current values
+         * @returns the string representation of the Color4 object
          */
         Color4.prototype.toString = function () {
             return "{R: " + this.r + " G:" + this.g + " B:" + this.b + " A:" + this.a + "}";
         };
         /**
          * Returns the string "Color4"
+         * @returns "Color4"
          */
         Color4.prototype.getClassName = function () {
             return "Color4";
         };
         /**
-         * Return the Color4 hash code as a number.
+         * Compute the Color4 hash code
+         * @returns an unique number that can be used to hash Color4 objects
          */
         Color4.prototype.getHashCode = function () {
             var hash = this.r || 0;
@@ -408,14 +622,16 @@
             return hash;
         };
         /**
-         * Creates a new Color4 copied from the current one.
+         * Creates a new Color4 copied from the current one
+         * @returns a new Color4 object
          */
         Color4.prototype.clone = function () {
             return new Color4(this.r, this.g, this.b, this.a);
         };
         /**
-         * Copies the passed Color4 values into the current one.
-         * Returns the updated Color4.
+         * Copies the given Color4 values into the current one
+         * @param source defines the source Color4 object
+         * @returns the current updated Color4 object
          */
         Color4.prototype.copyFrom = function (source) {
             this.r = source.r;
@@ -425,8 +641,12 @@
             return this;
         };
         /**
-         * Copies the passed float values into the current one.
-         * Returns the updated Color4.
+         * Copies the given float values into the current one
+         * @param r defines the red component to read from
+         * @param g defines the green component to read from
+         * @param b defines the blue component to read from
+         * @param a defines the alpha component to read from
+         * @returns the current updated Color4 object
          */
         Color4.prototype.copyFromFloats = function (r, g, b, a) {
             this.r = r;
@@ -436,14 +656,19 @@
             return this;
         };
         /**
-         * Copies the passed float values into the current one.
-         * Returns the updated Color4.
+         * Copies the given float values into the current one
+         * @param r defines the red component to read from
+         * @param g defines the green component to read from
+         * @param b defines the blue component to read from
+         * @param a defines the alpha component to read from
+         * @returns the current updated Color4 object
          */
         Color4.prototype.set = function (r, g, b, a) {
             return this.copyFromFloats(r, g, b, a);
         };
         /**
-         * Returns a string containing the hexadecimal Color4 code.
+         * Compute the Color4 hexadecimal code as a string
+         * @returns a string containing the hexadecimal representation of the Color4 object
          */
         Color4.prototype.toHexString = function () {
             var intR = (this.r * 255) | 0;
@@ -453,7 +678,8 @@
             return "#" + LIB.Scalar.ToHex(intR) + LIB.Scalar.ToHex(intG) + LIB.Scalar.ToHex(intB) + LIB.Scalar.ToHex(intA);
         };
         /**
-         * Returns a new Color4 converted to linear space.
+         * Computes a new Color4 converted from the current one to linear space
+         * @returns a new Color4 object
          */
         Color4.prototype.toLinearSpace = function () {
             var convertedColor = new Color4();
@@ -461,8 +687,9 @@
             return convertedColor;
         };
         /**
-         * Converts the Color4 values to linear space and stores the result in "convertedColor".
-         * Returns the unmodified Color4.
+         * Converts the Color4 values to linear space and stores the result in "convertedColor"
+         * @param convertedColor defines the Color4 object where to store the linear space version
+         * @returns the unmodified Color4
          */
         Color4.prototype.toLinearSpaceToRef = function (convertedColor) {
             convertedColor.r = Math.pow(this.r, LIB.ToLinearSpace);
@@ -472,7 +699,8 @@
             return this;
         };
         /**
-         * Returns a new Color4 converted to gamma space.
+         * Computes a new Color4 converted from the current one to gamma space
+         * @returns a new Color4 object
          */
         Color4.prototype.toGammaSpace = function () {
             var convertedColor = new Color4();
@@ -480,8 +708,9 @@
             return convertedColor;
         };
         /**
-         * Converts the Color4 values to gamma space and stores the result in "convertedColor".
-         * Returns the unmodified Color4.
+         * Converts the Color4 values to gamma space and stores the result in "convertedColor"
+         * @param convertedColor defines the Color4 object where to store the gamma space version
+         * @returns the unmodified Color4
          */
         Color4.prototype.toGammaSpaceToRef = function (convertedColor) {
             convertedColor.r = Math.pow(this.r, LIB.ToGammaSpace);
@@ -492,11 +721,12 @@
         };
         // Statics
         /**
-         * Creates a new Color4 from the valid hexadecimal value contained in the passed string.
+         * Creates a new Color4 from the string containing valid hexadecimal values
+         * @param hex defines a string containing valid hexadecimal values
+         * @returns a new Color4 object
          */
         Color4.FromHexString = function (hex) {
             if (hex.substring(0, 1) !== "#" || hex.length !== 9) {
-                //Tools.Warn("Color4.FromHexString must be called with a string like #FFFFFFFF");
                 return new Color4(0.0, 0.0, 0.0, 0.0);
             }
             var r = parseInt(hex.substring(1, 3), 16);
@@ -506,7 +736,11 @@
             return Color4.FromInts(r, g, b, a);
         };
         /**
-         * Creates a new Color4 object set with the linearly interpolated values of "amount" between the left Color4 and the right Color4.
+         * Creates a new Color4 object set with the linearly interpolated values of "amount" between the left Color4 object and the right Color4 object
+         * @param left defines the start value
+         * @param right defines the end value
+         * @param amount defines the gradient factor
+         * @returns a new Color4 object
          */
         Color4.Lerp = function (left, right, amount) {
             var result = new Color4(0.0, 0.0, 0.0, 0.0);
@@ -514,7 +748,11 @@
             return result;
         };
         /**
-         * Set the passed "result" with the linearly interpolated values of "amount" between the left Color4 and the right Color4.
+         * Set the given "result" with the linearly interpolated values of "amount" between the left Color4 object and the right Color4 object
+         * @param left defines the start value
+         * @param right defines the end value
+         * @param amount defines the gradient factor
+         * @param result defines the Color4 object where to store data
          */
         Color4.LerpToRef = function (left, right, amount, result) {
             result.r = left.r + (right.r - left.r) * amount;
@@ -523,18 +761,33 @@
             result.a = left.a + (right.a - left.a) * amount;
         };
         /**
-         * Creates a new Color4 from the starting index element of the passed array.
+         * Creates a new Color4 from the starting index element of the given array
+         * @param array defines the source array to read from
+         * @param offset defines the offset in the source array
+         * @returns a new Color4 object
          */
         Color4.FromArray = function (array, offset) {
             if (offset === void 0) { offset = 0; }
             return new Color4(array[offset], array[offset + 1], array[offset + 2], array[offset + 3]);
         };
         /**
-         * Creates a new Color4 from the passed integers ( < 256 ).
+         * Creates a new Color3 from integer values (< 256)
+         * @param r defines the red component to read from (value between 0 and 255)
+         * @param g defines the green component to read from (value between 0 and 255)
+         * @param b defines the blue component to read from (value between 0 and 255)
+         * @param a defines the alpha component to read from (value between 0 and 255)
+         * @returns a new Color3 object
          */
         Color4.FromInts = function (r, g, b, a) {
             return new Color4(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
         };
+        /**
+         * Check the content of a given array and convert it to an array containing RGBA data
+         * If the original array was already containing count * 4 values then it is returned directly
+         * @param colors defines the array to check
+         * @param count defines the number of RGBA data to expect
+         * @returns an array containing count * 4 values (RGBA)
+         */
         Color4.CheckColors4 = function (colors, count) {
             // Check if color3 was used
             if (colors.length === count * 3) {
@@ -553,28 +806,40 @@
         return Color4;
     }());
     LIB.Color4 = Color4;
+    /**
+     * Class representing a vector containing 2 coordinates
+     */
     var Vector2 = /** @class */ (function () {
         /**
-         * Creates a new Vector2 from the passed x and y coordinates.
+         * Creates a new Vector2 from the given x and y coordinates
+         * @param x defines the first coordinate
+         * @param y defines the second coordinate
          */
-        function Vector2(x, y) {
+        function Vector2(
+        /** defines the first coordinate */
+        x, 
+        /** defines the second coordinate */
+        y) {
             this.x = x;
             this.y = y;
         }
         /**
-         * Returns a string with the Vector2 coordinates.
+         * Gets a string with the Vector2 coordinates
+         * @returns a string with the Vector2 coordinates
          */
         Vector2.prototype.toString = function () {
             return "{X: " + this.x + " Y:" + this.y + "}";
         };
         /**
-         * Returns the string "Vector2"
+         * Gets class name
+         * @returns the string "Vector2"
          */
         Vector2.prototype.getClassName = function () {
             return "Vector2";
         };
         /**
-         * Returns the Vector2 hash code as a number.
+         * Gets current vector hash code
+         * @returns the Vector2 hash code as a number
          */
         Vector2.prototype.getHashCode = function () {
             var hash = this.x || 0;
@@ -583,8 +848,10 @@
         };
         // Operators
         /**
-         * Sets the Vector2 coordinates in the passed array or Float32Array from the passed index.
-         * Returns the Vector2.
+         * Sets the Vector2 coordinates in the given array or Float32Array from the given index.
+         * @param array defines the source array
+         * @param index defines the offset in source array
+         * @returns the current Vector2
          */
         Vector2.prototype.toArray = function (array, index) {
             if (index === void 0) { index = 0; }
@@ -593,7 +860,8 @@
             return this;
         };
         /**
-         * Returns a new array with 2 elements : the Vector2 coordinates.
+         * Copy the current vector to an array
+         * @returns a new array with 2 elements: the Vector2 coordinates.
          */
         Vector2.prototype.asArray = function () {
             var result = new Array();
@@ -601,8 +869,9 @@
             return result;
         };
         /**
-         *  Sets the Vector2 coordinates with the passed Vector2 coordinates.
-         * Returns the updated Vector2.
+         * Sets the Vector2 coordinates with the given Vector2 coordinates
+         * @param source defines the source Vector2
+         * @returns the current updated Vector2
          */
         Vector2.prototype.copyFrom = function (source) {
             this.x = source.x;
@@ -610,8 +879,10 @@
             return this;
         };
         /**
-         * Sets the Vector2 coordinates with the passed floats.
-         * Returns the updated Vector2.
+         * Sets the Vector2 coordinates with the given floats
+         * @param x defines the first coordinate
+         * @param y defines the second coordinate
+         * @returns the current updated Vector2
          */
         Vector2.prototype.copyFromFloats = function (x, y) {
             this.x = x;
@@ -619,21 +890,27 @@
             return this;
         };
         /**
-         * Sets the Vector2 coordinates with the passed floats.
-         * Returns the updated Vector2.
+         * Sets the Vector2 coordinates with the given floats
+         * @param x defines the first coordinate
+         * @param y defines the second coordinate
+         * @returns the current updated Vector2
          */
         Vector2.prototype.set = function (x, y) {
             return this.copyFromFloats(x, y);
         };
         /**
-         * Returns a new Vector2 set with the addition of the current Vector2 and the passed one coordinates.
+         * Add another vector with the current one
+         * @param otherVector defines the other vector
+         * @returns a new Vector2 set with the addition of the current Vector2 and the given one coordinates
          */
         Vector2.prototype.add = function (otherVector) {
             return new Vector2(this.x + otherVector.x, this.y + otherVector.y);
         };
         /**
-         * Sets the "result" coordinates with the addition of the current Vector2 and the passed one coordinates.
-         * Returns the Vector2.
+         * Sets the "result" coordinates with the addition of the current Vector2 and the given one coordinates
+         * @param otherVector defines the other vector
+         * @param result defines the target vector
+         * @returns the unmodified current Vector2
          */
         Vector2.prototype.addToRef = function (otherVector, result) {
             result.x = this.x + otherVector.x;
@@ -641,8 +918,9 @@
             return this;
         };
         /**
-         * Set the Vector2 coordinates by adding the passed Vector2 coordinates.
-         * Returns the updated Vector2.
+         * Set the Vector2 coordinates by adding the given Vector2 coordinates
+         * @param otherVector defines the other vector
+         * @returns the current updated Vector2
          */
         Vector2.prototype.addInPlace = function (otherVector) {
             this.x += otherVector.x;
@@ -650,20 +928,26 @@
             return this;
         };
         /**
-         * Returns a new Vector2 by adding the current Vector2 coordinates to the passed Vector3 x, y coordinates.
+         * Gets a new Vector2 by adding the current Vector2 coordinates to the given Vector3 x, y coordinates
+         * @param otherVector defines the other vector
+         * @returns a new Vector2
          */
         Vector2.prototype.addVector3 = function (otherVector) {
             return new Vector2(this.x + otherVector.x, this.y + otherVector.y);
         };
         /**
-         * Returns a new Vector2 set with the subtracted coordinates of the passed one from the current Vector2.
+         * Gets a new Vector2 set with the subtracted coordinates of the given one from the current Vector2
+         * @param otherVector defines the other vector
+         * @returns a new Vector2
          */
         Vector2.prototype.subtract = function (otherVector) {
             return new Vector2(this.x - otherVector.x, this.y - otherVector.y);
         };
         /**
-         * Sets the "result" coordinates with the subtraction of the passed one from the current Vector2 coordinates.
-         * Returns the Vector2.
+         * Sets the "result" coordinates with the subtraction of the given one from the current Vector2 coordinates.
+         * @param otherVector defines the other vector
+         * @param result defines the target vector
+         * @returns the unmodified current Vector2
          */
         Vector2.prototype.subtractToRef = function (otherVector, result) {
             result.x = this.x - otherVector.x;
@@ -671,8 +955,9 @@
             return this;
         };
         /**
-         * Sets the current Vector2 coordinates by subtracting from it the passed one coordinates.
-         * Returns the updated Vector2.
+         * Sets the current Vector2 coordinates by subtracting from it the given one coordinates
+         * @param otherVector defines the other vector
+         * @returns the current updated Vector2
          */
         Vector2.prototype.subtractInPlace = function (otherVector) {
             this.x -= otherVector.x;
@@ -680,8 +965,9 @@
             return this;
         };
         /**
-         * Multiplies in place the current Vector2 coordinates by the passed ones.
-         * Returns the updated Vector2.
+         * Multiplies in place the current Vector2 coordinates by the given ones
+         * @param otherVector defines the other vector
+         * @returns the current updated Vector2
          */
         Vector2.prototype.multiplyInPlace = function (otherVector) {
             this.x *= otherVector.x;
@@ -689,14 +975,18 @@
             return this;
         };
         /**
-         * Returns a new Vector2 set with the multiplication of the current Vector2 and the passed one coordinates.
+         * Returns a new Vector2 set with the multiplication of the current Vector2 and the given one coordinates
+         * @param otherVector defines the other vector
+         * @returns a new Vector2
          */
         Vector2.prototype.multiply = function (otherVector) {
             return new Vector2(this.x * otherVector.x, this.y * otherVector.y);
         };
         /**
-         * Sets "result" coordinates with the multiplication of the current Vector2 and the passed one coordinates.
-         * Returns the Vector2.
+         * Sets "result" coordinates with the multiplication of the current Vector2 and the given one coordinates
+         * @param otherVector defines the other vector
+         * @param result defines the target vector
+         * @returns the unmodified current Vector2
          */
         Vector2.prototype.multiplyToRef = function (otherVector, result) {
             result.x = this.x * otherVector.x;
@@ -704,20 +994,27 @@
             return this;
         };
         /**
-         * Returns a new Vector2 set with the Vector2 coordinates multiplied by the passed floats.
+         * Gets a new Vector2 set with the Vector2 coordinates multiplied by the given floats
+         * @param x defines the first coordinate
+         * @param y defines the second coordinate
+         * @returns a new Vector2
          */
         Vector2.prototype.multiplyByFloats = function (x, y) {
             return new Vector2(this.x * x, this.y * y);
         };
         /**
-         * Returns a new Vector2 set with the Vector2 coordinates divided by the passed one coordinates.
+         * Returns a new Vector2 set with the Vector2 coordinates divided by the given one coordinates
+         * @param otherVector defines the other vector
+         * @returns a new Vector2
          */
         Vector2.prototype.divide = function (otherVector) {
             return new Vector2(this.x / otherVector.x, this.y / otherVector.y);
         };
         /**
-         * Sets the "result" coordinates with the Vector2 divided by the passed one coordinates.
-         * Returns the Vector2.
+         * Sets the "result" coordinates with the Vector2 divided by the given one coordinates
+         * @param otherVector defines the other vector
+         * @param result defines the target vector
+         * @returns the unmodified current Vector2
          */
         Vector2.prototype.divideToRef = function (otherVector, result) {
             result.x = this.x / otherVector.x;
@@ -725,14 +1022,24 @@
             return this;
         };
         /**
-         * Returns a new Vector2 with current Vector2 negated coordinates.
+         * Divides the current Vector3 coordinates by the given ones
+         * @param otherVector defines the other vector
+         * @returns the current updated Vector2
+         */
+        Vector2.prototype.divideInPlace = function (otherVector) {
+            return this.divideToRef(otherVector, this);
+        };
+        /**
+         * Gets a new Vector2 with current Vector2 negated coordinates
+         * @returns a new Vector2
          */
         Vector2.prototype.negate = function () {
             return new Vector2(-this.x, -this.y);
         };
         /**
-         * Multiply the Vector2 coordinates by scale.
-         * Returns the updated Vector2.
+         * Multiply the Vector2 coordinates by scale
+         * @param scale defines the scaling factor
+         * @returns the current updated Vector2
          */
         Vector2.prototype.scaleInPlace = function (scale) {
             this.x *= scale;
@@ -740,19 +1047,50 @@
             return this;
         };
         /**
-         * Returns a new Vector2 scaled by "scale" from the current Vector2.
+         * Returns a new Vector2 scaled by "scale" from the current Vector2
+         * @param scale defines the scaling factor
+         * @returns a new Vector2
          */
         Vector2.prototype.scale = function (scale) {
-            return new Vector2(this.x * scale, this.y * scale);
+            var result = new Vector2(0, 0);
+            this.scaleToRef(scale, result);
+            return result;
         };
         /**
-         * Boolean : True if the passed vector coordinates strictly equal the current Vector2 ones.
+         * Scale the current Vector2 values by a factor to a given Vector2
+         * @param scale defines the scale factor
+         * @param result defines the Vector2 object where to store the result
+         * @returns the unmodified current Vector2
+         */
+        Vector2.prototype.scaleToRef = function (scale, result) {
+            result.x = this.x * scale;
+            result.y = this.y * scale;
+            return this;
+        };
+        /**
+         * Scale the current Vector2 values by a factor and add the result to a given Vector2
+         * @param scale defines the scale factor
+         * @param result defines the Vector2 object where to store the result
+         * @returns the unmodified current Vector2
+         */
+        Vector2.prototype.scaleAndAddToRef = function (scale, result) {
+            result.x += this.x * scale;
+            result.y += this.y * scale;
+            return this;
+        };
+        /**
+         * Gets a boolean if two vectors are equals
+         * @param otherVector defines the other vector
+         * @returns true if the given vector coordinates strictly equal the current Vector2 ones
          */
         Vector2.prototype.equals = function (otherVector) {
             return otherVector && this.x === otherVector.x && this.y === otherVector.y;
         };
         /**
-         * Boolean : True if the passed vector coordinates are close to the current ones by a distance of epsilon.
+         * Gets a boolean if two vectors are equals (using an epsilon value)
+         * @param otherVector defines the other vector
+         * @param epsilon defines the minimal distance to consider equality
+         * @returns true if the given vector coordinates are close to the current ones by a distance of epsilon.
          */
         Vector2.prototype.equalsWithEpsilon = function (otherVector, epsilon) {
             if (epsilon === void 0) { epsilon = LIB.Epsilon; }
@@ -760,21 +1098,23 @@
         };
         // Properties
         /**
-         * Returns the vector length (float).
+         * Gets the length of the vector
+         * @returns the vector length (float)
          */
         Vector2.prototype.length = function () {
             return Math.sqrt(this.x * this.x + this.y * this.y);
         };
         /**
-         * Returns the vector squared length (float);
+         * Gets the vector squared length
+         * @returns the vector squared length (float)
          */
         Vector2.prototype.lengthSquared = function () {
             return (this.x * this.x + this.y * this.y);
         };
         // Methods
         /**
-         * Normalize the vector.
-         * Returns the updated Vector2.
+         * Normalize the vector
+         * @returns the current updated Vector2
          */
         Vector2.prototype.normalize = function () {
             var len = this.length();
@@ -786,40 +1126,55 @@
             return this;
         };
         /**
-         * Returns a new Vector2 copied from the Vector2.
+         * Gets a new Vector2 copied from the Vector2
+         * @returns a new Vector2
          */
         Vector2.prototype.clone = function () {
             return new Vector2(this.x, this.y);
         };
         // Statics
         /**
-         * Returns a new Vector2(0, 0)
+         * Gets a new Vector2(0, 0)
+         * @returns a new Vector2
          */
         Vector2.Zero = function () {
             return new Vector2(0, 0);
         };
         /**
-         * Returns a new Vector2(1, 1)
+         * Gets a new Vector2(1, 1)
+         * @returns a new Vector2
          */
         Vector2.One = function () {
             return new Vector2(1, 1);
         };
         /**
-         * Returns a new Vector2 set from the passed index element of the passed array.
+         * Gets a new Vector2 set from the given index element of the given array
+         * @param array defines the data source
+         * @param offset defines the offset in the data source
+         * @returns a new Vector2
          */
         Vector2.FromArray = function (array, offset) {
             if (offset === void 0) { offset = 0; }
             return new Vector2(array[offset], array[offset + 1]);
         };
         /**
-         * Sets "result" from the passed index element of the passed array.
+         * Sets "result" from the given index element of the given array
+         * @param array defines the data source
+         * @param offset defines the offset in the data source
+         * @param result defines the target vector
          */
         Vector2.FromArrayToRef = function (array, offset, result) {
             result.x = array[offset];
             result.y = array[offset + 1];
         };
         /**
-         * Retuns a new Vector2 located for "amount" (float) on the CatmullRom  spline defined by the passed four Vector2.
+         * Gets a new Vector2 located for "amount" (float) on the CatmullRom spline defined by the given four Vector2
+         * @param value1 defines 1st point of control
+         * @param value2 defines 2nd point of control
+         * @param value3 defines 3rd point of control
+         * @param value4 defines 4th point of control
+         * @param amount defines the interpolation factor
+         * @returns a new Vector2
          */
         Vector2.CatmullRom = function (value1, value2, value3, value4, amount) {
             var squared = amount * amount;
@@ -835,7 +1190,11 @@
         /**
          * Returns a new Vector2 set with same the coordinates than "value" ones if the vector "value" is in the square defined by "min" and "max".
          * If a coordinate of "value" is lower than "min" coordinates, the returned Vector2 is given this "min" coordinate.
-         * If a coordinate of "value" is greater than "max" coordinates, the returned Vector2 is given this "max" coordinate.
+         * If a coordinate of "value" is greater than "max" coordinates, the returned Vector2 is given this "max" coordinate
+         * @param value defines the value to clamp
+         * @param min defines the lower limit
+         * @param max defines the upper limit
+         * @returns a new Vector2
          */
         Vector2.Clamp = function (value, min, max) {
             var x = value.x;
@@ -847,7 +1206,13 @@
             return new Vector2(x, y);
         };
         /**
-         * Returns a new Vector2 located for "amount" (float) on the Hermite spline defined by the vectors "value1", "value3", "tangent1", "tangent2".
+         * Returns a new Vector2 located for "amount" (float) on the Hermite spline defined by the vectors "value1", "value3", "tangent1", "tangent2"
+         * @param value1 defines the 1st control point
+         * @param tangent1 defines the outgoing tangent
+         * @param value2 defines the 2nd control point
+         * @param tangent2 defines the incoming tangent
+         * @param amount defines the interpolation factor
+         * @returns a new Vector2
          */
         Vector2.Hermite = function (value1, tangent1, value2, tangent2, amount) {
             var squared = amount * amount;
@@ -862,6 +1227,10 @@
         };
         /**
          * Returns a new Vector2 located for "amount" (float) on the linear interpolation between the vector "start" adn the vector "end".
+         * @param start defines the start vector
+         * @param end defines the end vector
+         * @param amount defines the interpolation factor
+         * @returns a new Vector2
          */
         Vector2.Lerp = function (start, end, amount) {
             var x = start.x + ((end.x - start.x) * amount);
@@ -869,13 +1238,18 @@
             return new Vector2(x, y);
         };
         /**
-         * Returns the dot product (float) of the vector "left" and the vector "right".
+         * Gets the dot product of the vector "left" and the vector "right"
+         * @param left defines first vector
+         * @param right defines second vector
+         * @returns the dot product (float)
          */
         Vector2.Dot = function (left, right) {
             return left.x * right.x + left.y * right.y;
         };
         /**
-         * Returns a new Vector2 equal to the normalized passed vector.
+         * Returns a new Vector2 equal to the normalized given vector
+         * @param vector defines the vector to normalize
+         * @returns a new Vector2
          */
         Vector2.Normalize = function (vector) {
             var newVector = vector.clone();
@@ -883,7 +1257,10 @@
             return newVector;
         };
         /**
-         * Returns a new Vecto2 set with the minimal coordinate values from the "left" and "right" vectors.
+         * Gets a new Vector2 set with the minimal coordinate values from the "left" and "right" vectors
+         * @param left defines 1st vector
+         * @param right defines 2nd vector
+         * @returns a new Vector2
          */
         Vector2.Minimize = function (left, right) {
             var x = (left.x < right.x) ? left.x : right.x;
@@ -891,7 +1268,10 @@
             return new Vector2(x, y);
         };
         /**
-         * Returns a new Vecto2 set with the maximal coordinate values from the "left" and "right" vectors.
+         * Gets a new Vecto2 set with the maximal coordinate values from the "left" and "right" vectors
+         * @param left defines 1st vector
+         * @param right defines 2nd vector
+         * @returns a new Vector2
          */
         Vector2.Maximize = function (left, right) {
             var x = (left.x > right.x) ? left.x : right.x;
@@ -899,7 +1279,10 @@
             return new Vector2(x, y);
         };
         /**
-         * Returns a new Vecto2 set with the transformed coordinates of the passed vector by the passed transformation matrix.
+         * Gets a new Vector2 set with the transformed coordinates of the given vector by the given transformation matrix
+         * @param vector defines the vector to transform
+         * @param transformation defines the matrix to apply
+         * @returns a new Vector2
          */
         Vector2.Transform = function (vector, transformation) {
             var r = Vector2.Zero();
@@ -907,7 +1290,10 @@
             return r;
         };
         /**
-         * Transforms the passed vector coordinates by the passed transformation matrix and stores the result in the vector "result" coordinates.
+         * Transforms the given vector coordinates by the given transformation matrix and stores the result in the vector "result" coordinates
+         * @param vector defines the vector to transform
+         * @param transformation defines the matrix to apply
+         * @param result defines the target vector
          */
         Vector2.TransformToRef = function (vector, transformation, result) {
             var x = (vector.x * transformation.m[0]) + (vector.y * transformation.m[4]) + transformation.m[12];
@@ -916,7 +1302,12 @@
             result.y = y;
         };
         /**
-         * Boolean : True if the point "p" is in the triangle defined by the vertors "p0", "p1", "p2"
+         * Determines if a given vector is included in a triangle
+         * @param p defines the vector to test
+         * @param p0 defines 1st triangle point
+         * @param p1 defines 2nd triangle point
+         * @param p2 defines 3rd triangle point
+         * @returns true if the point "p" is in the triangle defined by the vertors "p0", "p1", "p2"
          */
         Vector2.PointInTriangle = function (p, p0, p1, p2) {
             var a = 1 / 2 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
@@ -926,13 +1317,19 @@
             return s > 0 && t > 0 && (s + t) < 2 * a * sign;
         };
         /**
-         * Returns the distance (float) between the vectors "value1" and "value2".
+         * Gets the distance between the vectors "value1" and "value2"
+         * @param value1 defines first vector
+         * @param value2 defines second vector
+         * @returns the distance between vectors
          */
         Vector2.Distance = function (value1, value2) {
             return Math.sqrt(Vector2.DistanceSquared(value1, value2));
         };
         /**
-         * Returns the squared distance (float) between the vectors "value1" and "value2".
+         * Returns the squared distance between the vectors "value1" and "value2"
+         * @param value1 defines first vector
+         * @param value2 defines second vector
+         * @returns the squared distance between vectors
          */
         Vector2.DistanceSquared = function (value1, value2) {
             var x = value1.x - value2.x;
@@ -940,7 +1337,10 @@
             return (x * x) + (y * y);
         };
         /**
-         * Returns a new Vecto2 located at the center of the vectors "value1" and "value2".
+         * Gets a new Vector2 located at the center of the vectors "value1" and "value2"
+         * @param value1 defines first vector
+         * @param value2 defines second vector
+         * @returns a new Vector2
          */
         Vector2.Center = function (value1, value2) {
             var center = value1.add(value2);
@@ -948,7 +1348,11 @@
             return center;
         };
         /**
-         * Returns the shortest distance (float) between the point "p" and the segment defined by the two points "segA" and "segB".
+         * Gets the shortest distance (float) between the point "p" and the segment defined by the two points "segA" and "segB".
+         * @param p defines the middle point
+         * @param segA defines one point of the segment
+         * @param segB defines the other point of the segment
+         * @returns the shortest distance
          */
         Vector2.DistanceOfPointFromSegment = function (p, segA, segB) {
             var l2 = Vector2.DistanceSquared(segA, segB);
@@ -963,31 +1367,53 @@
         return Vector2;
     }());
     LIB.Vector2 = Vector2;
+    /**
+     * Classed used to store (x,y,z) vector representation
+     * A Vector3 is the main object used in 3D geometry
+     * It can represent etiher the coordinates of a point the space, either a direction
+     * Reminder: LIB.js uses a left handed forward facing system
+     */
     var Vector3 = /** @class */ (function () {
         /**
-         * Creates a new Vector3 object from the passed x, y, z (floats) coordinates.
-         * A Vector3 is the main object used in 3D geometry.
-         * It can represent etiher the coordinates of a point the space, either a direction.
+         * Creates a new Vector3 object from the given x, y, z (floats) coordinates.
+         * @param x defines the first coordinates (on X axis)
+         * @param y defines the second coordinates (on Y axis)
+         * @param z defines the third coordinates (on Z axis)
          */
-        function Vector3(x, y, z) {
+        function Vector3(
+        /**
+         * Defines the first coordinates (on X axis)
+         */
+        x, 
+        /**
+         * Defines the second coordinates (on Y axis)
+         */
+        y, 
+        /**
+         * Defines the third coordinates (on Z axis)
+         */
+        z) {
             this.x = x;
             this.y = y;
             this.z = z;
         }
         /**
-         * Returns a string with the Vector3 coordinates.
+         * Creates a string representation of the Vector3
+         * @returns a string with the Vector3 coordinates.
          */
         Vector3.prototype.toString = function () {
             return "{X: " + this.x + " Y:" + this.y + " Z:" + this.z + "}";
         };
         /**
-         * Returns the string "Vector3"
+         * Gets the class name
+         * @returns the string "Vector3"
          */
         Vector3.prototype.getClassName = function () {
             return "Vector3";
         };
         /**
-         * Returns the Vector hash code.
+         * Creates the Vector3 hash code
+         * @returns a number which tends to be unique between Vector3 instances
          */
         Vector3.prototype.getHashCode = function () {
             var hash = this.x || 0;
@@ -997,7 +1423,8 @@
         };
         // Operators
         /**
-         * Returns a new array with three elements : the coordinates the Vector3.
+         * Creates an array containing three elements : the coordinates of the Vector3
+         * @returns a new array of numbers
          */
         Vector3.prototype.asArray = function () {
             var result = [];
@@ -1005,8 +1432,10 @@
             return result;
         };
         /**
-         * Populates the passed array or Float32Array from the passed index with the successive coordinates of the Vector3.
-         * Returns the Vector3.
+         * Populates the given array or Float32Array from the given index with the successive coordinates of the Vector3
+         * @param array defines the destination array
+         * @param index defines the offset in the destination array
+         * @returns the current Vector3
          */
         Vector3.prototype.toArray = function (array, index) {
             if (index === void 0) { index = 0; }
@@ -1016,25 +1445,16 @@
             return this;
         };
         /**
-         * Returns a new Quaternion object, computed from the Vector3 coordinates.
+         * Converts the current Vector3 into a quaternion (considering that the Vector3 contains Euler angles representation of a rotation)
+         * @returns a new Quaternion object, computed from the Vector3 coordinates
          */
         Vector3.prototype.toQuaternion = function () {
-            var result = new Quaternion(0.0, 0.0, 0.0, 1.0);
-            var cosxPlusz = Math.cos((this.x + this.z) * 0.5);
-            var sinxPlusz = Math.sin((this.x + this.z) * 0.5);
-            var coszMinusx = Math.cos((this.z - this.x) * 0.5);
-            var sinzMinusx = Math.sin((this.z - this.x) * 0.5);
-            var cosy = Math.cos(this.y * 0.5);
-            var siny = Math.sin(this.y * 0.5);
-            result.x = coszMinusx * siny;
-            result.y = -sinzMinusx * siny;
-            result.z = sinxPlusz * cosy;
-            result.w = cosxPlusz * cosy;
-            return result;
+            return LIB.Quaternion.RotationYawPitchRoll(this.x, this.y, this.z);
         };
         /**
-         * Adds the passed vector to the current Vector3.
-         * Returns the updated Vector3.
+         * Adds the given vector to the current Vector3
+         * @param otherVector defines the second operand
+         * @returns the current updated Vector3
          */
         Vector3.prototype.addInPlace = function (otherVector) {
             this.x += otherVector.x;
@@ -1043,14 +1463,18 @@
             return this;
         };
         /**
-         * Returns a new Vector3, result of the addition the current Vector3 and the passed vector.
+         * Gets a new Vector3, result of the addition the current Vector3 and the given vector
+         * @param otherVector defines the second operand
+         * @returns the resulting Vector3
          */
         Vector3.prototype.add = function (otherVector) {
             return new Vector3(this.x + otherVector.x, this.y + otherVector.y, this.z + otherVector.z);
         };
         /**
-         * Adds the current Vector3 to the passed one and stores the result in the vector "result".
-         * Returns the current Vector3.
+         * Adds the current Vector3 to the given one and stores the result in the vector "result"
+         * @param otherVector defines the second operand
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.addToRef = function (otherVector, result) {
             result.x = this.x + otherVector.x;
@@ -1059,8 +1483,9 @@
             return this;
         };
         /**
-         * Subtract the passed vector from the current Vector3.
-         * Returns the updated Vector3.
+         * Subtract the given vector from the current Vector3
+         * @param otherVector defines the second operand
+         * @returns the current updated Vector3
          */
         Vector3.prototype.subtractInPlace = function (otherVector) {
             this.x -= otherVector.x;
@@ -1069,14 +1494,18 @@
             return this;
         };
         /**
-         * Returns a new Vector3, result of the subtraction of the passed vector from the current Vector3.
+         * Returns a new Vector3, result of the subtraction of the given vector from the current Vector3
+         * @param otherVector defines the second operand
+         * @returns the resulting Vector3
          */
         Vector3.prototype.subtract = function (otherVector) {
             return new Vector3(this.x - otherVector.x, this.y - otherVector.y, this.z - otherVector.z);
         };
         /**
-         * Subtracts the passed vector from the current Vector3 and stores the result in the vector "result".
-         * Returns the current Vector3.
+         * Subtracts the given vector from the current Vector3 and stores the result in the vector "result".
+         * @param otherVector defines the second operand
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.subtractToRef = function (otherVector, result) {
             result.x = this.x - otherVector.x;
@@ -1085,14 +1514,22 @@
             return this;
         };
         /**
-         * Returns a new Vector3 set with the subtraction of the passed floats from the current Vector3 coordinates.
+         * Returns a new Vector3 set with the subtraction of the given floats from the current Vector3 coordinates
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @returns the resulting Vector3
          */
         Vector3.prototype.subtractFromFloats = function (x, y, z) {
             return new Vector3(this.x - x, this.y - y, this.z - z);
         };
         /**
-         * Subtracts the passed floats from the current Vector3 coordinates and set the passed vector "result" with this result.
-         * Returns the current Vector3.
+         * Subtracts the given floats from the current Vector3 coordinates and set the given vector "result" with this result
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.subtractFromFloatsToRef = function (x, y, z, result) {
             result.x = this.x - x;
@@ -1101,14 +1538,16 @@
             return this;
         };
         /**
-         * Returns a new Vector3 set with the current Vector3 negated coordinates.
+         * Gets a new Vector3 set with the current Vector3 negated coordinates
+         * @returns a new Vector3
          */
         Vector3.prototype.negate = function () {
             return new Vector3(-this.x, -this.y, -this.z);
         };
         /**
-         * Multiplies the Vector3 coordinates by the float "scale".
-         * Returns the updated Vector3.
+         * Multiplies the Vector3 coordinates by the float "scale"
+         * @param scale defines the multiplier factor
+         * @returns the current updated Vector3
          */
         Vector3.prototype.scaleInPlace = function (scale) {
             this.x *= scale;
@@ -1117,14 +1556,18 @@
             return this;
         };
         /**
-         * Returns a new Vector3 set with the current Vector3 coordinates multiplied by the float "scale".
+         * Returns a new Vector3 set with the current Vector3 coordinates multiplied by the float "scale"
+         * @param scale defines the multiplier factor
+         * @returns a new Vector3
          */
         Vector3.prototype.scale = function (scale) {
             return new Vector3(this.x * scale, this.y * scale, this.z * scale);
         };
         /**
-         * Multiplies the current Vector3 coordinates by the float "scale" and stores the result in the passed vector "result" coordinates.
-         * Returns the current Vector3.
+         * Multiplies the current Vector3 coordinates by the float "scale" and stores the result in the given vector "result" coordinates
+         * @param scale defines the multiplier factor
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.scaleToRef = function (scale, result) {
             result.x = this.x * scale;
@@ -1133,27 +1576,49 @@
             return this;
         };
         /**
-         * Boolean : True if the current Vector3 and the passed vector coordinates are strictly equal.
+         * Scale the current Vector3 values by a factor and add the result to a given Vector3
+         * @param scale defines the scale factor
+         * @param result defines the Vector3 object where to store the result
+         * @returns the unmodified current Vector3
+         */
+        Vector3.prototype.scaleAndAddToRef = function (scale, result) {
+            result.x += this.x * scale;
+            result.y += this.y * scale;
+            result.z += this.z * scale;
+            return this;
+        };
+        /**
+         * Returns true if the current Vector3 and the given vector coordinates are strictly equal
+         * @param otherVector defines the second operand
+         * @returns true if both vectors are equals
          */
         Vector3.prototype.equals = function (otherVector) {
             return otherVector && this.x === otherVector.x && this.y === otherVector.y && this.z === otherVector.z;
         };
         /**
-         * Boolean : True if the current Vector3 and the passed vector coordinates are distant less than epsilon.
+         * Returns true if the current Vector3 and the given vector coordinates are distant less than epsilon
+         * @param otherVector defines the second operand
+         * @param epsilon defines the minimal distance to define values as equals
+         * @returns true if both vectors are distant less than epsilon
          */
         Vector3.prototype.equalsWithEpsilon = function (otherVector, epsilon) {
             if (epsilon === void 0) { epsilon = LIB.Epsilon; }
             return otherVector && LIB.Scalar.WithinEpsilon(this.x, otherVector.x, epsilon) && LIB.Scalar.WithinEpsilon(this.y, otherVector.y, epsilon) && LIB.Scalar.WithinEpsilon(this.z, otherVector.z, epsilon);
         };
         /**
-         * Boolean : True if the current Vector3 coordinate equal the passed floats.
+         * Returns true if the current Vector3 coordinates equals the given floats
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @returns true if both vectors are equals
          */
         Vector3.prototype.equalsToFloats = function (x, y, z) {
             return this.x === x && this.y === y && this.z === z;
         };
         /**
-         * Muliplies the current Vector3 coordinates by the passed ones.
-         * Returns the updated Vector3.
+         * Multiplies the current Vector3 coordinates by the given ones
+         * @param otherVector defines the second operand
+         * @returns the current updated Vector3
          */
         Vector3.prototype.multiplyInPlace = function (otherVector) {
             this.x *= otherVector.x;
@@ -1162,14 +1627,18 @@
             return this;
         };
         /**
-         * Returns a new Vector3, result of the multiplication of the current Vector3 by the passed vector.
+         * Returns a new Vector3, result of the multiplication of the current Vector3 by the given vector
+         * @param otherVector defines the second operand
+         * @returns the new Vector3
          */
         Vector3.prototype.multiply = function (otherVector) {
             return new Vector3(this.x * otherVector.x, this.y * otherVector.y, this.z * otherVector.z);
         };
         /**
-         * Multiplies the current Vector3 by the passed one and stores the result in the passed vector "result".
-         * Returns the current Vector3.
+         * Multiplies the current Vector3 by the given one and stores the result in the given vector "result"
+         * @param otherVector defines the second operand
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.multiplyToRef = function (otherVector, result) {
             result.x = this.x * otherVector.x;
@@ -1178,20 +1647,28 @@
             return this;
         };
         /**
-         * Returns a new Vector3 set witth the result of the mulliplication of the current Vector3 coordinates by the passed floats.
+         * Returns a new Vector3 set with the result of the mulliplication of the current Vector3 coordinates by the given floats
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @returns the new Vector3
          */
         Vector3.prototype.multiplyByFloats = function (x, y, z) {
             return new Vector3(this.x * x, this.y * y, this.z * z);
         };
         /**
-         * Returns a new Vector3 set witth the result of the division of the current Vector3 coordinates by the passed ones.
+         * Returns a new Vector3 set with the result of the division of the current Vector3 coordinates by the given ones
+         * @param otherVector defines the second operand
+         * @returns the new Vector3
          */
         Vector3.prototype.divide = function (otherVector) {
             return new Vector3(this.x / otherVector.x, this.y / otherVector.y, this.z / otherVector.z);
         };
         /**
-         * Divides the current Vector3 coordinates by the passed ones and stores the result in the passed vector "result".
-         * Returns the current Vector3.
+         * Divides the current Vector3 coordinates by the given ones and stores the result in the given vector "result"
+         * @param otherVector defines the second operand
+         * @param result defines the Vector3 object where to store the result
+         * @returns the current Vector3
          */
         Vector3.prototype.divideToRef = function (otherVector, result) {
             result.x = this.x / otherVector.x;
@@ -1200,10 +1677,19 @@
             return this;
         };
         /**
-         * Updates the current Vector3 with the minimal coordinate values between its and the passed vector ones.
-         * Returns the updated Vector3.
+         * Divides the current Vector3 coordinates by the given ones.
+         * @param otherVector defines the second operand
+         * @returns the current updated Vector3
          */
-        Vector3.prototype.MinimizeInPlace = function (other) {
+        Vector3.prototype.divideInPlace = function (otherVector) {
+            return this.divideToRef(otherVector, this);
+        };
+        /**
+         * Updates the current Vector3 with the minimal coordinate values between its and the given vector ones
+         * @param other defines the second operand
+         * @returns the current updated Vector3
+         */
+        Vector3.prototype.minimizeInPlace = function (other) {
             if (other.x < this.x)
                 this.x = other.x;
             if (other.y < this.y)
@@ -1213,10 +1699,11 @@
             return this;
         };
         /**
-         * Updates the current Vector3 with the maximal coordinate values between its and the passed vector ones.
-         * Returns the updated Vector3.
+         * Updates the current Vector3 with the maximal coordinate values between its and the given vector ones.
+         * @param other defines the second operand
+         * @returns the current updated Vector3
          */
-        Vector3.prototype.MaximizeInPlace = function (other) {
+        Vector3.prototype.maximizeInPlace = function (other) {
             if (other.x > this.x)
                 this.x = other.x;
             if (other.y > this.y)
@@ -1227,7 +1714,7 @@
         };
         Object.defineProperty(Vector3.prototype, "isNonUniform", {
             /**
-             * Return true is the vector is non uniform meaning x, y or z are not all the same.
+             * Gets a boolean indicating that the vector is non uniform meaning x, y or z are not all the same
              */
             get: function () {
                 var absX = Math.abs(this.x);
@@ -1249,21 +1736,23 @@
         });
         // Properties
         /**
-         * Returns the length of the Vector3 (float).
+         * Gets the length of the Vector3
+         * @returns the length of the Vecto3
          */
         Vector3.prototype.length = function () {
             return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
         };
         /**
-         * Returns the squared length of the Vector3 (float).
+         * Gets the squared length of the Vector3
+         * @returns squared length of the Vector3
          */
         Vector3.prototype.lengthSquared = function () {
             return (this.x * this.x + this.y * this.y + this.z * this.z);
         };
         /**
          * Normalize the current Vector3.
-         * Returns the updated Vector3.
-         * /!\ In place operation.
+         * Please note that this is an in place operation.
+         * @returns the current updated Vector3
          */
         Vector3.prototype.normalize = function () {
             var len = this.length();
@@ -1276,8 +1765,8 @@
             return this;
         };
         /**
-         * Normalize the current Vector3 to a new vector.
-         * @returns the new Vector3.
+         * Normalize the current Vector3 to a new vector
+         * @returns the new Vector3
          */
         Vector3.prototype.normalizeToNew = function () {
             var normalized = new Vector3(0, 0, 0);
@@ -1285,9 +1774,9 @@
             return normalized;
         };
         /**
-         * Normalize the current Vector3 to the reference.
-         * @param the reference to update.
-         * @returns the updated Vector3.
+         * Normalize the current Vector3 to the reference
+         * @param reference define the Vector3 to update
+         * @returns the updated Vector3
          */
         Vector3.prototype.normalizeToRef = function (reference) {
             var len = this.length();
@@ -1300,14 +1789,16 @@
             return reference;
         };
         /**
-         * Returns a new Vector3 copied from the current Vector3.
+         * Creates a new Vector3 copied from the current Vector3
+         * @returns the new Vector3
          */
         Vector3.prototype.clone = function () {
             return new Vector3(this.x, this.y, this.z);
         };
         /**
-         * Copies the passed vector coordinates to the current Vector3 ones.
-         * Returns the updated Vector3.
+         * Copies the given vector coordinates to the current Vector3 ones
+         * @param source defines the source Vector3
+         * @returns the current updated Vector3
          */
         Vector3.prototype.copyFrom = function (source) {
             this.x = source.x;
@@ -1316,8 +1807,11 @@
             return this;
         };
         /**
-         * Copies the passed floats to the current Vector3 coordinates.
-         * Returns the updated Vector3.
+         * Copies the given floats to the current Vector3 coordinates
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @returns the current updated Vector3
          */
         Vector3.prototype.copyFromFloats = function (x, y, z) {
             this.x = x;
@@ -1326,15 +1820,23 @@
             return this;
         };
         /**
-         * Copies the passed floats to the current Vector3 coordinates.
-         * Returns the updated Vector3.
+         * Copies the given floats to the current Vector3 coordinates
+         * @param x defines the x coordinate of the operand
+         * @param y defines the y coordinate of the operand
+         * @param z defines the z coordinate of the operand
+         * @returns the current updated Vector3
          */
         Vector3.prototype.set = function (x, y, z) {
             return this.copyFromFloats(x, y, z);
         };
         // Statics
         /**
-         *
+         * Get the clip factor between two vectors
+         * @param vector0 defines the first operand
+         * @param vector1 defines the second operand
+         * @param axis defines the axis to use
+         * @param size defines the size along the axis
+         * @returns the clip factor
          */
         Vector3.GetClipFactor = function (vector0, vector1, axis, size) {
             var d0 = Vector3.Dot(vector0, axis) - size;
@@ -1343,7 +1845,27 @@
             return s;
         };
         /**
-         * Returns a new Vector3 set from the index "offset" of the passed array.
+         * Get angle between two vectors
+         * @param vector0 angle between vector0 and vector1
+         * @param vector1 angle between vector0 and vector1
+         * @param normal direction of the normal
+         * @return the angle between vector0 and vector1
+         */
+        Vector3.GetAngleBetweenVectors = function (vector0, vector1, normal) {
+            var v0 = vector0.clone().normalize();
+            var v1 = vector1.clone().normalize();
+            var dot = Vector3.Dot(v0, v1);
+            var n = Vector3.Cross(v0, v1);
+            if (Vector3.Dot(n, normal) > 0) {
+                return Math.acos(dot);
+            }
+            return -Math.acos(dot);
+        };
+        /**
+         * Returns a new Vector3 set from the index "offset" of the given array
+         * @param array defines the source array
+         * @param offset defines the offset in the source array
+         * @returns the new Vector3
          */
         Vector3.FromArray = function (array, offset) {
             if (!offset) {
@@ -1352,14 +1874,20 @@
             return new Vector3(array[offset], array[offset + 1], array[offset + 2]);
         };
         /**
-         * Returns a new Vector3 set from the index "offset" of the passed Float32Array.
-         * This function is deprecated.  Use FromArray instead.
+         * Returns a new Vector3 set from the index "offset" of the given Float32Array
+         * This function is deprecated.  Use FromArray instead
+         * @param array defines the source array
+         * @param offset defines the offset in the source array
+         * @returns the new Vector3
          */
         Vector3.FromFloatArray = function (array, offset) {
             return Vector3.FromArray(array, offset);
         };
         /**
-         * Sets the passed vector "result" with the element values from the index "offset" of the passed array.
+         * Sets the given vector "result" with the element values from the index "offset" of the given array
+         * @param array defines the source array
+         * @param offset defines the offset in the source array
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.FromArrayToRef = function (array, offset, result) {
             result.x = array[offset];
@@ -1367,14 +1895,21 @@
             result.z = array[offset + 2];
         };
         /**
-         * Sets the passed vector "result" with the element values from the index "offset" of the passed Float32Array.
+         * Sets the given vector "result" with the element values from the index "offset" of the given Float32Array
          * This function is deprecated.  Use FromArrayToRef instead.
+         * @param array defines the source array
+         * @param offset defines the offset in the source array
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.FromFloatArrayToRef = function (array, offset, result) {
             return Vector3.FromArrayToRef(array, offset, result);
         };
         /**
-         * Sets the passed vector "result" with the passed floats.
+         * Sets the given vector "result" with the given floats.
+         * @param x defines the x coordinate of the source
+         * @param y defines the y coordinate of the source
+         * @param z defines the z coordinate of the source
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.FromFloatsToRef = function (x, y, z, result) {
             result.x = x;
@@ -1382,44 +1917,53 @@
             result.z = z;
         };
         /**
-         * Returns a new Vector3 set to (0.0, 0.0, 0.0).
+         * Returns a new Vector3 set to (0.0, 0.0, 0.0)
+         * @returns a new empty Vector3
          */
         Vector3.Zero = function () {
             return new Vector3(0.0, 0.0, 0.0);
         };
         /**
-         * Returns a new Vector3 set to (1.0, 1.0, 1.0).
+         * Returns a new Vector3 set to (1.0, 1.0, 1.0)
+         * @returns a new unit Vector3
          */
         Vector3.One = function () {
             return new Vector3(1.0, 1.0, 1.0);
         };
         /**
          * Returns a new Vector3 set to (0.0, 1.0, 0.0)
+         * @returns a new up Vector3
          */
         Vector3.Up = function () {
             return new Vector3(0.0, 1.0, 0.0);
         };
         /**
          * Returns a new Vector3 set to (0.0, 0.0, 1.0)
+         * @returns a new forward Vector3
          */
         Vector3.Forward = function () {
             return new Vector3(0.0, 0.0, 1.0);
         };
         /**
          * Returns a new Vector3 set to (1.0, 0.0, 0.0)
+         * @returns a new right Vector3
          */
         Vector3.Right = function () {
             return new Vector3(1.0, 0.0, 0.0);
         };
         /**
          * Returns a new Vector3 set to (-1.0, 0.0, 0.0)
+         * @returns a new left Vector3
          */
         Vector3.Left = function () {
             return new Vector3(-1.0, 0.0, 0.0);
         };
         /**
-         * Returns a new Vector3 set with the result of the transformation by the passed matrix of the passed vector.
-         * This method computes tranformed coordinates only, not transformed direction vectors.
+         * Returns a new Vector3 set with the result of the transformation by the given matrix of the given vector.
+         * This method computes tranformed coordinates only, not transformed direction vectors (ie. it takes translation in account)
+         * @param vector defines the Vector3 to transform
+         * @param transformation defines the transformation matrix
+         * @returns the transformed Vector3
          */
         Vector3.TransformCoordinates = function (vector, transformation) {
             var result = Vector3.Zero();
@@ -1427,8 +1971,11 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" coordinates with the result of the transformation by the passed matrix of the passed vector.
-         * This method computes tranformed coordinates only, not transformed direction vectors.
+         * Sets the given vector "result" coordinates with the result of the transformation by the given matrix of the given vector
+         * This method computes tranformed coordinates only, not transformed direction vectors (ie. it takes translation in account)
+         * @param vector defines the Vector3 to transform
+         * @param transformation defines the transformation matrix
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.TransformCoordinatesToRef = function (vector, transformation, result) {
             var x = (vector.x * transformation.m[0]) + (vector.y * transformation.m[4]) + (vector.z * transformation.m[8]) + transformation.m[12];
@@ -1440,8 +1987,13 @@
             result.z = z / w;
         };
         /**
-         * Sets the passed vector "result" coordinates with the result of the transformation by the passed matrix of the passed floats (x, y, z).
-         * This method computes tranformed coordinates only, not transformed direction vectors.
+         * Sets the given vector "result" coordinates with the result of the transformation by the given matrix of the given floats (x, y, z)
+         * This method computes tranformed coordinates only, not transformed direction vectors
+         * @param x define the x coordinate of the source vector
+         * @param y define the y coordinate of the source vector
+         * @param z define the z coordinate of the source vector
+         * @param transformation defines the transformation matrix
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.TransformCoordinatesFromFloatsToRef = function (x, y, z, transformation, result) {
             var rx = (x * transformation.m[0]) + (y * transformation.m[4]) + (z * transformation.m[8]) + transformation.m[12];
@@ -1453,8 +2005,11 @@
             result.z = rz / rw;
         };
         /**
-         * Returns a new Vector3 set with the result of the normal transformation by the passed matrix of the passed vector.
-         * This methods computes transformed normalized direction vectors only.
+         * Returns a new Vector3 set with the result of the normal transformation by the given matrix of the given vector
+         * This methods computes transformed normalized direction vectors only (ie. it does not apply translation)
+         * @param vector defines the Vector3 to transform
+         * @param transformation defines the transformation matrix
+         * @returns the new Vector3
          */
         Vector3.TransformNormal = function (vector, transformation) {
             var result = Vector3.Zero();
@@ -1462,8 +2017,11 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" with the result of the normal transformation by the passed matrix of the passed vector.
-         * This methods computes transformed normalized direction vectors only.
+         * Sets the given vector "result" with the result of the normal transformation by the given matrix of the given vector
+         * This methods computes transformed normalized direction vectors only (ie. it does not apply translation)
+         * @param vector defines the Vector3 to transform
+         * @param transformation defines the transformation matrix
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.TransformNormalToRef = function (vector, transformation, result) {
             var x = (vector.x * transformation.m[0]) + (vector.y * transformation.m[4]) + (vector.z * transformation.m[8]);
@@ -1474,8 +2032,13 @@
             result.z = z;
         };
         /**
-         * Sets the passed vector "result" with the result of the normal transformation by the passed matrix of the passed floats (x, y, z).
-         * This methods computes transformed normalized direction vectors only.
+         * Sets the given vector "result" with the result of the normal transformation by the given matrix of the given floats (x, y, z)
+         * This methods computes transformed normalized direction vectors only (ie. it does not apply translation)
+         * @param x define the x coordinate of the source vector
+         * @param y define the y coordinate of the source vector
+         * @param z define the z coordinate of the source vector
+         * @param transformation defines the transformation matrix
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.TransformNormalFromFloatsToRef = function (x, y, z, transformation, result) {
             result.x = (x * transformation.m[0]) + (y * transformation.m[4]) + (z * transformation.m[8]);
@@ -1483,7 +2046,13 @@
             result.z = (x * transformation.m[2]) + (y * transformation.m[6]) + (z * transformation.m[10]);
         };
         /**
-         * Returns a new Vector3 located for "amount" on the CatmullRom interpolation spline defined by the vectors "value1", "value2", "value3", "value4".
+         * Returns a new Vector3 located for "amount" on the CatmullRom interpolation spline defined by the vectors "value1", "value2", "value3", "value4"
+         * @param value1 defines the first control point
+         * @param value2 defines the second control point
+         * @param value3 defines the third control point
+         * @param value4 defines the fourth control point
+         * @param amount defines the amount on the spline to use
+         * @returns the new Vector3
          */
         Vector3.CatmullRom = function (value1, value2, value3, value4, amount) {
             var squared = amount * amount;
@@ -1500,9 +2069,13 @@
             return new Vector3(x, y, z);
         };
         /**
-         * Returns a new Vector3 set with the coordinates of "value", if the vector "value" is in the cube defined by the vectors "min" and "max".
-         * If a coordinate value of "value" is lower than one of the "min" coordinate, then this "value" coordinate is set with the "min" one.
-         * If a coordinate value of "value" is greater than one of the "max" coordinate, then this "value" coordinate is set with the "max" one.
+         * Returns a new Vector3 set with the coordinates of "value", if the vector "value" is in the cube defined by the vectors "min" and "max"
+         * If a coordinate value of "value" is lower than one of the "min" coordinate, then this "value" coordinate is set with the "min" one
+         * If a coordinate value of "value" is greater than one of the "max" coordinate, then this "value" coordinate is set with the "max" one
+         * @param value defines the current value
+         * @param min defines the lower range value
+         * @param max defines the upper range value
+         * @returns the new Vector3
          */
         Vector3.Clamp = function (value, min, max) {
             var x = value.x;
@@ -1517,7 +2090,13 @@
             return new Vector3(x, y, z);
         };
         /**
-         * Returns a new Vector3 located for "amount" (float) on the Hermite interpolation spline defined by the vectors "value1", "tangent1", "value2", "tangent2".
+         * Returns a new Vector3 located for "amount" (float) on the Hermite interpolation spline defined by the vectors "value1", "tangent1", "value2", "tangent2"
+         * @param value1 defines the first control point
+         * @param tangent1 defines the first tangent vector
+         * @param value2 defines the second control point
+         * @param tangent2 defines the second tangent vector
+         * @param amount defines the amount on the interpolation spline (between 0 and 1)
+         * @returns the new Vector3
          */
         Vector3.Hermite = function (value1, tangent1, value2, tangent2, amount) {
             var squared = amount * amount;
@@ -1532,7 +2111,11 @@
             return new Vector3(x, y, z);
         };
         /**
-         * Returns a new Vector3 located for "amount" (float) on the linear interpolation between the vectors "start" and "end".
+         * Returns a new Vector3 located for "amount" (float) on the linear interpolation between the vectors "start" and "end"
+         * @param start defines the start value
+         * @param end defines the end value
+         * @param amount max defines amount between both (between 0 and 1)
+         * @returns the new Vector3
          */
         Vector3.Lerp = function (start, end, amount) {
             var result = new Vector3(0, 0, 0);
@@ -1540,7 +2123,11 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" with the result of the linear interpolation from the vector "start" for "amount" to the vector "end".
+         * Sets the given vector "result" with the result of the linear interpolation from the vector "start" for "amount" to the vector "end"
+         * @param start defines the start value
+         * @param end defines the end value
+         * @param amount max defines amount between both (between 0 and 1)
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.LerpToRef = function (start, end, amount, result) {
             result.x = start.x + ((end.x - start.x) * amount);
@@ -1548,14 +2135,20 @@
             result.z = start.z + ((end.z - start.z) * amount);
         };
         /**
-         * Returns the dot product (float) between the vectors "left" and "right".
+         * Returns the dot product (float) between the vectors "left" and "right"
+         * @param left defines the left operand
+         * @param right defines the right operand
+         * @returns the dot product
          */
         Vector3.Dot = function (left, right) {
             return (left.x * right.x + left.y * right.y + left.z * right.z);
         };
         /**
-         * Returns a new Vector3 as the cross product of the vectors "left" and "right".
-         * The cross product is then orthogonal to both "left" and "right".
+         * Returns a new Vector3 as the cross product of the vectors "left" and "right"
+         * The cross product is then orthogonal to both "left" and "right"
+         * @param left defines the left operand
+         * @param right defines the right operand
+         * @returns the cross product
          */
         Vector3.Cross = function (left, right) {
             var result = Vector3.Zero();
@@ -1563,8 +2156,11 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" with the cross product of "left" and "right".
-         * The cross product is then orthogonal to both "left" and "right".
+         * Sets the given vector "result" with the cross product of "left" and "right"
+         * The cross product is then orthogonal to both "left" and "right"
+         * @param left defines the left operand
+         * @param right defines the right operand
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.CrossToRef = function (left, right, result) {
             MathTmp.Vector3[0].x = left.y * right.z - left.z * right.y;
@@ -1573,7 +2169,9 @@
             result.copyFrom(MathTmp.Vector3[0]);
         };
         /**
-         * Returns a new Vector3 as the normalization of the passed vector.
+         * Returns a new Vector3 as the normalization of the given vector
+         * @param vector defines the Vector3 to normalize
+         * @returns the new Vector3
          */
         Vector3.Normalize = function (vector) {
             var result = Vector3.Zero();
@@ -1581,12 +2179,22 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" with the normalization of the passed first vector.
+         * Sets the given vector "result" with the normalization of the given first vector
+         * @param vector defines the Vector3 to normalize
+         * @param result defines the Vector3 where to store the result
          */
         Vector3.NormalizeToRef = function (vector, result) {
             result.copyFrom(vector);
             result.normalize();
         };
+        /**
+         * Project a Vector3 onto screen space
+         * @param vector defines the Vector3 to project
+         * @param world defines the world matrix to use
+         * @param transform defines the transform (view x projection) matrix to use
+         * @param viewport defines the screen viewport to use
+         * @returns the new Vector3
+         */
         Vector3.Project = function (vector, world, transform, viewport) {
             var cw = viewport.width;
             var ch = viewport.height;
@@ -1599,6 +2207,15 @@
             matrix.multiplyToRef(viewportMatrix, matrix);
             return Vector3.TransformCoordinates(vector, matrix);
         };
+        /**
+         * Unproject from screen space to object space
+         * @param source defines the screen space Vector3 to use
+         * @param viewportWidth defines the current width of the viewport
+         * @param viewportHeight defines the current height of the viewport
+         * @param world defines the world matrix to use (can be set to Identity to go to world space)
+         * @param transform defines the transform (view x projection) matrix to use
+         * @returns the new Vector3
+         */
         Vector3.UnprojectFromTransform = function (source, viewportWidth, viewportHeight, world, transform) {
             var matrix = MathTmp.Matrix[0];
             world.multiplyToRef(transform, matrix);
@@ -1612,14 +2229,46 @@
             }
             return vector;
         };
+        /**
+         * Unproject from screen space to object space
+         * @param source defines the screen space Vector3 to use
+         * @param viewportWidth defines the current width of the viewport
+         * @param viewportHeight defines the current height of the viewport
+         * @param world defines the world matrix to use (can be set to Identity to go to world space)
+         * @param view defines the view matrix to use
+         * @param projection defines the projection matrix to use
+         * @returns the new Vector3
+         */
         Vector3.Unproject = function (source, viewportWidth, viewportHeight, world, view, projection) {
             var result = Vector3.Zero();
             Vector3.UnprojectToRef(source, viewportWidth, viewportHeight, world, view, projection, result);
             return result;
         };
+        /**
+         * Unproject from screen space to object space
+         * @param source defines the screen space Vector3 to use
+         * @param viewportWidth defines the current width of the viewport
+         * @param viewportHeight defines the current height of the viewport
+         * @param world defines the world matrix to use (can be set to Identity to go to world space)
+         * @param view defines the view matrix to use
+         * @param projection defines the projection matrix to use
+         * @param result defines the Vector3 where to store the result
+         */
         Vector3.UnprojectToRef = function (source, viewportWidth, viewportHeight, world, view, projection, result) {
             Vector3.UnprojectFloatsToRef(source.x, source.y, source.z, viewportWidth, viewportHeight, world, view, projection, result);
         };
+        /**
+         * Unproject from screen space to object space
+         * @param sourceX defines the screen space x coordinate to use
+         * @param sourceY defines the screen space y coordinate to use
+         * @param sourceZ defines the screen space z coordinate to use
+         * @param viewportWidth defines the current width of the viewport
+         * @param viewportHeight defines the current height of the viewport
+         * @param world defines the world matrix to use (can be set to Identity to go to world space)
+         * @param view defines the view matrix to use
+         * @param projection defines the projection matrix to use
+         * @param result defines the Vector3 where to store the result
+         */
         Vector3.UnprojectFloatsToRef = function (sourceX, sourceY, sourceZ, viewportWidth, viewportHeight, world, view, projection, result) {
             var matrix = MathTmp.Matrix[0];
             world.multiplyToRef(view, matrix);
@@ -1635,24 +2284,42 @@
                 result.scaleInPlace(1.0 / num);
             }
         };
+        /**
+         * Gets the minimal coordinate values between two Vector3
+         * @param left defines the first operand
+         * @param right defines the second operand
+         * @returns the new Vector3
+         */
         Vector3.Minimize = function (left, right) {
             var min = left.clone();
-            min.MinimizeInPlace(right);
+            min.minimizeInPlace(right);
             return min;
         };
+        /**
+         * Gets the maximal coordinate values between two Vector3
+         * @param left defines the first operand
+         * @param right defines the second operand
+         * @returns the new Vector3
+         */
         Vector3.Maximize = function (left, right) {
             var max = left.clone();
-            max.MaximizeInPlace(right);
+            max.maximizeInPlace(right);
             return max;
         };
         /**
-         * Returns the distance (float) between the vectors "value1" and "value2".
+         * Returns the distance between the vectors "value1" and "value2"
+         * @param value1 defines the first operand
+         * @param value2 defines the second operand
+         * @returns the distance
          */
         Vector3.Distance = function (value1, value2) {
             return Math.sqrt(Vector3.DistanceSquared(value1, value2));
         };
         /**
-         * Returns the squared distance (float) between the vectors "value1" and "value2".
+         * Returns the squared distance between the vectors "value1" and "value2"
+         * @param value1 defines the first operand
+         * @param value2 defines the second operand
+         * @returns the squared distance
          */
         Vector3.DistanceSquared = function (value1, value2) {
             var x = value1.x - value2.x;
@@ -1661,7 +2328,10 @@
             return (x * x) + (y * y) + (z * z);
         };
         /**
-         * Returns a new Vector3 located at the center between "value1" and "value2".
+         * Returns a new Vector3 located at the center between "value1" and "value2"
+         * @param value1 defines the first operand
+         * @param value2 defines the second operand
+         * @returns the new Vector3
          */
         Vector3.Center = function (value1, value2) {
             var center = value1.add(value2);
@@ -1671,9 +2341,12 @@
         /**
          * Given three orthogonal normalized left-handed oriented Vector3 axis in space (target system),
          * RotationFromAxis() returns the rotation Euler angles (ex : rotation.x, rotation.y, rotation.z) to apply
-         * to something in order to rotate it from its local system to the given target system.
-         * Note : axis1, axis2 and axis3 are normalized during this operation.
-         * Returns a new Vector3.
+         * to something in order to rotate it from its local system to the given target system
+         * Note: axis1, axis2 and axis3 are normalized during this operation
+         * @param axis1 defines the first axis
+         * @param axis2 defines the second axis
+         * @param axis3 defines the third axis
+         * @returns a new Vector3
          */
         Vector3.RotationFromAxis = function (axis1, axis2, axis3) {
             var rotation = Vector3.Zero();
@@ -1681,7 +2354,11 @@
             return rotation;
         };
         /**
-         * The same than RotationFromAxis but updates the passed ref Vector3 parameter instead of returning a new Vector3.
+         * The same than RotationFromAxis but updates the given ref Vector3 parameter instead of returning a new Vector3
+         * @param axis1 defines the first axis
+         * @param axis2 defines the second axis
+         * @param axis3 defines the third axis
+         * @param ref defines the Vector3 where to store the result
          */
         Vector3.RotationFromAxisToRef = function (axis1, axis2, axis3, ref) {
             var quat = MathTmp.Quaternion[0];
@@ -1694,7 +2371,7 @@
     //Vector4 class created for EulerAngle class conversion to Quaternion
     var Vector4 = /** @class */ (function () {
         /**
-         * Creates a Vector4 object from the passed floats.
+         * Creates a Vector4 object from the given floats.
          */
         function Vector4(x, y, z, w) {
             this.x = x;
@@ -1734,7 +2411,7 @@
             return result;
         };
         /**
-         * Populates the passed array from the passed index with the Vector4 coordinates.
+         * Populates the given array from the given index with the Vector4 coordinates.
          * Returns the Vector4.
          */
         Vector4.prototype.toArray = function (array, index) {
@@ -1748,7 +2425,7 @@
             return this;
         };
         /**
-         * Adds the passed vector to the current Vector4.
+         * Adds the given vector to the current Vector4.
          * Returns the updated Vector4.
          */
         Vector4.prototype.addInPlace = function (otherVector) {
@@ -1759,13 +2436,13 @@
             return this;
         };
         /**
-         * Returns a new Vector4 as the result of the addition of the current Vector4 and the passed one.
+         * Returns a new Vector4 as the result of the addition of the current Vector4 and the given one.
          */
         Vector4.prototype.add = function (otherVector) {
             return new Vector4(this.x + otherVector.x, this.y + otherVector.y, this.z + otherVector.z, this.w + otherVector.w);
         };
         /**
-         * Updates the passed vector "result" with the result of the addition of the current Vector4 and the passed one.
+         * Updates the given vector "result" with the result of the addition of the current Vector4 and the given one.
          * Returns the current Vector4.
          */
         Vector4.prototype.addToRef = function (otherVector, result) {
@@ -1776,7 +2453,7 @@
             return this;
         };
         /**
-         * Subtract in place the passed vector from the current Vector4.
+         * Subtract in place the given vector from the current Vector4.
          * Returns the updated Vector4.
          */
         Vector4.prototype.subtractInPlace = function (otherVector) {
@@ -1787,13 +2464,13 @@
             return this;
         };
         /**
-         * Returns a new Vector4 with the result of the subtraction of the passed vector from the current Vector4.
+         * Returns a new Vector4 with the result of the subtraction of the given vector from the current Vector4.
          */
         Vector4.prototype.subtract = function (otherVector) {
             return new Vector4(this.x - otherVector.x, this.y - otherVector.y, this.z - otherVector.z, this.w - otherVector.w);
         };
         /**
-         * Sets the passed vector "result" with the result of the subtraction of the passed vector from the current Vector4.
+         * Sets the given vector "result" with the result of the subtraction of the given vector from the current Vector4.
          * Returns the current Vector4.
          */
         Vector4.prototype.subtractToRef = function (otherVector, result) {
@@ -1804,13 +2481,13 @@
             return this;
         };
         /**
-         * Returns a new Vector4 set with the result of the subtraction of the passed floats from the current Vector4 coordinates.
+         * Returns a new Vector4 set with the result of the subtraction of the given floats from the current Vector4 coordinates.
          */
         Vector4.prototype.subtractFromFloats = function (x, y, z, w) {
             return new Vector4(this.x - x, this.y - y, this.z - z, this.w - w);
         };
         /**
-         * Sets the passed vector "result" set with the result of the subtraction of the passed floats from the current Vector4 coordinates.
+         * Sets the given vector "result" set with the result of the subtraction of the given floats from the current Vector4 coordinates.
          * Returns the current Vector4.
          */
         Vector4.prototype.subtractFromFloatsToRef = function (x, y, z, w, result) {
@@ -1844,7 +2521,7 @@
             return new Vector4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
         };
         /**
-         * Sets the passed vector "result" with the current Vector4 coordinates multiplied by scale (float).
+         * Sets the given vector "result" with the current Vector4 coordinates multiplied by scale (float).
          * Returns the current Vector4.
          */
         Vector4.prototype.scaleToRef = function (scale, result) {
@@ -1855,13 +2532,26 @@
             return this;
         };
         /**
-         * Boolean : True if the current Vector4 coordinates are stricly equal to the passed ones.
+         * Scale the current Vector4 values by a factor and add the result to a given Vector4
+         * @param scale defines the scale factor
+         * @param result defines the Vector4 object where to store the result
+         * @returns the unmodified current Vector4
+         */
+        Vector4.prototype.scaleAndAddToRef = function (scale, result) {
+            result.x += this.x * scale;
+            result.y += this.y * scale;
+            result.z += this.z * scale;
+            result.w += this.w * scale;
+            return this;
+        };
+        /**
+         * Boolean : True if the current Vector4 coordinates are stricly equal to the given ones.
          */
         Vector4.prototype.equals = function (otherVector) {
             return otherVector && this.x === otherVector.x && this.y === otherVector.y && this.z === otherVector.z && this.w === otherVector.w;
         };
         /**
-         * Boolean : True if the current Vector4 coordinates are each beneath the distance "epsilon" from the passed vector ones.
+         * Boolean : True if the current Vector4 coordinates are each beneath the distance "epsilon" from the given vector ones.
          */
         Vector4.prototype.equalsWithEpsilon = function (otherVector, epsilon) {
             if (epsilon === void 0) { epsilon = LIB.Epsilon; }
@@ -1872,13 +2562,13 @@
                 && LIB.Scalar.WithinEpsilon(this.w, otherVector.w, epsilon);
         };
         /**
-         * Boolean : True if the passed floats are strictly equal to the current Vector4 coordinates.
+         * Boolean : True if the given floats are strictly equal to the current Vector4 coordinates.
          */
         Vector4.prototype.equalsToFloats = function (x, y, z, w) {
             return this.x === x && this.y === y && this.z === z && this.w === w;
         };
         /**
-         * Multiplies in place the current Vector4 by the passed one.
+         * Multiplies in place the current Vector4 by the given one.
          * Returns the updated Vector4.
          */
         Vector4.prototype.multiplyInPlace = function (otherVector) {
@@ -1889,13 +2579,13 @@
             return this;
         };
         /**
-         * Returns a new Vector4 set with the multiplication result of the current Vector4 and the passed one.
+         * Returns a new Vector4 set with the multiplication result of the current Vector4 and the given one.
          */
         Vector4.prototype.multiply = function (otherVector) {
             return new Vector4(this.x * otherVector.x, this.y * otherVector.y, this.z * otherVector.z, this.w * otherVector.w);
         };
         /**
-         * Updates the passed vector "result" with the multiplication result of the current Vector4 and the passed one.
+         * Updates the given vector "result" with the multiplication result of the current Vector4 and the given one.
          * Returns the current Vector4.
          */
         Vector4.prototype.multiplyToRef = function (otherVector, result) {
@@ -1906,19 +2596,19 @@
             return this;
         };
         /**
-         * Returns a new Vector4 set with the multiplication result of the passed floats and the current Vector4 coordinates.
+         * Returns a new Vector4 set with the multiplication result of the given floats and the current Vector4 coordinates.
          */
         Vector4.prototype.multiplyByFloats = function (x, y, z, w) {
             return new Vector4(this.x * x, this.y * y, this.z * z, this.w * w);
         };
         /**
-         * Returns a new Vector4 set with the division result of the current Vector4 by the passed one.
+         * Returns a new Vector4 set with the division result of the current Vector4 by the given one.
          */
         Vector4.prototype.divide = function (otherVector) {
             return new Vector4(this.x / otherVector.x, this.y / otherVector.y, this.z / otherVector.z, this.w / otherVector.w);
         };
         /**
-         * Updates the passed vector "result" with the division result of the current Vector4 by the passed one.
+         * Updates the given vector "result" with the division result of the current Vector4 by the given one.
          * Returns the current Vector4.
          */
         Vector4.prototype.divideToRef = function (otherVector, result) {
@@ -1929,9 +2619,18 @@
             return this;
         };
         /**
-         * Updates the Vector4 coordinates with the minimum values between its own and the passed vector ones.
+         * Divides the current Vector3 coordinates by the given ones.
+         * @returns the updated Vector3.
          */
-        Vector4.prototype.MinimizeInPlace = function (other) {
+        Vector4.prototype.divideInPlace = function (otherVector) {
+            return this.divideToRef(otherVector, this);
+        };
+        /**
+         * Updates the Vector4 coordinates with the minimum values between its own and the given vector ones
+         * @param other defines the second operand
+         * @returns the current updated Vector4
+         */
+        Vector4.prototype.minimizeInPlace = function (other) {
             if (other.x < this.x)
                 this.x = other.x;
             if (other.y < this.y)
@@ -1943,9 +2642,11 @@
             return this;
         };
         /**
-         * Updates the Vector4 coordinates with the maximum values between its own and the passed vector ones.
+         * Updates the Vector4 coordinates with the maximum values between its own and the given vector ones
+         * @param other defines the second operand
+         * @returns the current updated Vector4
          */
-        Vector4.prototype.MaximizeInPlace = function (other) {
+        Vector4.prototype.maximizeInPlace = function (other) {
             if (other.x > this.x)
                 this.x = other.x;
             if (other.y > this.y)
@@ -1998,7 +2699,7 @@
             return new Vector4(this.x, this.y, this.z, this.w);
         };
         /**
-         * Updates the current Vector4 with the passed one coordinates.
+         * Updates the current Vector4 with the given one coordinates.
          * Returns the updated Vector4.
          */
         Vector4.prototype.copyFrom = function (source) {
@@ -2009,7 +2710,7 @@
             return this;
         };
         /**
-         * Updates the current Vector4 coordinates with the passed floats.
+         * Updates the current Vector4 coordinates with the given floats.
          * Returns the updated Vector4.
          */
         Vector4.prototype.copyFromFloats = function (x, y, z, w) {
@@ -2020,7 +2721,7 @@
             return this;
         };
         /**
-         * Updates the current Vector4 coordinates with the passed floats.
+         * Updates the current Vector4 coordinates with the given floats.
          * Returns the updated Vector4.
          */
         Vector4.prototype.set = function (x, y, z, w) {
@@ -2028,7 +2729,7 @@
         };
         // Statics
         /**
-         * Returns a new Vector4 set from the starting index of the passed array.
+         * Returns a new Vector4 set from the starting index of the given array.
          */
         Vector4.FromArray = function (array, offset) {
             if (!offset) {
@@ -2037,7 +2738,7 @@
             return new Vector4(array[offset], array[offset + 1], array[offset + 2], array[offset + 3]);
         };
         /**
-         * Updates the passed vector "result" from the starting index of the passed array.
+         * Updates the given vector "result" from the starting index of the given array.
          */
         Vector4.FromArrayToRef = function (array, offset, result) {
             result.x = array[offset];
@@ -2046,13 +2747,13 @@
             result.w = array[offset + 3];
         };
         /**
-         * Updates the passed vector "result" from the starting index of the passed Float32Array.
+         * Updates the given vector "result" from the starting index of the given Float32Array.
          */
         Vector4.FromFloatArrayToRef = function (array, offset, result) {
             Vector4.FromArrayToRef(array, offset, result);
         };
         /**
-         * Updates the passed vector "result" coordinates from the passed floats.
+         * Updates the given vector "result" coordinates from the given floats.
          */
         Vector4.FromFloatsToRef = function (x, y, z, w, result) {
             result.x = x;
@@ -2073,7 +2774,7 @@
             return new Vector4(1.0, 1.0, 1.0, 1.0);
         };
         /**
-         * Returns a new normalized Vector4 from the passed one.
+         * Returns a new normalized Vector4 from the given one.
          */
         Vector4.Normalize = function (vector) {
             var result = Vector4.Zero();
@@ -2081,7 +2782,7 @@
             return result;
         };
         /**
-         * Updates the passed vector "result" from the normalization of the passed one.
+         * Updates the given vector "result" from the normalization of the given one.
          */
         Vector4.NormalizeToRef = function (vector, result) {
             result.copyFrom(vector);
@@ -2089,12 +2790,12 @@
         };
         Vector4.Minimize = function (left, right) {
             var min = left.clone();
-            min.MinimizeInPlace(right);
+            min.minimizeInPlace(right);
             return min;
         };
         Vector4.Maximize = function (left, right) {
             var max = left.clone();
-            max.MaximizeInPlace(right);
+            max.maximizeInPlace(right);
             return max;
         };
         /**
@@ -2122,7 +2823,7 @@
             return center;
         };
         /**
-         * Returns a new Vector4 set with the result of the normal transformation by the passed matrix of the passed vector.
+         * Returns a new Vector4 set with the result of the normal transformation by the given matrix of the given vector.
          * This methods computes transformed normalized direction vectors only.
          */
         Vector4.TransformNormal = function (vector, transformation) {
@@ -2131,7 +2832,7 @@
             return result;
         };
         /**
-         * Sets the passed vector "result" with the result of the normal transformation by the passed matrix of the passed vector.
+         * Sets the given vector "result" with the result of the normal transformation by the given matrix of the given vector.
          * This methods computes transformed normalized direction vectors only.
          */
         Vector4.TransformNormalToRef = function (vector, transformation, result) {
@@ -2144,7 +2845,7 @@
             result.w = vector.w;
         };
         /**
-         * Sets the passed vector "result" with the result of the normal transformation by the passed matrix of the passed floats (x, y, z, w).
+         * Sets the given vector "result" with the result of the normal transformation by the given matrix of the given floats (x, y, z, w).
          * This methods computes transformed normalized direction vectors only.
          */
         Vector4.TransformNormalFromFloatsToRef = function (x, y, z, w, transformation, result) {
@@ -2158,13 +2859,13 @@
     LIB.Vector4 = Vector4;
     var Size = /** @class */ (function () {
         /**
-         * Creates a Size object from the passed width and height (floats).
+         * Creates a Size object from the given width and height (floats).
          */
         function Size(width, height) {
             this.width = width;
             this.height = height;
         }
-        // Returns a string with the Size width and height.
+        // Returns a string with the Size width and height.  
         Size.prototype.toString = function () {
             return "{W: " + this.width + ", H: " + this.height + "}";
         };
@@ -2183,7 +2884,7 @@
             return hash;
         };
         /**
-         * Updates the current size from the passed one.
+         * Updates the current size from the given one.
          * Returns the updated Size.
          */
         Size.prototype.copyFrom = function (src) {
@@ -2191,7 +2892,7 @@
             this.height = src.height;
         };
         /**
-         * Updates in place the current Size from the passed floats.
+         * Updates in place the current Size from the given floats.
          * Returns the updated Size.
          */
         Size.prototype.copyFromFloats = function (width, height) {
@@ -2200,26 +2901,26 @@
             return this;
         };
         /**
-         * Updates in place the current Size from the passed floats.
+         * Updates in place the current Size from the given floats.
          * Returns the updated Size.
          */
         Size.prototype.set = function (width, height) {
             return this.copyFromFloats(width, height);
         };
         /**
-         * Returns a new Size set with the multiplication result of the current Size and the passed floats.
+         * Returns a new Size set with the multiplication result of the current Size and the given floats.
          */
         Size.prototype.multiplyByFloats = function (w, h) {
             return new Size(this.width * w, this.height * h);
         };
         /**
-         * Returns a new Size copied from the passed one.
+         * Returns a new Size copied from the given one.
          */
         Size.prototype.clone = function () {
             return new Size(this.width, this.height);
         };
         /**
-         * Boolean : True if the current Size and the passed one width and height are strictly equal.
+         * Boolean : True if the current Size and the given one width and height are strictly equal.
          */
         Size.prototype.equals = function (other) {
             if (!other) {
@@ -2244,14 +2945,14 @@
             return new Size(0.0, 0.0);
         };
         /**
-         * Returns a new Size set as the addition result of the current Size and the passed one.
+         * Returns a new Size set as the addition result of the current Size and the given one.
          */
         Size.prototype.add = function (otherSize) {
             var r = new Size(this.width + otherSize.width, this.height + otherSize.height);
             return r;
         };
         /**
-         * Returns a new Size set as the subtraction result of  the passed one from the current Size.
+         * Returns a new Size set as the subtraction result of  the given one from the current Size.
          */
         Size.prototype.subtract = function (otherSize) {
             var r = new Size(this.width - otherSize.width, this.height - otherSize.height);
@@ -2268,11 +2969,28 @@
         return Size;
     }());
     LIB.Size = Size;
+    /**
+     * Class used to store quaternion data
+     * @see https://en.wikipedia.org/wiki/Quaternion
+     * @see http://doc.LIBjs.com/features/position,_rotation,_scaling
+     */
     var Quaternion = /** @class */ (function () {
         /**
-         * Creates a new Quaternion from the passed floats.
+         * Creates a new Quaternion from the given floats
+         * @param x defines the first component (0 by default)
+         * @param y defines the second component (0 by default)
+         * @param z defines the third component (0 by default)
+         * @param w defines the fourth component (1.0 by default)
          */
-        function Quaternion(x, y, z, w) {
+        function Quaternion(
+        /** defines the first component (0 by default) */
+        x, 
+        /** defines the second component (0 by default) */
+        y, 
+        /** defines the third component (0 by default) */
+        z, 
+        /** defines the fourth component (1.0 by default) */
+        w) {
             if (x === void 0) { x = 0.0; }
             if (y === void 0) { y = 0.0; }
             if (z === void 0) { z = 0.0; }
@@ -2283,19 +3001,22 @@
             this.w = w;
         }
         /**
-         * Returns a string with the Quaternion coordinates.
+         * Gets a string representation for the current quaternion
+         * @returns a string with the Quaternion coordinates
          */
         Quaternion.prototype.toString = function () {
             return "{X: " + this.x + " Y:" + this.y + " Z:" + this.z + " W:" + this.w + "}";
         };
         /**
-         * Returns the string "Quaternion".
+         * Gets the class name of the quaternion
+         * @returns the string "Quaternion"
          */
         Quaternion.prototype.getClassName = function () {
             return "Quaternion";
         };
         /**
-         * Returns the Quaternion hash code.
+         * Gets a hash code for this quaternion
+         * @returns the quaternion hash code
          */
         Quaternion.prototype.getHashCode = function () {
             var hash = this.x || 0;
@@ -2305,26 +3026,31 @@
             return hash;
         };
         /**
-         * Returns a new array populated with 4 elements : the Quaternion coordinates.
+         * Copy the quaternion to an array
+         * @returns a new array populated with 4 elements from the quaternion coordinates
          */
         Quaternion.prototype.asArray = function () {
             return [this.x, this.y, this.z, this.w];
         };
         /**
-         * Boolean : True if the current Quaterion and the passed one coordinates are strictly equal.
+         * Check if two quaternions are equals
+         * @param otherQuaternion defines the second operand
+         * @return true if the current quaternion and the given one coordinates are strictly equals
          */
         Quaternion.prototype.equals = function (otherQuaternion) {
             return otherQuaternion && this.x === otherQuaternion.x && this.y === otherQuaternion.y && this.z === otherQuaternion.z && this.w === otherQuaternion.w;
         };
         /**
-         * Returns a new Quaternion copied from the current one.
+         * Clone the current quaternion
+         * @returns a new quaternion copied from the current one
          */
         Quaternion.prototype.clone = function () {
             return new Quaternion(this.x, this.y, this.z, this.w);
         };
         /**
-         * Updates the current Quaternion from the passed one coordinates.
-         * Returns the updated Quaterion.
+         * Copy a quaternion to the current one
+         * @param other defines the other quaternion
+         * @returns the updated current quaternion
          */
         Quaternion.prototype.copyFrom = function (other) {
             this.x = other.x;
@@ -2334,8 +3060,12 @@
             return this;
         };
         /**
-         * Updates the current Quaternion from the passed float coordinates.
-         * Returns the updated Quaterion.
+         * Updates the current quaternion with the given float coordinates
+         * @param x defines the x coordinate
+         * @param y defines the y coordinate
+         * @param z defines the z coordinate
+         * @param w defines the w coordinate
+         * @returns the updated current quaternion
          */
         Quaternion.prototype.copyFromFloats = function (x, y, z, w) {
             this.x = x;
@@ -2345,32 +3075,94 @@
             return this;
         };
         /**
-         * Updates the current Quaternion from the passed float coordinates.
-         * Returns the updated Quaterion.
+         * Updates the current quaternion from the given float coordinates
+         * @param x defines the x coordinate
+         * @param y defines the y coordinate
+         * @param z defines the z coordinate
+         * @param w defines the w coordinate
+         * @returns the updated current quaternion
          */
         Quaternion.prototype.set = function (x, y, z, w) {
             return this.copyFromFloats(x, y, z, w);
         };
         /**
-         * Returns a new Quaternion as the addition result of the passed one and the current Quaternion.
+         * Adds two quaternions
+         * @param other defines the second operand
+         * @returns a new quaternion as the addition result of the given one and the current quaternion
          */
         Quaternion.prototype.add = function (other) {
             return new Quaternion(this.x + other.x, this.y + other.y, this.z + other.z, this.w + other.w);
         };
         /**
-         * Returns a new Quaternion as the subtraction result of the passed one from the current Quaternion.
+         * Add a quaternion to the current one
+         * @param other defines the quaternion to add
+         * @returns the current quaternion
+         */
+        Quaternion.prototype.addInPlace = function (other) {
+            this.x += other.x;
+            this.y += other.y;
+            this.z += other.z;
+            this.w += other.w;
+            return this;
+        };
+        /**
+         * Subtract two quaternions
+         * @param other defines the second operand
+         * @returns a new quaternion as the subtraction result of the given one from the current one
          */
         Quaternion.prototype.subtract = function (other) {
             return new Quaternion(this.x - other.x, this.y - other.y, this.z - other.z, this.w - other.w);
         };
         /**
-         * Returns a new Quaternion set by multiplying the current Quaterion coordinates by the float "scale".
+         * Multiplies the current quaternion by a scale factor
+         * @param value defines the scale factor
+         * @returns a new quaternion set by multiplying the current quaternion coordinates by the float "scale"
          */
         Quaternion.prototype.scale = function (value) {
             return new Quaternion(this.x * value, this.y * value, this.z * value, this.w * value);
         };
         /**
-         * Returns a new Quaternion set as the quaternion mulplication result of the current one with the passed one "q1".
+         * Scale the current quaternion values by a factor and stores the result to a given quaternion
+         * @param scale defines the scale factor
+         * @param result defines the Quaternion object where to store the result
+         * @returns the unmodified current quaternion
+         */
+        Quaternion.prototype.scaleToRef = function (scale, result) {
+            result.x = this.x * scale;
+            result.y = this.y * scale;
+            result.z = this.z * scale;
+            result.w = this.w * scale;
+            return this;
+        };
+        /**
+         * Multiplies in place the current quaternion by a scale factor
+         * @param value defines the scale factor
+         * @returns the current modified quaternion
+         */
+        Quaternion.prototype.scaleInPlace = function (value) {
+            this.x *= value;
+            this.y *= value;
+            this.z *= value;
+            this.w *= value;
+            return this;
+        };
+        /**
+         * Scale the current quaternion values by a factor and add the result to a given quaternion
+         * @param scale defines the scale factor
+         * @param result defines the Quaternion object where to store the result
+         * @returns the unmodified current quaternion
+         */
+        Quaternion.prototype.scaleAndAddToRef = function (scale, result) {
+            result.x += this.x * scale;
+            result.y += this.y * scale;
+            result.z += this.z * scale;
+            result.w += this.w * scale;
+            return this;
+        };
+        /**
+         * Multiplies two quaternions
+         * @param q1 defines the second operand
+         * @returns a new quaternion set as the multiplication result of the current one with the given one "q1"
          */
         Quaternion.prototype.multiply = function (q1) {
             var result = new Quaternion(0, 0, 0, 1.0);
@@ -2378,8 +3170,10 @@
             return result;
         };
         /**
-         * Sets the passed "result" as the quaternion mulplication result of the current one with the passed one "q1".
-         * Returns the current Quaternion.
+         * Sets the given "result" as the the multiplication result of the current one with the given one "q1"
+         * @param q1 defines the second operand
+         * @param result defines the target quaternion
+         * @returns the current quaternion
          */
         Quaternion.prototype.multiplyToRef = function (q1, result) {
             var x = this.x * q1.w + this.y * q1.z - this.z * q1.y + this.w * q1.x;
@@ -2390,24 +3184,26 @@
             return this;
         };
         /**
-         * Updates the current Quaternion with the quaternion mulplication result of itself with the passed one "q1".
-         * Returns the updated Quaternion.
+         * Updates the current quaternion with the multiplication of itself with the given one "q1"
+         * @param q1 defines the second operand
+         * @returns the currentupdated quaternion
          */
         Quaternion.prototype.multiplyInPlace = function (q1) {
             this.multiplyToRef(q1, this);
             return this;
         };
         /**
-         * Sets the passed "ref" with the conjugation of the current Quaternion.
-         * Returns the current Quaternion.
+         * Conjugates (1-q) the current quaternion and stores the result in the given quaternion
+         * @param ref defines the target quaternion
+         * @returns the current quaternion
          */
         Quaternion.prototype.conjugateToRef = function (ref) {
             ref.copyFromFloats(-this.x, -this.y, -this.z, this.w);
             return this;
         };
         /**
-         * Conjugates in place the current Quaternion.
-         * Returns the updated Quaternion.
+         * Conjugates in place (1-q) the current quaternion
+         * @returns the current updated quaternion
          */
         Quaternion.prototype.conjugateInPlace = function () {
             this.x *= -1;
@@ -2416,21 +3212,23 @@
             return this;
         };
         /**
-         * Returns a new Quaternion as the conjugate of the current Quaternion.
+         * Conjugates in place (1-q) the current quaternion
+         * @returns a new quaternion
          */
         Quaternion.prototype.conjugate = function () {
             var result = new Quaternion(-this.x, -this.y, -this.z, this.w);
             return result;
         };
         /**
-         * Returns the Quaternion length (float).
+         * Gets length of current quaternion
+         * @returns the quaternion length (float)
          */
         Quaternion.prototype.length = function () {
             return Math.sqrt((this.x * this.x) + (this.y * this.y) + (this.z * this.z) + (this.w * this.w));
         };
         /**
-         * Normalize in place the current Quaternion.
-         * Returns the updated Quaternion.
+         * Normalize in place the current quaternion
+         * @returns the current updated quaternion
          */
         Quaternion.prototype.normalize = function () {
             var length = 1.0 / this.length();
@@ -2441,7 +3239,9 @@
             return this;
         };
         /**
-         * Returns a new Vector3 set with the Euler angles translated from the current Quaternion.
+         * Returns a new Vector3 set with the Euler angles translated from the current quaternion
+         * @param order is a reserved parameter and is ignore for now
+         * @returns a new Vector3 containing the Euler angles
          */
         Quaternion.prototype.toEulerAngles = function (order) {
             if (order === void 0) { order = "YZX"; }
@@ -2450,8 +3250,10 @@
             return result;
         };
         /**
-         * Sets the passed vector3 "result" with the Euler angles translated from the current Quaternion.
-         * Returns the current Quaternion.
+         * Sets the given vector3 "result" with the Euler angles translated from the current quaternion
+         * @param result defines the vector which will be filled with the Euler angles
+         * @param order is a reserved parameter and is ignore for now
+         * @returns the current unchanged quaternion
          */
         Quaternion.prototype.toEulerAnglesToRef = function (result, order) {
             if (order === void 0) { order = "YZX"; }
@@ -2483,8 +3285,9 @@
             return this;
         };
         /**
-         * Updates the passed rotation matrix with the current Quaternion values.
-         * Returns the current Quaternion.
+         * Updates the given rotation matrix with the current quaternion values
+         * @param result defines the target matrix
+         * @returns the current unchanged quaternion
          */
         Quaternion.prototype.toRotationMatrix = function (result) {
             var xx = this.x * this.x;
@@ -2516,8 +3319,9 @@
             return this;
         };
         /**
-         * Updates the current Quaternion from the passed rotation matrix values.
-         * Returns the updated Quaternion.
+         * Updates the current quaternion from the given rotation matrix values
+         * @param matrix defines the source matrix
+         * @returns the current updated quaternion
          */
         Quaternion.prototype.fromRotationMatrix = function (matrix) {
             Quaternion.FromRotationMatrixToRef(matrix, this);
@@ -2525,7 +3329,9 @@
         };
         // Statics
         /**
-         * Returns a new Quaternion set from the passed rotation matrix values.
+         * Creates a new quaternion from a rotation matrix
+         * @param matrix defines the source matrix
+         * @returns a new quaternion created from the given rotation matrix values
          */
         Quaternion.FromRotationMatrix = function (matrix) {
             var result = new Quaternion();
@@ -2533,7 +3339,9 @@
             return result;
         };
         /**
-         * Updates the passed quaternion "result" with the passed rotation matrix values.
+         * Updates the given quaternion with the given rotation matrix values
+         * @param matrix defines the source matrix
+         * @param result defines the target quaternion
          */
         Quaternion.FromRotationMatrixToRef = function (matrix, result) {
             var data = matrix.m;
@@ -2572,34 +3380,69 @@
             }
         };
         /**
-         * Returns a new Quaternion set to (0.0, 0.0, 0.0).
+         * Returns the dot product (float) between the quaternions "left" and "right"
+         * @param left defines the left operand
+         * @param right defines the right operand
+         * @returns the dot product
+         */
+        Quaternion.Dot = function (left, right) {
+            return (left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w);
+        };
+        /**
+         * Checks if the two quaternions are close to each other
+         * @param quat0 defines the first quaternion to check
+         * @param quat1 defines the second quaternion to check
+         * @returns true if the two quaternions are close to each other
+         */
+        Quaternion.AreClose = function (quat0, quat1) {
+            var dot = Quaternion.Dot(quat0, quat1);
+            return dot >= 0;
+        };
+        /**
+         * Creates an empty quaternion
+         * @returns a new quaternion set to (0.0, 0.0, 0.0)
          */
         Quaternion.Zero = function () {
             return new Quaternion(0.0, 0.0, 0.0, 0.0);
         };
         /**
-         * Returns a new Quaternion as the inverted current Quaternion.
+         * Inverse a given quaternion
+         * @param q defines the source quaternion
+         * @returns a new quaternion as the inverted current quaternion
          */
         Quaternion.Inverse = function (q) {
             return new Quaternion(-q.x, -q.y, -q.z, q.w);
         };
         /**
-         * Returns the identity Quaternion.
+         * Creates an identity quaternion
+         * @returns the identity quaternion
          */
         Quaternion.Identity = function () {
             return new Quaternion(0.0, 0.0, 0.0, 1.0);
         };
+        /**
+         * Gets a boolean indicating if the given quaternion is identity
+         * @param quaternion defines the quaternion to check
+         * @returns true if the quaternion is identity
+         */
         Quaternion.IsIdentity = function (quaternion) {
             return quaternion && quaternion.x === 0 && quaternion.y === 0 && quaternion.z === 0 && quaternion.w === 1;
         };
         /**
-         * Returns a new Quaternion set from the passed axis (Vector3) and angle in radians (float).
+         * Creates a quaternion from a rotation around an axis
+         * @param axis defines the axis to use
+         * @param angle defines the angle to use
+         * @returns a new quaternion created from the given axis (Vector3) and angle in radians (float)
          */
         Quaternion.RotationAxis = function (axis, angle) {
             return Quaternion.RotationAxisToRef(axis, angle, new Quaternion());
         };
         /**
-         * Sets the passed quaternion "result" from the passed axis (Vector3) and angle in radians (float).
+         * Creates a rotation around an axis and stores it into the given quaternion
+         * @param axis defines the axis to use
+         * @param angle defines the angle to use
+         * @param result defines the target quaternion
+         * @returns the target quaternion
          */
         Quaternion.RotationAxisToRef = function (axis, angle, result) {
             var sin = Math.sin(angle / 2);
@@ -2611,7 +3454,10 @@
             return result;
         };
         /**
-         * Retuns a new Quaternion set from the starting index of the passed array.
+         * Creates a new quaternion from data stored into an array
+         * @param array defines the data source
+         * @param offset defines the offset in the source array where the data starts
+         * @returns a new quaternion
          */
         Quaternion.FromArray = function (array, offset) {
             if (!offset) {
@@ -2620,7 +3466,11 @@
             return new Quaternion(array[offset], array[offset + 1], array[offset + 2], array[offset + 3]);
         };
         /**
-         * Returns a new Quaternion set from the passed Euler float angles (y, x, z).
+         * Creates a new quaternion from the given Euler float angles (y, x, z)
+         * @param yaw defines the rotation around Y axis
+         * @param pitch defines the rotation around X axis
+         * @param roll defines the rotation around Z axis
+         * @returns the new quaternion
          */
         Quaternion.RotationYawPitchRoll = function (yaw, pitch, roll) {
             var q = new Quaternion();
@@ -2628,7 +3478,11 @@
             return q;
         };
         /**
-         * Sets the passed quaternion "result" from the passed float Euler angles (y, x, z).
+         * Creates a new rotation from the given Euler float angles (y, x, z) and stores it in the target quaternion
+         * @param yaw defines the rotation around Y axis
+         * @param pitch defines the rotation around X axis
+         * @param roll defines the rotation around Z axis
+         * @param result defines the target quaternion
          */
         Quaternion.RotationYawPitchRollToRef = function (yaw, pitch, roll, result) {
             // Produces a quaternion from Euler angles in the z-y-x orientation (Tait-Bryan angles)
@@ -2647,7 +3501,11 @@
             result.w = (cosYaw * cosPitch * cosRoll) + (sinYaw * sinPitch * sinRoll);
         };
         /**
-         * Returns a new Quaternion from the passed float Euler angles expressed in z-x-z orientation
+         * Creates a new quaternion from the given Euler float angles expressed in z-x-z orientation
+         * @param alpha defines the rotation around first axis
+         * @param beta defines the rotation around second axis
+         * @param gamma defines the rotation around third axis
+         * @returns the new quaternion
          */
         Quaternion.RotationAlphaBetaGamma = function (alpha, beta, gamma) {
             var result = new Quaternion();
@@ -2655,7 +3513,11 @@
             return result;
         };
         /**
-         * Sets the passed quaternion "result" from the passed float Euler angles expressed in z-x-z orientation
+         * Creates a new quaternion from the given Euler float angles expressed in z-x-z orientation and stores it in the target quaternion
+         * @param alpha defines the rotation around first axis
+         * @param beta defines the rotation around second axis
+         * @param gamma defines the rotation around third axis
+         * @param result defines the target quaternion
          */
         Quaternion.RotationAlphaBetaGammaToRef = function (alpha, beta, gamma, result) {
             // Produces a quaternion from Euler angles in the z-x-z orientation
@@ -2668,34 +3530,51 @@
             result.w = Math.cos(halfGammaPlusAlpha) * Math.cos(halfBeta);
         };
         /**
-         * Returns a new Quaternion as the quaternion rotation value to reach the target (axis1, axis2, axis3) orientation as a rotated XYZ system.
-         * cf to Vector3.RotationFromAxis() documentation.
-         * Note : axis1, axis2 and axis3 are normalized during this operation.
+         * Creates a new quaternion containing the rotation value to reach the target (axis1, axis2, axis3) orientation as a rotated XYZ system (axis1, axis2 and axis3 are normalized during this operation)
+         * @param axis1 defines the first axis
+         * @param axis2 defines the second axis
+         * @param axis3 defines the third axis
+         * @returns the new quaternion
          */
-        Quaternion.RotationQuaternionFromAxis = function (axis1, axis2, axis3, ref) {
+        Quaternion.RotationQuaternionFromAxis = function (axis1, axis2, axis3) {
             var quat = new Quaternion(0.0, 0.0, 0.0, 0.0);
             Quaternion.RotationQuaternionFromAxisToRef(axis1, axis2, axis3, quat);
             return quat;
         };
         /**
-         * Sets the passed quaternion "ref" with the quaternion rotation value to reach the target (axis1, axis2, axis3) orientation as a rotated XYZ system.
-         * cf to Vector3.RotationFromAxis() documentation.
-         * Note : axis1, axis2 and axis3 are normalized during this operation.
+         * Creates a rotation value to reach the target (axis1, axis2, axis3) orientation as a rotated XYZ system (axis1, axis2 and axis3 are normalized during this operation) and stores it in the target quaternion
+         * @param axis1 defines the first axis
+         * @param axis2 defines the second axis
+         * @param axis3 defines the third axis
+         * @param ref defines the target quaternion
          */
         Quaternion.RotationQuaternionFromAxisToRef = function (axis1, axis2, axis3, ref) {
             var rotMat = MathTmp.Matrix[0];
             Matrix.FromXYZAxesToRef(axis1.normalize(), axis2.normalize(), axis3.normalize(), rotMat);
             Quaternion.FromRotationMatrixToRef(rotMat, ref);
         };
+        /**
+         * Interpolates between two quaternions
+         * @param left defines first quaternion
+         * @param right defines second quaternion
+         * @param amount defines the gradient to use
+         * @returns the new interpolated quaternion
+         */
         Quaternion.Slerp = function (left, right, amount) {
             var result = Quaternion.Identity();
             Quaternion.SlerpToRef(left, right, amount, result);
             return result;
         };
+        /**
+         * Interpolates between two quaternions and stores it into a target quaternion
+         * @param left defines first quaternion
+         * @param right defines second quaternion
+         * @param amount defines the gradient to use
+         * @param result defines the target quaternion
+         */
         Quaternion.SlerpToRef = function (left, right, amount, result) {
             var num2;
             var num3;
-            var num = amount;
             var num4 = (((left.x * right.x) + (left.y * right.y)) + (left.z * right.z)) + (left.w * right.w);
             var flag = false;
             if (num4 < 0) {
@@ -2703,14 +3582,14 @@
                 num4 = -num4;
             }
             if (num4 > 0.999999) {
-                num3 = 1 - num;
-                num2 = flag ? -num : num;
+                num3 = 1 - amount;
+                num2 = flag ? -amount : amount;
             }
             else {
                 var num5 = Math.acos(num4);
                 var num6 = (1.0 / Math.sin(num5));
-                num3 = (Math.sin((1.0 - num) * num5)) * num6;
-                num2 = flag ? ((-Math.sin(num * num5)) * num6) : ((Math.sin(num * num5)) * num6);
+                num3 = (Math.sin((1.0 - amount) * num5)) * num6;
+                num2 = flag ? ((-Math.sin(amount * num5)) * num6) : ((Math.sin(amount * num5)) * num6);
             }
             result.x = (num3 * left.x) + (num2 * right.x);
             result.y = (num3 * left.y) + (num2 * right.y);
@@ -2718,7 +3597,13 @@
             result.w = (num3 * left.w) + (num2 * right.w);
         };
         /**
-         * Returns a new Quaternion located for "amount" (float) on the Hermite interpolation spline defined by the vectors "value1", "tangent1", "value2", "tangent2".
+         * Interpolate between two quaternions using Hermite interpolation
+         * @param value1 defines first quaternion
+         * @param tangent1 defines the incoming tangent
+         * @param value2 defines second quaternion
+         * @param tangent2 defines the outgoing tangent
+         * @param amount defines the target quaternion
+         * @returns the new interpolated quaternion
          */
         Quaternion.Hermite = function (value1, tangent1, value2, tangent2, amount) {
             var squared = amount * amount;
@@ -2736,20 +3621,32 @@
         return Quaternion;
     }());
     LIB.Quaternion = Quaternion;
+    /**
+     * Class used to store matrix data (4x4)
+     */
     var Matrix = /** @class */ (function () {
+        /**
+         * Creates an empty matrix (filled with zeros)
+         */
         function Matrix() {
             this._isIdentity = false;
             this._isIdentityDirty = true;
+            /**
+             * Gets or sets the internal data of the matrix
+             */
             this.m = new Float32Array(16);
             this._markAsUpdated();
         }
+        /** @hidden */
         Matrix.prototype._markAsUpdated = function () {
             this.updateFlag = Matrix._updateFlagSeed++;
             this._isIdentityDirty = true;
         };
         // Properties
         /**
-         * Boolean : True is the matrix is the identity matrix
+         * Check if the current matrix is indentity
+         * @param considerAsTextureMatrix defines if the current matrix must be considered as a texture matrix (3x2)
+         * @returns true is the matrix is the identity matrix
          */
         Matrix.prototype.isIdentity = function (considerAsTextureMatrix) {
             if (considerAsTextureMatrix === void 0) { considerAsTextureMatrix = false; }
@@ -2774,7 +3671,8 @@
             return this._isIdentity;
         };
         /**
-         * Returns the matrix determinant (float).
+         * Gets the determinant of the matrix
+         * @returns the matrix determinant
          */
         Matrix.prototype.determinant = function () {
             var temp1 = (this.m[10] * this.m[15]) - (this.m[11] * this.m[14]);
@@ -2789,28 +3687,30 @@
         };
         // Methods
         /**
-         * Returns the matrix underlying array.
+         * Returns the matrix as a Float32Array
+         * @returns the matrix underlying array
          */
         Matrix.prototype.toArray = function () {
             return this.m;
         };
         /**
-        * Returns the matrix underlying array.
+         * Returns the matrix as a Float32Array
+        * @returns the matrix underlying array.
         */
         Matrix.prototype.asArray = function () {
             return this.toArray();
         };
         /**
-         * Inverts in place the Matrix.
-         * Returns the Matrix inverted.
+         * Inverts the current matrix in place
+         * @returns the current inverted matrix
          */
         Matrix.prototype.invert = function () {
             this.invertToRef(this);
             return this;
         };
         /**
-         * Sets all the matrix elements to zero.
-         * Returns the Matrix.
+         * Sets all the matrix elements to zero
+         * @returns the current matrix
          */
         Matrix.prototype.reset = function () {
             for (var index = 0; index < 16; index++) {
@@ -2820,7 +3720,9 @@
             return this;
         };
         /**
-         * Returns a new Matrix as the addition result of the current Matrix and the passed one.
+         * Adds the current matrix with a second one
+         * @param other defines the matrix to add
+         * @returns a new matrix as the addition of the current matrix and the given one
          */
         Matrix.prototype.add = function (other) {
             var result = new Matrix();
@@ -2828,8 +3730,10 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" with the ddition result of the current Matrix and the passed one.
-         * Returns the Matrix.
+         * Sets the given matrix "result" to the addition of the current matrix and the given one
+         * @param other defines the matrix to add
+         * @param result defines the target matrix
+         * @returns the current matrix
          */
         Matrix.prototype.addToRef = function (other, result) {
             for (var index = 0; index < 16; index++) {
@@ -2839,8 +3743,9 @@
             return this;
         };
         /**
-         * Adds in place the passed matrix to the current Matrix.
-         * Returns the updated Matrix.
+         * Adds in place the given matrix to the current matrix
+         * @param other defines the second operand
+         * @returns the current updated matrix
          */
         Matrix.prototype.addToSelf = function (other) {
             for (var index = 0; index < 16; index++) {
@@ -2850,8 +3755,9 @@
             return this;
         };
         /**
-         * Sets the passed matrix with the current inverted Matrix.
-         * Returns the unmodified current Matrix.
+         * Sets the given matrix to the current inverted Matrix
+         * @param other defines the target matrix
+         * @returns the unmodified current matrix
          */
         Matrix.prototype.invertToRef = function (other) {
             var l1 = this.m[0];
@@ -2913,8 +3819,11 @@
             return this;
         };
         /**
-         * Inserts the translation vector (using 3 x floats) in the current Matrix.
-         * Returns the updated Matrix.
+         * Inserts the translation vector (using 3 floats) in the current matrix
+         * @param x defines the 1st component of the translation
+         * @param y defines the 2nd component of the translation
+         * @param z defines the 3rd component of the translation
+         * @returns the current updated matrix
          */
         Matrix.prototype.setTranslationFromFloats = function (x, y, z) {
             this.m[12] = x;
@@ -2924,9 +3833,10 @@
             return this;
         };
         /**
- * Inserts the translation vector in the current Matrix.
- * Returns the updated Matrix.
- */
+         * Inserts the translation vector in the current matrix
+         * @param vector3 defines the translation to insert
+         * @returns the current updated matrix
+         */
         Matrix.prototype.setTranslation = function (vector3) {
             this.m[12] = vector3.x;
             this.m[13] = vector3.y;
@@ -2935,13 +3845,16 @@
             return this;
         };
         /**
-         * Returns a new Vector3 as the extracted translation from the Matrix.
+         * Gets the translation value of the current matrix
+         * @returns a new Vector3 as the extracted translation from the matrix
          */
         Matrix.prototype.getTranslation = function () {
             return new Vector3(this.m[12], this.m[13], this.m[14]);
         };
         /**
-         * Fill a Vector3 with the extracted translation from the Matrix.
+         * Fill a Vector3 with the extracted translation from the matrix
+         * @param result defines the Vector3 where to store the translation
+         * @returns the current matrix
          */
         Matrix.prototype.getTranslationToRef = function (result) {
             result.x = this.m[12];
@@ -2950,8 +3863,8 @@
             return this;
         };
         /**
-         * Remove rotation and scaling part from the Matrix.
-         * Returns the updated Matrix.
+         * Remove rotation and scaling part from the matrix
+         * @returns the updated matrix
          */
         Matrix.prototype.removeRotationAndScaling = function () {
             this.setRowFromFloats(0, 1, 0, 0, 0);
@@ -2960,7 +3873,9 @@
             return this;
         };
         /**
-         * Returns a new Matrix set with the multiplication result of the current Matrix and the passed one.
+         * Multiply two matrices
+         * @param other defines the second operand
+         * @returns a new matrix set with the multiplication result of the current Matrix and the given one
          */
         Matrix.prototype.multiply = function (other) {
             var result = new Matrix();
@@ -2968,8 +3883,9 @@
             return result;
         };
         /**
-         * Updates the current Matrix from the passed one values.
-         * Returns the updated Matrix.
+         * Copy the current matrix from the given one
+         * @param other defines the source matrix
+         * @returns the current updated matrix
          */
         Matrix.prototype.copyFrom = function (other) {
             for (var index = 0; index < 16; index++) {
@@ -2979,8 +3895,10 @@
             return this;
         };
         /**
-         * Populates the passed array from the starting index with the Matrix values.
-         * Returns the Matrix.
+         * Populates the given array from the starting index with the current matrix values
+         * @param array defines the target array
+         * @param offset defines the offset in the target array where to start storing values
+         * @returns the current matrix
          */
         Matrix.prototype.copyToArray = function (array, offset) {
             if (offset === void 0) { offset = 0; }
@@ -2990,7 +3908,10 @@
             return this;
         };
         /**
-         * Sets the passed matrix "result" with the multiplication result of the current Matrix and the passed one.
+         * Sets the given matrix "result" with the multiplication result of the current Matrix and the given one
+         * @param other defines the second operand
+         * @param result defines the matrix where to store the multiplication
+         * @returns the current matrix
          */
         Matrix.prototype.multiplyToRef = function (other, result) {
             this.multiplyToArray(other, result.m, 0);
@@ -2998,7 +3919,11 @@
             return this;
         };
         /**
-         * Sets the Float32Array "result" from the passed index "offset" with the multiplication result of the current Matrix and the passed one.
+         * Sets the Float32Array "result" from the given index "offset" with the multiplication of the current matrix and the given one
+         * @param other defines the second operand
+         * @param result defines the array where to store the multiplication
+         * @param offset defines the offset in the target array where to start storing values
+         * @returns the current matrix
          */
         Matrix.prototype.multiplyToArray = function (other, result, offset) {
             var tm0 = this.m[0];
@@ -3052,7 +3977,9 @@
             return this;
         };
         /**
-         * Boolean : True is the current Matrix and the passed one values are strictly equal.
+         * Check equality between this matrix and a second one
+         * @param value defines the second matrix to compare
+         * @returns true is the current matrix and the given one values are strictly equal
          */
         Matrix.prototype.equals = function (value) {
             return value &&
@@ -3062,19 +3989,22 @@
                     this.m[12] === value.m[12] && this.m[13] === value.m[13] && this.m[14] === value.m[14] && this.m[15] === value.m[15]);
         };
         /**
-         * Returns a new Matrix from the current Matrix.
+         * Clone the current matrix
+         * @returns a new matrix from the current matrix
          */
         Matrix.prototype.clone = function () {
             return Matrix.FromValues(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5], this.m[6], this.m[7], this.m[8], this.m[9], this.m[10], this.m[11], this.m[12], this.m[13], this.m[14], this.m[15]);
         };
         /**
-         * Returns the string "Matrix"
+         * Returns the name of the current matrix class
+         * @returns the string "Matrix"
          */
         Matrix.prototype.getClassName = function () {
             return "Matrix";
         };
         /**
-         * Returns the Matrix hash code.
+         * Gets the hash code of the current matrix
+         * @returns the hash code
          */
         Matrix.prototype.getHashCode = function () {
             var hash = this.m[0] || 0;
@@ -3084,16 +4014,19 @@
             return hash;
         };
         /**
-         * Decomposes the current Matrix into :
-         * - a scale vector3 passed as a reference to update,
-         * - a rotation quaternion passed as a reference to update,
-         * - a translation vector3 passed as a reference to update.
-         * Returns the boolean `true`.
+         * Decomposes the current Matrix into a translation, rotation and scaling components
+         * @param scale defines the scale vector3 given as a reference to update
+         * @param rotation defines the rotation quaternion given as a reference to update
+         * @param translation defines the translation vector3 given as a reference to update
+         * @returns true if operation was successful
          */
         Matrix.prototype.decompose = function (scale, rotation, translation) {
-            translation.x = this.m[12];
-            translation.y = this.m[13];
-            translation.z = this.m[14];
+            if (translation) {
+                translation.x = this.m[12];
+                translation.y = this.m[13];
+                translation.z = this.m[14];
+            }
+            scale = scale || MathTmp.Vector3[0];
             scale.x = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1] + this.m[2] * this.m[2]);
             scale.y = Math.sqrt(this.m[4] * this.m[4] + this.m[5] * this.m[5] + this.m[6] * this.m[6]);
             scale.z = Math.sqrt(this.m[8] * this.m[8] + this.m[9] * this.m[9] + this.m[10] * this.m[10]);
@@ -3101,18 +4034,136 @@
                 scale.y *= -1;
             }
             if (scale.x === 0 || scale.y === 0 || scale.z === 0) {
-                rotation.x = 0;
-                rotation.y = 0;
-                rotation.z = 0;
-                rotation.w = 1;
+                if (rotation) {
+                    rotation.x = 0;
+                    rotation.y = 0;
+                    rotation.z = 0;
+                    rotation.w = 1;
+                }
                 return false;
             }
-            Matrix.FromValuesToRef(this.m[0] / scale.x, this.m[1] / scale.x, this.m[2] / scale.x, 0, this.m[4] / scale.y, this.m[5] / scale.y, this.m[6] / scale.y, 0, this.m[8] / scale.z, this.m[9] / scale.z, this.m[10] / scale.z, 0, 0, 0, 0, 1, MathTmp.Matrix[0]);
-            Quaternion.FromRotationMatrixToRef(MathTmp.Matrix[0], rotation);
+            if (rotation) {
+                Matrix.FromValuesToRef(this.m[0] / scale.x, this.m[1] / scale.x, this.m[2] / scale.x, 0, this.m[4] / scale.y, this.m[5] / scale.y, this.m[6] / scale.y, 0, this.m[8] / scale.z, this.m[9] / scale.z, this.m[10] / scale.z, 0, 0, 0, 0, 1, MathTmp.Matrix[0]);
+                Quaternion.FromRotationMatrixToRef(MathTmp.Matrix[0], rotation);
+            }
             return true;
         };
         /**
-         * Returns a new Matrix as the extracted rotation matrix from the current one.
+         * Gets specific row of the matrix
+         * @param index defines the number of the row to get
+         * @returns the index-th row of the current matrix as a new Vector4
+         */
+        Matrix.prototype.getRow = function (index) {
+            if (index < 0 || index > 3) {
+                return null;
+            }
+            var i = index * 4;
+            return new Vector4(this.m[i + 0], this.m[i + 1], this.m[i + 2], this.m[i + 3]);
+        };
+        /**
+         * Sets the index-th row of the current matrix to the vector4 values
+         * @param index defines the number of the row to set
+         * @param row defines the target vector4
+         * @returns the updated current matrix
+         */
+        Matrix.prototype.setRow = function (index, row) {
+            if (index < 0 || index > 3) {
+                return this;
+            }
+            var i = index * 4;
+            this.m[i + 0] = row.x;
+            this.m[i + 1] = row.y;
+            this.m[i + 2] = row.z;
+            this.m[i + 3] = row.w;
+            this._markAsUpdated();
+            return this;
+        };
+        /**
+         * Compute the transpose of the matrix
+         * @returns the new transposed matrix
+         */
+        Matrix.prototype.transpose = function () {
+            return Matrix.Transpose(this);
+        };
+        /**
+         * Compute the transpose of the matrix and store it in a given matrix
+         * @param result defines the target matrix
+         * @returns the current matrix
+         */
+        Matrix.prototype.transposeToRef = function (result) {
+            Matrix.TransposeToRef(this, result);
+            return this;
+        };
+        /**
+         * Sets the index-th row of the current matrix with the given 4 x float values
+         * @param index defines the row index
+         * @param x defines the x component to set
+         * @param y defines the y component to set
+         * @param z defines the z component to set
+         * @param w defines the w component to set
+         * @returns the updated current matrix
+         */
+        Matrix.prototype.setRowFromFloats = function (index, x, y, z, w) {
+            if (index < 0 || index > 3) {
+                return this;
+            }
+            var i = index * 4;
+            this.m[i + 0] = x;
+            this.m[i + 1] = y;
+            this.m[i + 2] = z;
+            this.m[i + 3] = w;
+            this._markAsUpdated();
+            return this;
+        };
+        /**
+         * Compute a new matrix set with the current matrix values multiplied by scale (float)
+         * @param scale defines the scale factor
+         * @returns a new matrix
+         */
+        Matrix.prototype.scale = function (scale) {
+            var result = new Matrix();
+            this.scaleToRef(scale, result);
+            return result;
+        };
+        /**
+         * Scale the current matrix values by a factor to a given result matrix
+         * @param scale defines the scale factor
+         * @param result defines the matrix to store the result
+         * @returns the current matrix
+         */
+        Matrix.prototype.scaleToRef = function (scale, result) {
+            for (var index = 0; index < 16; index++) {
+                result.m[index] = this.m[index] * scale;
+            }
+            result._markAsUpdated();
+            return this;
+        };
+        /**
+         * Scale the current matrix values by a factor and add the result to a given matrix
+         * @param scale defines the scale factor
+         * @param result defines the Matrix to store the result
+         * @returns the current matrix
+         */
+        Matrix.prototype.scaleAndAddToRef = function (scale, result) {
+            for (var index = 0; index < 16; index++) {
+                result.m[index] += this.m[index] * scale;
+            }
+            result._markAsUpdated();
+            return this;
+        };
+        /**
+         * Writes to the given matrix a normal matrix, computed from this one (using values from identity matrix for fourth row and column).
+         * @param ref matrix to store the result
+         */
+        Matrix.prototype.toNormalMatrix = function (ref) {
+            this.invertToRef(ref);
+            ref.transpose();
+            var m = ref.m;
+            Matrix.FromValuesToRef(m[0], m[1], m[2], 0, m[4], m[5], m[6], 0, m[8], m[9], m[10], 0, 0, 0, 0, 1, ref);
+        };
+        /**
+         * Gets only rotation part of the current matrix
+         * @returns a new matrix sets to the extracted rotation matrix from the current one
          */
         Matrix.prototype.getRotationMatrix = function () {
             var result = Matrix.Identity();
@@ -3120,23 +4171,32 @@
             return result;
         };
         /**
-         * Extracts the rotation matrix from the current one and sets it as the passed "result".
-         * Returns the current Matrix.
+         * Extracts the rotation matrix from the current one and sets it as the given "result"
+         * @param result defines the target matrix to store data to
+         * @returns the current matrix
          */
         Matrix.prototype.getRotationMatrixToRef = function (result) {
             var m = this.m;
-            var xs = m[0] * m[1] * m[2] * m[3] < 0 ? -1 : 1;
-            var ys = m[4] * m[5] * m[6] * m[7] < 0 ? -1 : 1;
-            var zs = m[8] * m[9] * m[10] * m[11] < 0 ? -1 : 1;
-            var sx = xs * Math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]);
-            var sy = ys * Math.sqrt(m[4] * m[4] + m[5] * m[5] + m[6] * m[6]);
-            var sz = zs * Math.sqrt(m[8] * m[8] + m[9] * m[9] + m[10] * m[10]);
-            Matrix.FromValuesToRef(m[0] / sx, m[1] / sx, m[2] / sx, 0, m[4] / sy, m[5] / sy, m[6] / sy, 0, m[8] / sz, m[9] / sz, m[10] / sz, 0, 0, 0, 0, 1, result);
+            var sx = Math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]);
+            var sy = Math.sqrt(m[4] * m[4] + m[5] * m[5] + m[6] * m[6]);
+            var sz = Math.sqrt(m[8] * m[8] + m[9] * m[9] + m[10] * m[10]);
+            if (this.determinant() <= 0) {
+                sy *= -1;
+            }
+            if (sx === 0 || sy === 0 || sz === 0) {
+                Matrix.IdentityToRef(result);
+            }
+            else {
+                Matrix.FromValuesToRef(m[0] / sx, m[1] / sx, m[2] / sx, 0, m[4] / sy, m[5] / sy, m[6] / sy, 0, m[8] / sz, m[9] / sz, m[10] / sz, 0, 0, 0, 0, 1, result);
+            }
             return this;
         };
         // Statics
         /**
-         * Returns a new Matrix set from the starting index of the passed array.
+         * Creates a matrix from an array
+         * @param array defines the source array
+         * @param offset defines an offset in the source array
+         * @returns a new Matrix set from the starting index of the given array
          */
         Matrix.FromArray = function (array, offset) {
             var result = new Matrix();
@@ -3147,7 +4207,10 @@
             return result;
         };
         /**
-         * Sets the passed "result" matrix from the starting index of the passed array.
+         * Copy the content of an array into a given matrix
+         * @param array defines the source array
+         * @param offset defines an offset in the source array
+         * @param result defines the target matrix
          */
         Matrix.FromArrayToRef = function (array, offset, result) {
             for (var index = 0; index < 16; index++) {
@@ -3156,7 +4219,11 @@
             result._markAsUpdated();
         };
         /**
-         * Sets the passed "result" matrix from the starting index of the passed Float32Array by multiplying each element by the float "scale".
+         * Stores an array into a matrix after having multiplied each component by a given factor
+         * @param array defines the source array
+         * @param offset defines the offset in the source array
+         * @param scale defines the scaling factor
+         * @param result defines the target matrix
          */
         Matrix.FromFloat32ArrayToRefScaled = function (array, offset, scale, result) {
             for (var index = 0; index < 16; index++) {
@@ -3165,7 +4232,24 @@
             result._markAsUpdated();
         };
         /**
-         * Sets the passed matrix "result" with the 16 passed floats.
+         * Stores a list of values (16) inside a given matrix
+         * @param initialM11 defines 1st value of 1st row
+         * @param initialM12 defines 2nd value of 1st row
+         * @param initialM13 defines 3rd value of 1st row
+         * @param initialM14 defines 4th value of 1st row
+         * @param initialM21 defines 1st value of 2nd row
+         * @param initialM22 defines 2nd value of 2nd row
+         * @param initialM23 defines 3rd value of 2nd row
+         * @param initialM24 defines 4th value of 2nd row
+         * @param initialM31 defines 1st value of 3rd row
+         * @param initialM32 defines 2nd value of 3rd row
+         * @param initialM33 defines 3rd value of 3rd row
+         * @param initialM34 defines 4th value of 3rd row
+         * @param initialM41 defines 1st value of 4th row
+         * @param initialM42 defines 2nd value of 4th row
+         * @param initialM43 defines 3rd value of 4th row
+         * @param initialM44 defines 4th value of 4th row
+         * @param result defines the target matrix
          */
         Matrix.FromValuesToRef = function (initialM11, initialM12, initialM13, initialM14, initialM21, initialM22, initialM23, initialM24, initialM31, initialM32, initialM33, initialM34, initialM41, initialM42, initialM43, initialM44, result) {
             result.m[0] = initialM11;
@@ -3186,67 +4270,9 @@
             result.m[15] = initialM44;
             result._markAsUpdated();
         };
-        /**
-         * Returns the index-th row of the current matrix as a new Vector4.
-         */
-        Matrix.prototype.getRow = function (index) {
-            if (index < 0 || index > 3) {
-                return null;
-            }
-            var i = index * 4;
-            return new Vector4(this.m[i + 0], this.m[i + 1], this.m[i + 2], this.m[i + 3]);
-        };
-        /**
-         * Sets the index-th row of the current matrix with the passed Vector4 values.
-         * Returns the updated Matrix.
-         */
-        Matrix.prototype.setRow = function (index, row) {
-            if (index < 0 || index > 3) {
-                return this;
-            }
-            var i = index * 4;
-            this.m[i + 0] = row.x;
-            this.m[i + 1] = row.y;
-            this.m[i + 2] = row.z;
-            this.m[i + 3] = row.w;
-            this._markAsUpdated();
-            return this;
-        };
-        /**
-         * Compute the transpose of the matrix.
-         * Returns a new Matrix.
-         */
-        Matrix.prototype.transpose = function () {
-            return Matrix.Transpose(this);
-        };
-        /**
-         * Compute the transpose of the matrix.
-         * Returns the current matrix.
-         */
-        Matrix.prototype.transposeToRef = function (result) {
-            Matrix.TransposeToRef(this, result);
-            return this;
-        };
-        /**
-         * Sets the index-th row of the current matrix with the passed 4 x float values.
-         * Returns the updated Matrix.
-         */
-        Matrix.prototype.setRowFromFloats = function (index, x, y, z, w) {
-            if (index < 0 || index > 3) {
-                return this;
-            }
-            var i = index * 4;
-            this.m[i + 0] = x;
-            this.m[i + 1] = y;
-            this.m[i + 2] = z;
-            this.m[i + 3] = w;
-            this._markAsUpdated();
-            return this;
-        };
         Object.defineProperty(Matrix, "IdentityReadOnly", {
             /**
-             * Static identity matrix to be used as readonly matrix
-             * Must not be updated.
+             * Gets an identity matrix that must not be updated
              */
             get: function () {
                 return Matrix._identityReadOnly;
@@ -3255,7 +4281,24 @@
             configurable: true
         });
         /**
-         * Returns a new Matrix set from the 16 passed floats.
+         * Creates new matrix from a list of values (16)
+         * @param initialM11 defines 1st value of 1st row
+         * @param initialM12 defines 2nd value of 1st row
+         * @param initialM13 defines 3rd value of 1st row
+         * @param initialM14 defines 4th value of 1st row
+         * @param initialM21 defines 1st value of 2nd row
+         * @param initialM22 defines 2nd value of 2nd row
+         * @param initialM23 defines 3rd value of 2nd row
+         * @param initialM24 defines 4th value of 2nd row
+         * @param initialM31 defines 1st value of 3rd row
+         * @param initialM32 defines 2nd value of 3rd row
+         * @param initialM33 defines 3rd value of 3rd row
+         * @param initialM34 defines 4th value of 3rd row
+         * @param initialM41 defines 1st value of 4th row
+         * @param initialM42 defines 2nd value of 4th row
+         * @param initialM43 defines 3rd value of 4th row
+         * @param initialM44 defines 4th value of 4th row
+         * @returns the new matrix
          */
         Matrix.FromValues = function (initialM11, initialM12, initialM13, initialM14, initialM21, initialM22, initialM23, initialM24, initialM31, initialM32, initialM33, initialM34, initialM41, initialM42, initialM43, initialM44) {
             var result = new Matrix();
@@ -3278,7 +4321,11 @@
             return result;
         };
         /**
-         * Returns a new Matrix composed by the passed scale (vector3), rotation (quaternion) and translation (vector3).
+         * Creates a new matrix composed by merging scale (vector3), rotation (quaternion) and translation (vector3)
+         * @param scale defines the scale vector3
+         * @param rotation defines the rotation quaternion
+         * @param translation defines the translation vector3
+         * @returns a new matrix
          */
         Matrix.Compose = function (scale, rotation, translation) {
             var result = Matrix.Identity();
@@ -3286,8 +4333,12 @@
             return result;
         };
         /**
-       * Update a Matrix with values composed by the passed scale (vector3), rotation (quaternion) and translation (vector3).
-       */
+         * Sets a matrix to a value composed by merging scale (vector3), rotation (quaternion) and translation (vector3)
+         * @param scale defines the scale vector3
+         * @param rotation defines the rotation quaternion
+         * @param translation defines the translation vector3
+         * @param result defines the target matrix
+         */
         Matrix.ComposeToRef = function (scale, rotation, translation, result) {
             Matrix.FromValuesToRef(scale.x, 0, 0, 0, 0, scale.y, 0, 0, 0, 0, scale.z, 0, 0, 0, 0, 1, MathTmp.Matrix[1]);
             rotation.toRotationMatrix(MathTmp.Matrix[0]);
@@ -3295,25 +4346,30 @@
             result.setTranslation(translation);
         };
         /**
-         * Returns a new indentity Matrix.
+         * Creates a new identity matrix
+         * @returns a new identity matrix
          */
         Matrix.Identity = function () {
             return Matrix.FromValues(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
         };
         /**
-         * Sets the passed "result" as an identity matrix.
+         * Creates a new identity matrix and stores the result in a given matrix
+         * @param result defines the target matrix
          */
         Matrix.IdentityToRef = function (result) {
             Matrix.FromValuesToRef(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, result);
         };
         /**
-         * Returns a new zero Matrix.
+         * Creates a new zero matrix
+         * @returns a new zero matrix
          */
         Matrix.Zero = function () {
             return Matrix.FromValues(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         };
         /**
-         * Returns a new rotation matrix for "angle" radians around the X axis.
+         * Creates a new rotation matrix for "angle" radians around the X axis
+         * @param angle defines the angle (in radians) to use
+         * @return the new matrix
          */
         Matrix.RotationX = function (angle) {
             var result = new Matrix();
@@ -3321,7 +4377,9 @@
             return result;
         };
         /**
-         * Returns a new Matrix as the passed inverted one.
+         * Creates a new matrix as the invert of a given matrix
+         * @param source defines the source matrix
+         * @returns the new matrix
          */
         Matrix.Invert = function (source) {
             var result = new Matrix();
@@ -3329,7 +4387,9 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix for "angle" radians around the X axis.
+         * Creates a new rotation matrix for "angle" radians around the X axis and stores it in a given matrix
+         * @param angle defines the angle (in radians) to use
+         * @param result defines the target matrix
          */
         Matrix.RotationXToRef = function (angle, result) {
             var s = Math.sin(angle);
@@ -3353,7 +4413,9 @@
             result._markAsUpdated();
         };
         /**
-         * Returns a new rotation matrix for "angle" radians around the Y axis.
+         * Creates a new rotation matrix for "angle" radians around the Y axis
+         * @param angle defines the angle (in radians) to use
+         * @return the new matrix
          */
         Matrix.RotationY = function (angle) {
             var result = new Matrix();
@@ -3361,7 +4423,9 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix for "angle" radians around the Y axis.
+         * Creates a new rotation matrix for "angle" radians around the Y axis and stores it in a given matrix
+         * @param angle defines the angle (in radians) to use
+         * @param result defines the target matrix
          */
         Matrix.RotationYToRef = function (angle, result) {
             var s = Math.sin(angle);
@@ -3385,7 +4449,9 @@
             result._markAsUpdated();
         };
         /**
-         * Returns a new rotation matrix for "angle" radians around the Z axis.
+         * Creates a new rotation matrix for "angle" radians around the Z axis
+         * @param angle defines the angle (in radians) to use
+         * @return the new matrix
          */
         Matrix.RotationZ = function (angle) {
             var result = new Matrix();
@@ -3393,7 +4459,9 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix for "angle" radians around the Z axis.
+         * Creates a new rotation matrix for "angle" radians around the Z axis and stores it in a given matrix
+         * @param angle defines the angle (in radians) to use
+         * @param result defines the target matrix
          */
         Matrix.RotationZToRef = function (angle, result) {
             var s = Math.sin(angle);
@@ -3417,7 +4485,10 @@
             result._markAsUpdated();
         };
         /**
-         * Returns a new rotation matrix for "angle" radians around the passed axis.
+         * Creates a new rotation matrix for "angle" radians around the given axis
+         * @param axis defines the axis to use
+         * @param angle defines the angle (in radians) to use
+         * @return the new matrix
          */
         Matrix.RotationAxis = function (axis, angle) {
             var result = Matrix.Zero();
@@ -3425,7 +4496,10 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix for "angle" radians around the passed axis.
+         * Creates a new rotation matrix for "angle" radians around the given axis and stores it in a given matrix
+         * @param axis defines the axis to use
+         * @param angle defines the angle (in radians) to use
+         * @param result defines the target matrix
          */
         Matrix.RotationAxisToRef = function (axis, angle, result) {
             var s = Math.sin(-angle);
@@ -3448,7 +4522,11 @@
             result._markAsUpdated();
         };
         /**
-         * Returns a new Matrix as a rotation matrix from the Euler angles (y, x, z).
+         * Creates a rotation matrix
+         * @param yaw defines the yaw angle in radians (Y axis)
+         * @param pitch defines the pitch angle in radians (X axis)
+         * @param roll defines the roll angle in radians (X axis)
+         * @returns the new rotation matrix
          */
         Matrix.RotationYawPitchRoll = function (yaw, pitch, roll) {
             var result = new Matrix();
@@ -3456,14 +4534,22 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix from the Euler angles (y, x, z).
+         * Creates a rotation matrix and stores it in a given matrix
+         * @param yaw defines the yaw angle in radians (Y axis)
+         * @param pitch defines the pitch angle in radians (X axis)
+         * @param roll defines the roll angle in radians (X axis)
+         * @param result defines the target matrix
          */
         Matrix.RotationYawPitchRollToRef = function (yaw, pitch, roll, result) {
             Quaternion.RotationYawPitchRollToRef(yaw, pitch, roll, this._tempQuaternion);
             this._tempQuaternion.toRotationMatrix(result);
         };
         /**
-         * Returns a new Matrix as a scaling matrix from the passed floats (x, y, z).
+         * Creates a scaling matrix
+         * @param x defines the scale factor on X axis
+         * @param y defines the scale factor on Y axis
+         * @param z defines the scale factor on Z axis
+         * @returns the new matrix
          */
         Matrix.Scaling = function (x, y, z) {
             var result = Matrix.Zero();
@@ -3471,7 +4557,11 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a scaling matrix from the passed floats (x, y, z).
+         * Creates a scaling matrix and stores it in a given matrix
+         * @param x defines the scale factor on X axis
+         * @param y defines the scale factor on Y axis
+         * @param z defines the scale factor on Z axis
+         * @param result defines the target matrix
          */
         Matrix.ScalingToRef = function (x, y, z, result) {
             result.m[0] = x;
@@ -3493,7 +4583,11 @@
             result._markAsUpdated();
         };
         /**
-         * Returns a new Matrix as a translation matrix from the passed floats (x, y, z).
+         * Creates a translation matrix
+         * @param x defines the translation on X axis
+         * @param y defines the translation on Y axis
+         * @param z defines the translationon Z axis
+         * @returns the new matrix
          */
         Matrix.Translation = function (x, y, z) {
             var result = Matrix.Identity();
@@ -3501,45 +4595,89 @@
             return result;
         };
         /**
-         * Sets the passed matrix "result" as a translation matrix from the passed floats (x, y, z).
+         * Creates a translation matrix and stores it in a given matrix
+         * @param x defines the translation on X axis
+         * @param y defines the translation on Y axis
+         * @param z defines the translationon Z axis
+         * @param result defines the target matrix
          */
         Matrix.TranslationToRef = function (x, y, z, result) {
             Matrix.FromValuesToRef(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, x, y, z, 1.0, result);
         };
         /**
-         * Returns a new Matrix whose values are the interpolated values for "gradien" (float) between the ones of the matrices "startValue" and "endValue".
+         * Returns a new Matrix whose values are the interpolated values for "gradient" (float) between the ones of the matrices "startValue" and "endValue".
+         * @param startValue defines the start value
+         * @param endValue defines the end value
+         * @param gradient defines the gradient factor
+         * @returns the new matrix
          */
         Matrix.Lerp = function (startValue, endValue, gradient) {
             var result = Matrix.Zero();
+            Matrix.LerpToRef(startValue, endValue, gradient, result);
+            return result;
+        };
+        /**
+         * Set the given matrix "result" as the interpolated values for "gradient" (float) between the ones of the matrices "startValue" and "endValue".
+         * @param startValue defines the start value
+         * @param endValue defines the end value
+         * @param gradient defines the gradient factor
+         * @param result defines the Matrix object where to store data
+         */
+        Matrix.LerpToRef = function (startValue, endValue, gradient, result) {
             for (var index = 0; index < 16; index++) {
                 result.m[index] = startValue.m[index] * (1.0 - gradient) + endValue.m[index] * gradient;
             }
             result._markAsUpdated();
+        };
+        /**
+         * Builds a new matrix whose values are computed by:
+         * * decomposing the the "startValue" and "endValue" matrices into their respective scale, rotation and translation matrices
+         * * interpolating for "gradient" (float) the values between each of these decomposed matrices between the start and the end
+         * * recomposing a new matrix from these 3 interpolated scale, rotation and translation matrices
+         * @param startValue defines the first matrix
+         * @param endValue defines the second matrix
+         * @param gradient defines the gradient between the two matrices
+         * @returns the new matrix
+         */
+        Matrix.DecomposeLerp = function (startValue, endValue, gradient) {
+            var result = Matrix.Zero();
+            Matrix.DecomposeLerpToRef(startValue, endValue, gradient, result);
             return result;
         };
         /**
-         * Returns a new Matrix whose values are computed by :
-         * - decomposing the the "startValue" and "endValue" matrices into their respective scale, rotation and translation matrices,
-         * - interpolating for "gradient" (float) the values between each of these decomposed matrices between the start and the end,
-         * - recomposing a new matrix from these 3 interpolated scale, rotation and translation matrices.
+         * Update a matrix to values which are computed by:
+         * * decomposing the the "startValue" and "endValue" matrices into their respective scale, rotation and translation matrices
+         * * interpolating for "gradient" (float) the values between each of these decomposed matrices between the start and the end
+         * * recomposing a new matrix from these 3 interpolated scale, rotation and translation matrices
+         * @param startValue defines the first matrix
+         * @param endValue defines the second matrix
+         * @param gradient defines the gradient between the two matrices
+         * @param result defines the target matrix
          */
-        Matrix.DecomposeLerp = function (startValue, endValue, gradient) {
-            var startScale = new Vector3(0, 0, 0);
-            var startRotation = new Quaternion();
-            var startTranslation = new Vector3(0, 0, 0);
+        Matrix.DecomposeLerpToRef = function (startValue, endValue, gradient, result) {
+            var startScale = MathTmp.Vector3[0];
+            var startRotation = MathTmp.Quaternion[0];
+            var startTranslation = MathTmp.Vector3[1];
             startValue.decompose(startScale, startRotation, startTranslation);
-            var endScale = new Vector3(0, 0, 0);
-            var endRotation = new Quaternion();
-            var endTranslation = new Vector3(0, 0, 0);
+            var endScale = MathTmp.Vector3[2];
+            var endRotation = MathTmp.Quaternion[1];
+            var endTranslation = MathTmp.Vector3[3];
             endValue.decompose(endScale, endRotation, endTranslation);
-            var resultScale = Vector3.Lerp(startScale, endScale, gradient);
-            var resultRotation = Quaternion.Slerp(startRotation, endRotation, gradient);
-            var resultTranslation = Vector3.Lerp(startTranslation, endTranslation, gradient);
-            return Matrix.Compose(resultScale, resultRotation, resultTranslation);
+            var resultScale = MathTmp.Vector3[4];
+            Vector3.LerpToRef(startScale, endScale, gradient, resultScale);
+            var resultRotation = MathTmp.Quaternion[2];
+            Quaternion.SlerpToRef(startRotation, endRotation, gradient, resultRotation);
+            var resultTranslation = MathTmp.Vector3[5];
+            Vector3.LerpToRef(startTranslation, endTranslation, gradient, resultTranslation);
+            Matrix.ComposeToRef(resultScale, resultRotation, resultTranslation, result);
         };
         /**
-         * Returns a new rotation Matrix used to rotate a mesh so as it looks at the target Vector3, from the eye Vector3, the UP vector3 being orientated like "up".
-         * This methods works for a Left-Handed system.
+         * Gets a new rotation matrix used to rotate an entity so as it looks at the target vector3, from the eye vector3 position, the up vector3 being oriented like "up"
+         * This function works in left handed mode
+         * @param eye defines the final position of the entity
+         * @param target defines where the entity should look at
+         * @param up defines the up vector for the entity
+         * @returns the new matrix
          */
         Matrix.LookAtLH = function (eye, target, up) {
             var result = Matrix.Zero();
@@ -3547,8 +4685,12 @@
             return result;
         };
         /**
-         * Sets the passed "result" Matrix as a rotation matrix used to rotate a mesh so as it looks at the target Vector3, from the eye Vector3, the UP vector3 being orientated like "up".
-         * This methods works for a Left-Handed system.
+         * Sets the given "result" Matrix to a rotation matrix used to rotate an entity so that it looks at the target vector3, from the eye vector3 position, the up vector3 being oriented like "up".
+         * This function works in left handed mode
+         * @param eye defines the final position of the entity
+         * @param target defines where the entity should look at
+         * @param up defines the up vector for the entity
+         * @param result defines the target matrix
          */
         Matrix.LookAtLHToRef = function (eye, target, up, result) {
             // Z axis
@@ -3572,8 +4714,12 @@
             return Matrix.FromValuesToRef(this._xAxis.x, this._yAxis.x, this._zAxis.x, 0, this._xAxis.y, this._yAxis.y, this._zAxis.y, 0, this._xAxis.z, this._yAxis.z, this._zAxis.z, 0, ex, ey, ez, 1, result);
         };
         /**
-         * Returns a new rotation Matrix used to rotate a mesh so as it looks at the target Vector3, from the eye Vector3, the UP vector3 being orientated like "up".
-         * This methods works for a Right-Handed system.
+         * Gets a new rotation matrix used to rotate an entity so as it looks at the target vector3, from the eye vector3 position, the up vector3 being oriented like "up"
+         * This function works in right handed mode
+         * @param eye defines the final position of the entity
+         * @param target defines where the entity should look at
+         * @param up defines the up vector for the entity
+         * @returns the new matrix
          */
         Matrix.LookAtRH = function (eye, target, up) {
             var result = Matrix.Zero();
@@ -3581,8 +4727,12 @@
             return result;
         };
         /**
-         * Sets the passed "result" Matrix as a rotation matrix used to rotate a mesh so as it looks at the target Vector3, from the eye Vector3, the UP vector3 being orientated like "up".
-         * This methods works for a Left-Handed system.
+         * Sets the given "result" Matrix to a rotation matrix used to rotate an entity so that it looks at the target vector3, from the eye vector3 position, the up vector3 being oriented like "up".
+         * This function works in right handed mode
+         * @param eye defines the final position of the entity
+         * @param target defines where the entity should look at
+         * @param up defines the up vector for the entity
+         * @param result defines the target matrix
          */
         Matrix.LookAtRHToRef = function (eye, target, up, result) {
             // Z axis
@@ -3606,7 +4756,12 @@
             return Matrix.FromValuesToRef(this._xAxis.x, this._yAxis.x, this._zAxis.x, 0, this._xAxis.y, this._yAxis.y, this._zAxis.y, 0, this._xAxis.z, this._yAxis.z, this._zAxis.z, 0, ex, ey, ez, 1, result);
         };
         /**
-         * Returns a new Matrix as a left-handed orthographic projection matrix computed from the passed floats : width and height of the projection plane, z near and far limits.
+         * Create a left-handed orthographic projection matrix
+         * @param width defines the viewport width
+         * @param height defines the viewport height
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a left-handed orthographic projection matrix
          */
         Matrix.OrthoLH = function (width, height, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3614,7 +4769,12 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as a left-handed orthographic projection matrix computed from the passed floats : width and height of the projection plane, z near and far limits.
+         * Store a left-handed orthographic projection to a given matrix
+         * @param width defines the viewport width
+         * @param height defines the viewport height
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
          */
         Matrix.OrthoLHToRef = function (width, height, znear, zfar, result) {
             var n = znear;
@@ -3626,7 +4786,14 @@
             Matrix.FromValuesToRef(a, 0.0, 0.0, 0.0, 0.0, b, 0.0, 0.0, 0.0, 0.0, c, 0.0, 0.0, 0.0, d, 1.0, result);
         };
         /**
-         * Returns a new Matrix as a left-handed orthographic projection matrix computed from the passed floats : left, right, top and bottom being the coordinates of the projection plane, z near and far limits.
+         * Create a left-handed orthographic projection matrix
+         * @param left defines the viewport left coordinate
+         * @param right defines the viewport right coordinate
+         * @param bottom defines the viewport bottom coordinate
+         * @param top defines the viewport top coordinate
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a left-handed orthographic projection matrix
          */
         Matrix.OrthoOffCenterLH = function (left, right, bottom, top, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3634,7 +4801,14 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as a left-handed orthographic projection matrix computed from the passed floats : left, right, top and bottom being the coordinates of the projection plane, z near and far limits.
+         * Stores a left-handed orthographic projection into a given matrix
+         * @param left defines the viewport left coordinate
+         * @param right defines the viewport right coordinate
+         * @param bottom defines the viewport bottom coordinate
+         * @param top defines the viewport top coordinate
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
          */
         Matrix.OrthoOffCenterLHToRef = function (left, right, bottom, top, znear, zfar, result) {
             var n = znear;
@@ -3648,7 +4822,14 @@
             Matrix.FromValuesToRef(a, 0.0, 0.0, 0.0, 0.0, b, 0.0, 0.0, 0.0, 0.0, c, 0.0, i0, i1, d, 1.0, result);
         };
         /**
-         * Returns a new Matrix as a right-handed orthographic projection matrix computed from the passed floats : left, right, top and bottom being the coordinates of the projection plane, z near and far limits.
+         * Creates a right-handed orthographic projection matrix
+         * @param left defines the viewport left coordinate
+         * @param right defines the viewport right coordinate
+         * @param bottom defines the viewport bottom coordinate
+         * @param top defines the viewport top coordinate
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a right-handed orthographic projection matrix
          */
         Matrix.OrthoOffCenterRH = function (left, right, bottom, top, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3656,14 +4837,26 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as a right-handed orthographic projection matrix computed from the passed floats : left, right, top and bottom being the coordinates of the projection plane, z near and far limits.
+         * Stores a right-handed orthographic projection into a given matrix
+         * @param left defines the viewport left coordinate
+         * @param right defines the viewport right coordinate
+         * @param bottom defines the viewport bottom coordinate
+         * @param top defines the viewport top coordinate
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
          */
         Matrix.OrthoOffCenterRHToRef = function (left, right, bottom, top, znear, zfar, result) {
             Matrix.OrthoOffCenterLHToRef(left, right, bottom, top, znear, zfar, result);
             result.m[10] *= -1.0;
         };
         /**
-         * Returns a new Matrix as a left-handed perspective projection matrix computed from the passed floats : width and height of the projection plane, z near and far limits.
+         * Creates a left-handed perspective projection matrix
+         * @param width defines the viewport width
+         * @param height defines the viewport height
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a left-handed perspective projection matrix
          */
         Matrix.PerspectiveLH = function (width, height, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3677,7 +4870,12 @@
             return matrix;
         };
         /**
-         * Returns a new Matrix as a left-handed perspective projection matrix computed from the passed floats : vertical angle of view (fov), width/height ratio (aspect), z near and far limits.
+         * Creates a left-handed perspective projection matrix
+         * @param fov defines the horizontal field of view
+         * @param aspect defines the aspect ratio
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a left-handed perspective projection matrix
          */
         Matrix.PerspectiveFovLH = function (fov, aspect, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3685,7 +4883,13 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as a left-handed perspective projection matrix computed from the passed floats : vertical angle of view (fov), width/height ratio (aspect), z near and far limits.
+         * Stores a left-handed perspective projection into a given matrix
+         * @param fov defines the horizontal field of view
+         * @param aspect defines the aspect ratio
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
+         * @param isVerticalFovFixed defines it the fov is vertically fixed (default) or horizontally
          */
         Matrix.PerspectiveFovLHToRef = function (fov, aspect, znear, zfar, result, isVerticalFovFixed) {
             if (isVerticalFovFixed === void 0) { isVerticalFovFixed = true; }
@@ -3699,7 +4903,12 @@
             Matrix.FromValuesToRef(a, 0.0, 0.0, 0.0, 0.0, b, 0.0, 0.0, 0.0, 0.0, c, 1.0, 0.0, 0.0, d, 0.0, result);
         };
         /**
-         * Returns a new Matrix as a right-handed perspective projection matrix computed from the passed floats : vertical angle of view (fov), width/height ratio (aspect), z near and far limits.
+         * Creates a right-handed perspective projection matrix
+         * @param fov defines the horizontal field of view
+         * @param aspect defines the aspect ratio
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @returns a new matrix as a right-handed perspective projection matrix
          */
         Matrix.PerspectiveFovRH = function (fov, aspect, znear, zfar) {
             var matrix = Matrix.Zero();
@@ -3707,7 +4916,13 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as a right-handed perspective projection matrix computed from the passed floats : vertical angle of view (fov), width/height ratio (aspect), z near and far limits.
+         * Stores a right-handed perspective projection into a given matrix
+         * @param fov defines the horizontal field of view
+         * @param aspect defines the aspect ratio
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
+         * @param isVerticalFovFixed defines it the fov is vertically fixed (default) or horizontally
          */
         Matrix.PerspectiveFovRHToRef = function (fov, aspect, znear, zfar, result, isVerticalFovFixed) {
             //alternatively this could be expressed as:
@@ -3725,7 +4940,12 @@
             Matrix.FromValuesToRef(a, 0.0, 0.0, 0.0, 0.0, b, 0.0, 0.0, 0.0, 0.0, c, -1.0, 0.0, 0.0, d, 0.0, result);
         };
         /**
-         * Sets the passed matrix "result" as a left-handed perspective projection matrix  for WebVR computed from the passed floats : vertical angle of view (fov), width/height ratio (aspect), z near and far limits.
+         * Stores a perspective projection for WebVR info a given matrix
+         * @param fov defines the field of view
+         * @param znear defines the near clip plane
+         * @param zfar defines the far clip plane
+         * @param result defines the target matrix
+         * @param rightHanded defines if the matrix must be in right-handed mode (false by default)
          */
         Matrix.PerspectiveFovWebVRToRef = function (fov, znear, zfar, result, rightHanded) {
             if (rightHanded === void 0) { rightHanded = false; }
@@ -3740,18 +4960,23 @@
             result.m[1] = result.m[2] = result.m[3] = result.m[4] = 0.0;
             result.m[5] = yScale;
             result.m[6] = result.m[7] = 0.0;
-            result.m[8] = ((leftTan - rightTan) * xScale * 0.5); // * rightHandedFactor;
-            result.m[9] = -((upTan - downTan) * yScale * 0.5); // * rightHandedFactor;
-            //result.m[10] = -(znear + zfar) / (zfar - znear) * rightHandedFactor;
+            result.m[8] = ((leftTan - rightTan) * xScale * 0.5);
+            result.m[9] = -((upTan - downTan) * yScale * 0.5);
             result.m[10] = -zfar / (znear - zfar);
             result.m[11] = 1.0 * rightHandedFactor;
             result.m[12] = result.m[13] = result.m[15] = 0.0;
             result.m[14] = -(2.0 * zfar * znear) / (zfar - znear);
-            // result.m[14] = (znear * zfar) / (znear - zfar);
             result._markAsUpdated();
         };
         /**
-         * Returns the final transformation matrix : world * view * projection * viewport
+         * Computes a complete transformation matrix
+         * @param viewport defines the viewport to use
+         * @param world defines the world matrix
+         * @param view defines the view matrix
+         * @param projection defines the projection matrix
+         * @param zmin defines the near clip plane
+         * @param zmax defines the far clip plane
+         * @returns the transformation matrix
          */
         Matrix.GetFinalMatrix = function (viewport, world, view, projection, zmin, zmax) {
             var cw = viewport.width;
@@ -3762,7 +4987,9 @@
             return world.multiply(view).multiply(projection).multiply(viewportMatrix);
         };
         /**
-         * Returns a new Float32Array array with 4 elements : the 2x2 matrix extracted from the passed Matrix.
+         * Extracts a 2x2 matrix from a given matrix and store the result in a Float32Array
+         * @param matrix defines the matrix to use
+         * @returns a new Float32Array array with 4 elements : the 2x2 matrix extracted from the given matrix
          */
         Matrix.GetAsMatrix2x2 = function (matrix) {
             return new Float32Array([
@@ -3771,7 +4998,9 @@
             ]);
         };
         /**
-         * Returns a new Float32Array array with 9 elements : the 3x3 matrix extracted from the passed Matrix.
+         * Extracts a 3x3 matrix from a given matrix and store the result in a Float32Array
+         * @param matrix defines the matrix to use
+         * @returns a new Float32Array array with 9 elements : the 3x3 matrix extracted from the given matrix
          */
         Matrix.GetAsMatrix3x3 = function (matrix) {
             return new Float32Array([
@@ -3781,8 +5010,9 @@
             ]);
         };
         /**
-         * Compute the transpose of the passed Matrix.
-         * Returns a new Matrix.
+         * Compute the transpose of a given matrix
+         * @param matrix defines the matrix to transpose
+         * @returns the new matrix
          */
         Matrix.Transpose = function (matrix) {
             var result = new Matrix();
@@ -3790,7 +5020,9 @@
             return result;
         };
         /**
-         * Compute the transpose of the passed Matrix and store it in the result matrix.
+         * Compute the transpose of a matrix and store it in a target matrix
+         * @param matrix defines the matrix to transpose
+         * @param result defines the target matrix
          */
         Matrix.TransposeToRef = function (matrix, result) {
             result.m[0] = matrix.m[0];
@@ -3811,7 +5043,9 @@
             result.m[15] = matrix.m[15];
         };
         /**
-         * Returns a new Matrix as the reflection  matrix across the passed plane.
+         * Computes a reflection matrix from a plane
+         * @param plane defines the reflection plane
+         * @returns a new matrix
          */
         Matrix.Reflection = function (plane) {
             var matrix = new Matrix();
@@ -3819,7 +5053,9 @@
             return matrix;
         };
         /**
-         * Sets the passed matrix "result" as the reflection matrix across the passed plane.
+         * Computes a reflection matrix from a plane
+         * @param plane defines the reflection plane
+         * @param result defines the target matrix
          */
         Matrix.ReflectionToRef = function (plane, result) {
             plane.normalize();
@@ -3848,7 +5084,11 @@
             result._markAsUpdated();
         };
         /**
-         * Sets the passed matrix "mat" as a rotation matrix composed from the 3 passed  left handed axis.
+         * Sets the given matrix as a rotation matrix composed from the 3 left handed axes
+         * @param xaxis defines the value of the 1st axis
+         * @param yaxis defines the value of the 2nd axis
+         * @param zaxis defines the value of the 3rd axis
+         * @param result defines the target matrix
          */
         Matrix.FromXYZAxesToRef = function (xaxis, yaxis, zaxis, result) {
             result.m[0] = xaxis.x;
@@ -3870,7 +5110,9 @@
             result._markAsUpdated();
         };
         /**
-         * Sets the passed matrix "result" as a rotation matrix according to the passed quaternion.
+         * Creates a rotation matrix from a quaternion and stores it in a target matrix
+         * @param quat defines the quaternion to use
+         * @param result defines the target matrix
          */
         Matrix.FromQuaternionToRef = function (quat, result) {
             var xx = quat.x * quat.x;
@@ -3911,7 +5153,7 @@
     LIB.Matrix = Matrix;
     var Plane = /** @class */ (function () {
         /**
-         * Creates a Plane object according to the passed floats a, b, c, d and the plane equation : ax + by + cz + d = 0
+         * Creates a Plane object according to the given floats a, b, c, d and the plane equation : ax + by + cz + d = 0
          */
         function Plane(a, b, c, d) {
             this.normal = new Vector3(a, b, c);
@@ -3961,7 +5203,7 @@
             return this;
         };
         /**
-         * Returns a new Plane as the result of the transformation of the current Plane by the passed matrix.
+         * Returns a new Plane as the result of the transformation of the current Plane by the given matrix.
          */
         Plane.prototype.transform = function (transformation) {
             var transposedMatrix = Matrix.Transpose(transformation);
@@ -3982,7 +5224,7 @@
             return ((((this.normal.x * point.x) + (this.normal.y * point.y)) + (this.normal.z * point.z)) + this.d);
         };
         /**
-         * Updates the current Plane from the plane defined by the three passed points.
+         * Updates the current Plane from the plane defined by the three given points.
          * Returns the updated Plane.
          */
         Plane.prototype.copyFromPoints = function (point1, point2, point3) {
@@ -4017,20 +5259,20 @@
             return (dot <= epsilon);
         };
         /**
-         * Returns the signed distance (float) from the passed point to the Plane.
+         * Returns the signed distance (float) from the given point to the Plane.
          */
         Plane.prototype.signedDistanceTo = function (point) {
             return Vector3.Dot(point, this.normal) + this.d;
         };
         // Statics
         /**
-         * Returns a new Plane from the passed array.
+         * Returns a new Plane from the given array.
          */
         Plane.FromArray = function (array) {
             return new Plane(array[0], array[1], array[2], array[3]);
         };
         /**
-         * Returns a new Plane defined by the three passed points.
+         * Returns a new Plane defined by the three given points.
          */
         Plane.FromPoints = function (point1, point2, point3) {
             var result = new Plane(0.0, 0.0, 0.0, 0.0);
@@ -4038,7 +5280,7 @@
             return result;
         };
         /**
-         * Returns a new Plane the normal vector to this plane at the passed origin point.
+         * Returns a new Plane the normal vector to this plane at the given origin point.
          * Note : the vector "normal" is updated because normalized.
          */
         Plane.FromPositionAndNormal = function (origin, normal) {
@@ -4049,7 +5291,7 @@
             return result;
         };
         /**
-         * Returns the signed distance between the plane defined by the normal vector at the "origin"" point and the passed other point.
+         * Returns the signed distance between the plane defined by the normal vector at the "origin"" point and the given other point.
          */
         Plane.SignedDistanceToPlaneFromPositionAndNormal = function (origin, normal, point) {
             var d = -(normal.x * origin.x + normal.y * origin.y + normal.z * origin.z);
@@ -4089,7 +5331,7 @@
         function Frustum() {
         }
         /**
-         * Returns a new array of 6 Frustum planes computed by the passed transformation matrix.
+         * Returns a new array of 6 Frustum planes computed by the given transformation matrix.
          */
         Frustum.GetPlanes = function (transform) {
             var frustumPlanes = [];
@@ -4142,7 +5384,7 @@
             frustumPlane.normalize();
         };
         /**
-         * Sets the passed array "frustumPlanes" with the 6 Frustum planes computed by the passed transformation matrix.
+         * Sets the given array "frustumPlanes" with the 6 Frustum planes computed by the given transformation matrix.
          */
         Frustum.GetPlanesToRef = function (transform, frustumPlanes) {
             // Near
@@ -4161,17 +5403,25 @@
         return Frustum;
     }());
     LIB.Frustum = Frustum;
+    /** Defines supported spaces */
     var Space;
     (function (Space) {
+        /** Local (object) space */
         Space[Space["LOCAL"] = 0] = "LOCAL";
+        /** World space */
         Space[Space["WORLD"] = 1] = "WORLD";
+        /** Bone space */
         Space[Space["BONE"] = 2] = "BONE";
     })(Space = LIB.Space || (LIB.Space = {}));
+    /** Defines the 3 main axes */
     var Axis = /** @class */ (function () {
         function Axis() {
         }
+        /** X axis */
         Axis.X = new Vector3(1.0, 0.0, 0.0);
+        /** Y axis */
         Axis.Y = new Vector3(0.0, 1.0, 0.0);
+        /** Z axis */
         Axis.Z = new Vector3(0.0, 0.0, 1.0);
         return Axis;
     }());
@@ -4181,7 +5431,7 @@
         function BezierCurve() {
         }
         /**
-         * Returns the cubic Bezier interpolated value (float) at "t" (float) from the passed x1, y1, x2, y2 floats.
+         * Returns the cubic Bezier interpolated value (float) at "t" (float) from the given x1, y1, x2, y2 floats.
          */
         BezierCurve.interpolate = function (t, x1, y1, x2, y2) {
             // Extract X (which is equal to time here)
@@ -4205,31 +5455,49 @@
         return BezierCurve;
     }());
     LIB.BezierCurve = BezierCurve;
+    /**
+     * Defines potential orientation for back face culling
+     */
     var Orientation;
     (function (Orientation) {
+        /**
+         * Clockwise
+         */
         Orientation[Orientation["CW"] = 0] = "CW";
+        /** Counter clockwise */
         Orientation[Orientation["CCW"] = 1] = "CCW";
     })(Orientation = LIB.Orientation || (LIB.Orientation = {}));
+    /**
+     * Defines angle representation
+     */
     var Angle = /** @class */ (function () {
         /**
          * Creates an Angle object of "radians" radians (float).
          */
         function Angle(radians) {
-            var _this = this;
-            /**
-             * Returns the Angle value in degrees (float).
-             */
-            this.degrees = function () { return _this._radians * 180.0 / Math.PI; };
-            /**
-             * Returns the Angle value in radians (float).
-             */
-            this.radians = function () { return _this._radians; };
             this._radians = radians;
             if (this._radians < 0.0)
                 this._radians += (2.0 * Math.PI);
         }
         /**
-         * Returns a new Angle object valued with the angle value in radians between the two passed vectors.
+         * Get value in degrees
+         * @returns the Angle value in degrees (float)
+         */
+        Angle.prototype.degrees = function () {
+            return this._radians * 180.0 / Math.PI;
+        };
+        /**
+         * Get value in radians
+         * @returns the Angle value in radians (float)
+         */
+        Angle.prototype.radians = function () {
+            return this._radians;
+        };
+        /**
+         * Gets a new Angle object valued with the angle value in radians between the two given vectors
+         * @param a defines first vector
+         * @param b defines second vector
+         * @returns a new Angle
          */
         Angle.BetweenTwoPoints = function (a, b) {
             var delta = b.subtract(a);
@@ -4237,13 +5505,17 @@
             return new Angle(theta);
         };
         /**
-         * Returns a new Angle object from the passed float in radians.
+         * Gets a new Angle object from the given float in radians
+         * @param radians defines the angle value in radians
+         * @returns a new Angle
          */
         Angle.FromRadians = function (radians) {
             return new Angle(radians);
         };
         /**
-         * Returns a new Angle object from the passed float in degrees.
+         * Gets a new Angle object from the given float in degrees
+         * @param degrees defines the angle value in degrees
+         * @returns a new Angle
          */
         Angle.FromDegrees = function (degrees) {
             return new Angle(degrees * Math.PI / 180.0);
@@ -4253,7 +5525,7 @@
     LIB.Angle = Angle;
     var Arc2 = /** @class */ (function () {
         /**
-         * Creates an Arc object from the three passed points : start, middle and end.
+         * Creates an Arc object from the three given points : start, middle and end.
          */
         function Arc2(startPoint, midPoint, endPoint) {
             this.startPoint = startPoint;
@@ -4295,12 +5567,11 @@
             this._points.push(new Vector2(x, y));
         }
         /**
-         * Adds a new segment until the passed coordinates (x, y) to the current Path2.
+         * Adds a new segment until the given coordinates (x, y) to the current Path2.
          * Returns the updated Path2.
          */
         Path2.prototype.addLineTo = function (x, y) {
             if (this.closed) {
-                //Tools.Error("cannot add lines to closed paths");
                 return this;
             }
             var newPoint = new Vector2(x, y);
@@ -4316,7 +5587,6 @@
         Path2.prototype.addArcTo = function (midX, midY, endX, endY, numberOfSegments) {
             if (numberOfSegments === void 0) { numberOfSegments = 36; }
             if (this.closed) {
-                //Tools.Error("cannot add arcs to closed paths");
                 return this;
             }
             var startPoint = this._points[this._points.length - 1];
@@ -4366,7 +5636,6 @@
          */
         Path2.prototype.getPointAtLengthPosition = function (normalizedLengthPosition) {
             if (normalizedLengthPosition < 0 || normalizedLengthPosition > 1) {
-                //Tools.Error("normalized length position should be between 0 and 1.");
                 return Vector2.Zero();
             }
             var lengthPosition = normalizedLengthPosition * this.length();
@@ -4384,7 +5653,6 @@
                 }
                 previousOffset = nextOffset;
             }
-            //Tools.Error("internal error");
             return Vector2.Zero();
         };
         /**
@@ -4549,7 +5817,7 @@
             }
             if (va === undefined || va === null) {
                 var point;
-                if (!LIB.Scalar.WithinEpsilon(Math.abs(vt.y) / tgl, 1.0, LIB.Epsilon)) {
+                if (!LIB.Scalar.WithinEpsilon(Math.abs(vt.y) / tgl, 1.0, LIB.Epsilon)) { // search for a point in the plane
                     point = new Vector3(0.0, -1.0, 0.0);
                 }
                 else if (!LIB.Scalar.WithinEpsilon(Math.abs(vt.x) / tgl, 1.0, LIB.Epsilon)) {
@@ -4749,15 +6017,16 @@
         return Tmp;
     }());
     LIB.Tmp = Tmp;
-    // Same as Tmp but not exported to keep it onyl for math functions to avoid conflicts
+    // Same as Tmp but not exported to keep it only for math functions to avoid conflicts
     var MathTmp = /** @class */ (function () {
         function MathTmp() {
         }
-        MathTmp.Vector3 = [Vector3.Zero()];
+        MathTmp.Vector3 = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
         MathTmp.Matrix = [Matrix.Zero(), Matrix.Zero()];
-        MathTmp.Quaternion = [Quaternion.Zero()];
+        MathTmp.Quaternion = [Quaternion.Zero(), Quaternion.Zero(), Quaternion.Zero()];
         return MathTmp;
     }());
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.math.js.map
 //# sourceMappingURL=LIB.math.js.map

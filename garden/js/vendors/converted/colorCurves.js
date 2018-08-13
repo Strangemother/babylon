@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * The color grading curves provide additional color adjustmnent that is applied after any color grading transform (3D LUT).
@@ -384,7 +387,7 @@
             saturation = ColorCurves.clamp(saturation, -100, 100);
             exposure = ColorCurves.clamp(exposure, -100, 100);
             // Remap the slider/config filter density with non-linear mapping and also scale by half
-            // so that the maximum filter density is only 50% control. This provides fine control
+            // so that the maximum filter density is only 50% control. This provides fine control 
             // for small values and reasonable range.
             density = ColorCurves.applyColorGradingSliderNonlinear(density);
             density *= 0.5;
@@ -463,7 +466,7 @@
                         result.g = p;
                         result.b = v;
                         break;
-                    default:// case 5:
+                    default: // case 5:
                         result.r = v;
                         result.g = p;
                         result.b = q;
@@ -545,4 +548,5 @@
     LIB.ColorCurves = ColorCurves;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.colorCurves.js.map
 //# sourceMappingURL=LIB.colorCurves.js.map

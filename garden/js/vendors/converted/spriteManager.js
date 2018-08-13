@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var SpriteManager = /** @class */ (function () {
         function SpriteManager(name, imgUrl, capacity, cellSize, scene, epsilon, samplingMode) {
@@ -11,7 +13,6 @@
             this.isPickable = false;
             /**
             * An event triggered when the manager is disposed.
-            * @type {LIB.Observable}
             */
             this.onDisposeObservable = new LIB.Observable();
             this._vertexBuffers = {};
@@ -231,4 +232,5 @@
     LIB.SpriteManager = SpriteManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.spriteManager.js.map
 //# sourceMappingURL=LIB.spriteManager.js.map

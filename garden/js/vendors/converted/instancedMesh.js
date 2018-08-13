@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * Creates an instance based on a source mesh.
@@ -27,7 +30,7 @@
             return "InstancedMesh";
         };
         Object.defineProperty(InstancedMesh.prototype, "receiveShadows", {
-            // Methods
+            // Methods      
             get: function () {
                 return this._sourceMesh.receiveShadows;
             },
@@ -59,6 +62,13 @@
             get: function () {
                 return this._sourceMesh.renderingGroupId;
             },
+            set: function (value) {
+                if (!this._sourceMesh || value === this._sourceMesh.renderingGroupId) {
+                    return;
+                }
+                //no-op with warning
+                LIB.Tools.Warn("Note - setting renderingGroupId of an instanced mesh has no effect on the scene");
+            },
             enumerable: true,
             configurable: true
         });
@@ -75,6 +85,15 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Is this node ready to be used/rendered
+         * @param completeCheck defines if a complete check (including materials and lights) has to be done (false by default)
+         * @return {boolean} is it ready
+         */
+        InstancedMesh.prototype.isReady = function (completeCheck) {
+            if (completeCheck === void 0) { completeCheck = false; }
+            return this._sourceMesh.isReady(completeCheck, true);
+        };
         /**
          * Returns a float array or a Float32Array of the requested kind of data : positons, normals, uvs, etc.
          */
@@ -257,15 +276,17 @@
          * Disposes the InstancedMesh.
          * Returns nothing.
          */
-        InstancedMesh.prototype.dispose = function (doNotRecurse) {
+        InstancedMesh.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
+            if (disposeMaterialAndTextures === void 0) { disposeMaterialAndTextures = false; }
             // Remove from mesh
             var index = this._sourceMesh.instances.indexOf(this);
             this._sourceMesh.instances.splice(index, 1);
-            _super.prototype.dispose.call(this, doNotRecurse);
+            _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
         };
         return InstancedMesh;
     }(LIB.AbstractMesh));
     LIB.InstancedMesh = InstancedMesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.instancedMesh.js.map
 //# sourceMappingURL=LIB.instancedMesh.js.map

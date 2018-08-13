@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var SphericalPolynomial = /** @class */ (function () {
         function SphericalPolynomial() {
@@ -85,7 +87,7 @@
             // Convert from incident radiance (Li) to irradiance (E) by applying convolution with the cosine-weighted hemisphere.
             //
             //      E_lm = A_l * L_lm
-            //
+            // 
             // In spherical harmonics this convolution amounts to scaling factors for each frequency band.
             // This corresponds to equation 5 in "An Efficient Representation for Irradiance Environment Maps", where
             // the scaling factors are given in equation 9.
@@ -105,7 +107,7 @@
         SphericalHarmonics.prototype.convertIrradianceToLambertianRadiance = function () {
             // Convert from irradiance to outgoing radiance for Lambertian BDRF, suitable for efficient shader evaluation.
             //      L = (1/pi) * E * rho
-            //
+            // 
             // This is done by an additional scale by 1/pi, so is a fairly trivial operation but important conceptually.
             this.scale(1.0 / Math.PI);
             // The resultant SH now represents outgoing radiance, so includes the Lambert 1/pi normalisation factor but without albedo (rho) applied
@@ -130,4 +132,5 @@
     LIB.SphericalHarmonics = SphericalHarmonics;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.sphericalPolynomial.js.map
 //# sourceMappingURL=LIB.sphericalPolynomial.js.map

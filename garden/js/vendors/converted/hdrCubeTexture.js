@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     /**
      * This represents a texture coming from an HDR input.
@@ -12,35 +15,34 @@
          *
          * @param url The location of the HDR raw data (Panorama stored in RGBE format)
          * @param scene The scene the texture will be used in
-         * @param size The cubemap desired size (the more it increases the longer the generation will be) If the size is omitted this implies you are using a preprocessed cubemap.
+         * @param size The cubemap desired size (the more it increases the longer the generation will be)
          * @param noMipmap Forces to not generate the mipmap if true
-         * @param generateHarmonics Specifies wether you want to extract the polynomial harmonics during the generation process
-         * @param useInGammaSpace Specifies if the texture will be use in gamma or linear space (the PBR material requires those texture in linear space, but the standard material would require them in Gamma space)
-         * @param usePMREMGenerator Specifies wether or not to generate the CubeMap through CubeMapGen to avoid seams issue at run time.
+         * @param generateHarmonics Specifies whether you want to extract the polynomial harmonics during the generation process
+         * @param gammaSpace Specifies if the texture will be use in gamma or linear space (the PBR material requires those texture in linear space, but the standard material would require them in Gamma space)
+         * @param reserved Reserved flag for internal use.
          */
-        function HDRCubeTexture(url, scene, size, noMipmap, generateHarmonics, useInGammaSpace, usePMREMGenerator, onLoad, onError) {
+        function HDRCubeTexture(url, scene, size, noMipmap, generateHarmonics, gammaSpace, reserved, onLoad, onError) {
             if (noMipmap === void 0) { noMipmap = false; }
             if (generateHarmonics === void 0) { generateHarmonics = true; }
-            if (useInGammaSpace === void 0) { useInGammaSpace = false; }
-            if (usePMREMGenerator === void 0) { usePMREMGenerator = false; }
+            if (gammaSpace === void 0) { gammaSpace = false; }
+            if (reserved === void 0) { reserved = false; }
             if (onLoad === void 0) { onLoad = null; }
             if (onError === void 0) { onError = null; }
             var _this = _super.call(this, scene) || this;
-            _this._useInGammaSpace = false;
             _this._generateHarmonics = true;
-            _this._isLIBPreprocessed = false;
             _this._onLoad = null;
             _this._onError = null;
             /**
              * The texture coordinates mode. As this texture is stored in a cube format, please modify carefully.
              */
             _this.coordinatesMode = LIB.Texture.CUBIC_MODE;
-            /**
-             * Specifies wether the texture has been generated through the PMREMGenerator tool.
-             * This is usefull at run time to apply the good shader.
-             */
-            _this.isPMREM = false;
             _this._isBlocking = true;
+            _this._rotationY = 0;
+            /**
+             * Gets or sets the center of the bounding box associated with the cube texture
+             * It must define where the camera used to render the texture was set
+             */
+            _this.boundingBoxPosition = LIB.Vector3.Zero();
             if (!url) {
                 return _this;
             }
@@ -51,26 +53,9 @@
             _this._textureMatrix = LIB.Matrix.Identity();
             _this._onLoad = onLoad;
             _this._onError = onError;
-            _this.gammaSpace = false;
-            var caps = scene.getEngine().getCaps();
-            if (size) {
-                _this._isLIBPreprocessed = false;
-                _this._noMipmap = noMipmap;
-                _this._size = size;
-                _this._useInGammaSpace = useInGammaSpace;
-                _this._usePMREMGenerator = usePMREMGenerator &&
-                    caps.textureLOD &&
-                    caps.textureFloat &&
-                    !_this._useInGammaSpace;
-            }
-            else {
-                _this._isLIBPreprocessed = true;
-                _this._noMipmap = false;
-                _this._useInGammaSpace = false;
-                _this._usePMREMGenerator = caps.textureLOD && caps.textureFloat &&
-                    !_this._useInGammaSpace;
-            }
-            _this.isPMREM = _this._usePMREMGenerator;
+            _this.gammaSpace = gammaSpace;
+            _this._noMipmap = noMipmap;
+            _this._size = size;
             _this._texture = _this._getFromCache(url, _this._noMipmap);
             if (!_this._texture) {
                 if (!scene.useDelayedTextureLoading) {
@@ -98,130 +83,50 @@
             enumerable: true,
             configurable: true
         });
-        /**
-         * Occurs when the file is a preprocessed .LIB.hdr file.
-         */
-        HDRCubeTexture.prototype.loadLIBTexture = function () {
-            var _this = this;
-            var mipLevels = 0;
-            var floatArrayView = null;
-            var scene = this.getScene();
-            var mipmapGenerator = (!this._useInGammaSpace && scene && scene.getEngine().getCaps().textureFloat) ? function (data) {
-                var mips = new Array();
-                if (!floatArrayView) {
-                    return mips;
+        Object.defineProperty(HDRCubeTexture.prototype, "rotationY", {
+            /**
+             * Gets texture matrix rotation angle around Y axis radians.
+             */
+            get: function () {
+                return this._rotationY;
+            },
+            /**
+             * Sets texture matrix rotation angle around Y axis in radians.
+             */
+            set: function (value) {
+                this._rotationY = value;
+                this.setReflectionTextureMatrix(LIB.Matrix.RotationY(this._rotationY));
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(HDRCubeTexture.prototype, "boundingBoxSize", {
+            get: function () {
+                return this._boundingBoxSize;
+            },
+            /**
+             * Gets or sets the size of the bounding box associated with the cube texture
+             * When defined, the cubemap will switch to local mode
+             * @see https://community.arm.com/graphics/b/blog/posts/reflections-based-on-local-cubemaps-in-unity
+             * @example https://www.LIBjs-playground.com/#RNASML
+             */
+            set: function (value) {
+                if (this._boundingBoxSize && this._boundingBoxSize.equals(value)) {
+                    return;
                 }
-                var startIndex = 30;
-                for (var level = 0; level < mipLevels; level++) {
-                    mips.push([]);
-                    // Fill each pixel of the mip level.
-                    var faceSize = Math.pow(_this._size >> level, 2) * 3;
-                    for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
-                        var faceData = floatArrayView.subarray(startIndex, startIndex + faceSize);
-                        mips[level].push(faceData);
-                        startIndex += faceSize;
-                    }
+                this._boundingBoxSize = value;
+                var scene = this.getScene();
+                if (scene) {
+                    scene.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag);
                 }
-                return mips;
-            } : null;
-            var callback = function (buffer) {
-                var scene = _this.getScene();
-                if (!scene) {
-                    return null;
-                }
-                // Create Native Array Views
-                var intArrayView = new Int32Array(buffer);
-                floatArrayView = new Float32Array(buffer);
-                // Fill header.
-                var version = intArrayView[0]; // Version 1. (MAy be use in case of format changes for backward compaibility)
-                _this._size = intArrayView[1]; // CubeMap max mip face size.
-                // Update Texture Information.
-                if (!_this._texture) {
-                    return null;
-                }
-                _this._texture.updateSize(_this._size, _this._size);
-                // Fill polynomial information.
-                var sphericalPolynomial = new LIB.SphericalPolynomial();
-                sphericalPolynomial.x.copyFromFloats(floatArrayView[2], floatArrayView[3], floatArrayView[4]);
-                sphericalPolynomial.y.copyFromFloats(floatArrayView[5], floatArrayView[6], floatArrayView[7]);
-                sphericalPolynomial.z.copyFromFloats(floatArrayView[8], floatArrayView[9], floatArrayView[10]);
-                sphericalPolynomial.xx.copyFromFloats(floatArrayView[11], floatArrayView[12], floatArrayView[13]);
-                sphericalPolynomial.yy.copyFromFloats(floatArrayView[14], floatArrayView[15], floatArrayView[16]);
-                sphericalPolynomial.zz.copyFromFloats(floatArrayView[17], floatArrayView[18], floatArrayView[19]);
-                sphericalPolynomial.xy.copyFromFloats(floatArrayView[20], floatArrayView[21], floatArrayView[22]);
-                sphericalPolynomial.yz.copyFromFloats(floatArrayView[23], floatArrayView[24], floatArrayView[25]);
-                sphericalPolynomial.zx.copyFromFloats(floatArrayView[26], floatArrayView[27], floatArrayView[28]);
-                _this.sphericalPolynomial = sphericalPolynomial;
-                // Fill pixel data.
-                mipLevels = intArrayView[29]; // Number of mip levels.
-                var startIndex = 30;
-                var data = [];
-                var faceSize = Math.pow(_this._size, 2) * 3;
-                for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
-                    data.push(floatArrayView.subarray(startIndex, startIndex + faceSize));
-                    startIndex += faceSize;
-                }
-                var results = [];
-                var byteArray = null;
-                // Push each faces.
-                for (var k = 0; k < 6; k++) {
-                    var dataFace = null;
-                    // To be deprecated.
-                    if (version === 1) {
-                        var j = ([0, 2, 4, 1, 3, 5])[k]; // Transforms +X+Y+Z... to +X-X+Y-Y...
-                        dataFace = data[j];
-                    }
-                    // If special cases.
-                    if (!mipmapGenerator && dataFace) {
-                        if (!scene.getEngine().getCaps().textureFloat) {
-                            // 3 channels of 1 bytes per pixel in bytes.
-                            var byteBuffer = new ArrayBuffer(faceSize);
-                            byteArray = new Uint8Array(byteBuffer);
-                        }
-                        for (var i = 0; i < _this._size * _this._size; i++) {
-                            // Put in gamma space if requested.
-                            if (_this._useInGammaSpace) {
-                                dataFace[(i * 3) + 0] = Math.pow(dataFace[(i * 3) + 0], LIB.ToGammaSpace);
-                                dataFace[(i * 3) + 1] = Math.pow(dataFace[(i * 3) + 1], LIB.ToGammaSpace);
-                                dataFace[(i * 3) + 2] = Math.pow(dataFace[(i * 3) + 2], LIB.ToGammaSpace);
-                            }
-                            // Convert to int texture for fallback.
-                            if (byteArray) {
-                                var r = Math.max(dataFace[(i * 3) + 0] * 255, 0);
-                                var g = Math.max(dataFace[(i * 3) + 1] * 255, 0);
-                                var b = Math.max(dataFace[(i * 3) + 2] * 255, 0);
-                                // May use luminance instead if the result is not accurate.
-                                var max = Math.max(Math.max(r, g), b);
-                                if (max > 255) {
-                                    var scale = 255 / max;
-                                    r *= scale;
-                                    g *= scale;
-                                    b *= scale;
-                                }
-                                byteArray[(i * 3) + 0] = r;
-                                byteArray[(i * 3) + 1] = g;
-                                byteArray[(i * 3) + 2] = b;
-                            }
-                        }
-                    }
-                    // Fill the array accordingly.
-                    if (byteArray) {
-                        results.push(byteArray);
-                    }
-                    else {
-                        results.push(dataFace);
-                    }
-                }
-                return results;
-            };
-            if (scene) {
-                this._texture = scene.getEngine().createRawCubeTextureFromUrl(this.url, scene, this._size, LIB.Engine.TEXTUREFORMAT_RGB, scene.getEngine().getCaps().textureFloat ? LIB.Engine.TEXTURETYPE_FLOAT : LIB.Engine.TEXTURETYPE_UNSIGNED_INT, this._noMipmap, callback, mipmapGenerator, this._onLoad, this._onError);
-            }
-        };
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * Occurs when the file is raw .hdr file.
          */
-        HDRCubeTexture.prototype.loadHDRTexture = function () {
+        HDRCubeTexture.prototype.loadTexture = function () {
             var _this = this;
             var callback = function (buffer) {
                 var scene = _this.getScene();
@@ -229,10 +134,10 @@
                     return null;
                 }
                 // Extract the raw linear data.
-                var data = LIB.Internals.HDRTools.GetCubeMapTextureData(buffer, _this._size);
+                var data = LIB.HDRTools.GetCubeMapTextureData(buffer, _this._size);
                 // Generate harmonics if needed.
                 if (_this._generateHarmonics) {
-                    var sphericalPolynomial = LIB.Internals.CubeMapToSphericalPolynomialTools.ConvertCubeMapToSphericalPolynomial(data);
+                    var sphericalPolynomial = LIB.CubeMapToSphericalPolynomialTools.ConvertCubeMapToSphericalPolynomial(data);
                     _this.sphericalPolynomial = sphericalPolynomial;
                 }
                 var results = [];
@@ -247,10 +152,10 @@
                     }
                     var dataFace = (data[HDRCubeTexture._facesMapping[j]]);
                     // If special cases.
-                    if (_this._useInGammaSpace || byteArray) {
+                    if (_this.gammaSpace || byteArray) {
                         for (var i = 0; i < _this._size * _this._size; i++) {
                             // Put in gamma space if requested.
-                            if (_this._useInGammaSpace) {
+                            if (_this.gammaSpace) {
                                 dataFace[(i * 3) + 0] = Math.pow(dataFace[(i * 3) + 0], LIB.ToGammaSpace);
                                 dataFace[(i * 3) + 1] = Math.pow(dataFace[(i * 3) + 1], LIB.ToGammaSpace);
                                 dataFace[(i * 3) + 2] = Math.pow(dataFace[(i * 3) + 2], LIB.ToGammaSpace);
@@ -283,39 +188,9 @@
                 }
                 return results;
             };
-            var mipmapGenerator = null;
-            // TODO. Implement In code PMREM Generator following the LYS toolset generation.
-            // if (!this._noMipmap &&
-            //     this._usePMREMGenerator) {
-            //     mipmapGenerator = (data: ArrayBufferView[]) => {
-            //         // Custom setup of the generator matching with the PBR shader values.
-            //         var generator = new LIB.Internals.PMREMGenerator(data,
-            //             this._size,
-            //             this._size,
-            //             0,
-            //             3,
-            //             this.getScene().getEngine().getCaps().textureFloat,
-            //             2048,
-            //             0.25,
-            //             false,
-            //             true);
-            //         return generator.filterCubeMap();
-            //     };
-            // }
             var scene = this.getScene();
             if (scene) {
-                this._texture = scene.getEngine().createRawCubeTextureFromUrl(this.url, scene, this._size, LIB.Engine.TEXTUREFORMAT_RGB, scene.getEngine().getCaps().textureFloat ? LIB.Engine.TEXTURETYPE_FLOAT : LIB.Engine.TEXTURETYPE_UNSIGNED_INT, this._noMipmap, callback, mipmapGenerator, this._onLoad, this._onError);
-            }
-        };
-        /**
-         * Starts the loading process of the texture.
-         */
-        HDRCubeTexture.prototype.loadTexture = function () {
-            if (this._isLIBPreprocessed) {
-                this.loadLIBTexture();
-            }
-            else {
-                this.loadHDRTexture();
+                this._texture = scene.getEngine().createRawCubeTextureFromUrl(this.url, scene, this._size, LIB.Engine.TEXTUREFORMAT_RGB, scene.getEngine().getCaps().textureFloat ? LIB.Engine.TEXTURETYPE_FLOAT : LIB.Engine.TEXTURETYPE_UNSIGNED_INT, this._noMipmap, callback, null, this._onLoad, this._onError);
             }
         };
         HDRCubeTexture.prototype.clone = function () {
@@ -323,8 +198,7 @@
             if (!scene) {
                 return this;
             }
-            var size = (this._isLIBPreprocessed ? null : this._size);
-            var newTexture = new HDRCubeTexture(this.url, scene, size, this._noMipmap, this._generateHarmonics, this._useInGammaSpace, this._usePMREMGenerator);
+            var newTexture = new HDRCubeTexture(this.url, scene, this._size, this._noMipmap, this._generateHarmonics, this.gammaSpace);
             // Base texture
             newTexture.level = this.level;
             newTexture.wrapU = this.wrapU;
@@ -353,13 +227,23 @@
         HDRCubeTexture.Parse = function (parsedTexture, scene, rootUrl) {
             var texture = null;
             if (parsedTexture.name && !parsedTexture.isRenderTarget) {
-                var size = parsedTexture.isLIBPreprocessed ? null : parsedTexture.size;
-                texture = new HDRCubeTexture(rootUrl + parsedTexture.name, scene, size, parsedTexture.noMipmap, parsedTexture.generateHarmonics, parsedTexture.useInGammaSpace, parsedTexture.usePMREMGenerator);
+                texture = new HDRCubeTexture(rootUrl + parsedTexture.name, scene, parsedTexture.size, parsedTexture.noMipmap, parsedTexture.generateHarmonics, parsedTexture.useInGammaSpace);
                 texture.name = parsedTexture.name;
                 texture.hasAlpha = parsedTexture.hasAlpha;
                 texture.level = parsedTexture.level;
                 texture.coordinatesMode = parsedTexture.coordinatesMode;
                 texture.isBlocking = parsedTexture.isBlocking;
+            }
+            if (texture) {
+                if (parsedTexture.boundingBoxPosition) {
+                    texture.boundingBoxPosition = LIB.Vector3.FromArray(parsedTexture.boundingBoxPosition);
+                }
+                if (parsedTexture.boundingBoxSize) {
+                    texture.boundingBoxSize = LIB.Vector3.FromArray(parsedTexture.boundingBoxSize);
+                }
+                if (parsedTexture.rotationY) {
+                    texture.rotationY = parsedTexture.rotationY;
+                }
             }
             return texture;
         };
@@ -374,61 +258,13 @@
             serializationObject.level = this.level;
             serializationObject.size = this._size;
             serializationObject.coordinatesMode = this.coordinatesMode;
-            serializationObject.useInGammaSpace = this._useInGammaSpace;
+            serializationObject.useInGammaSpace = this.gammaSpace;
             serializationObject.generateHarmonics = this._generateHarmonics;
-            serializationObject.usePMREMGenerator = this._usePMREMGenerator;
-            serializationObject.isLIBPreprocessed = this._isLIBPreprocessed;
             serializationObject.customType = "LIB.HDRCubeTexture";
             serializationObject.noMipmap = this._noMipmap;
             serializationObject.isBlocking = this._isBlocking;
+            serializationObject.rotationY = this._rotationY;
             return serializationObject;
-        };
-        /**
-         * Saves as a file the data contained in the texture in a binary format.
-         * This can be used to prevent the long loading tie associated with creating the seamless texture as well
-         * as the spherical used in the lighting.
-         * @param url The HDR file url.
-         * @param size The size of the texture data to generate (one of the cubemap face desired width).
-         * @param onError Method called if any error happens during download.
-         * @return The packed binary data.
-         */
-        HDRCubeTexture.generateLIBHDROnDisk = function (url, size, onError) {
-            if (onError === void 0) { onError = null; }
-            var callback = function (buffer) {
-                var data = new Blob([buffer], { type: 'application/octet-stream' });
-                // Returns a URL you can use as a href.
-                var objUrl = window.URL.createObjectURL(data);
-                // Simulates a link to it and click to dowload.
-                var a = document.createElement("a");
-                document.body.appendChild(a);
-                a.style.display = "none";
-                a.href = objUrl;
-                a.download = "envmap.LIB.hdr";
-                a.click();
-            };
-            HDRCubeTexture.generateLIBHDR(url, size, callback, onError);
-        };
-        /**
-         * Serializes the data contained in the texture in a binary format.
-         * This can be used to prevent the long loading tie associated with creating the seamless texture as well
-         * as the spherical used in the lighting.
-         * @param url The HDR file url.
-         * @param size The size of the texture data to generate (one of the cubemap face desired width).
-         * @param onError Method called if any error happens during download.
-         * @return The packed binary data.
-         */
-        HDRCubeTexture.generateLIBHDR = function (url, size, callback, onError) {
-            if (onError === void 0) { onError = null; }
-            // Needs the url tho create the texture.
-            if (!url) {
-                return;
-            }
-            // Check Power of two size.
-            if (!LIB.Tools.IsExponentOfTwo(size)) {
-                return;
-            }
-            // Coming Back in 3.x.
-            LIB.Tools.Error("Generation of LIB HDR is coming back in 3.2.");
         };
         HDRCubeTexture._facesMapping = [
             "right",
@@ -443,4 +279,5 @@
     LIB.HDRCubeTexture = HDRCubeTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.hdrCubeTexture.js.map
 //# sourceMappingURL=LIB.hdrCubeTexture.js.map

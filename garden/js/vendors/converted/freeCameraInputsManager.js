@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FreeCameraInputsManager = /** @class */ (function (_super) {
         __extends(FreeCameraInputsManager, _super);
@@ -34,4 +37,5 @@
     LIB.FreeCameraInputsManager = FreeCameraInputsManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraInputsManager.js.map
 //# sourceMappingURL=LIB.freeCameraInputsManager.js.map

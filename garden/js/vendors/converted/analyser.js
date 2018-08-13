@@ -1,10 +1,40 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Class used to work with sound analyzer using fast fourier transform (FFT)
+     * @see http://doc.LIBjs.com/how_to/playing_sounds_and_music
+     */
     var Analyser = /** @class */ (function () {
+        /**
+         * Creates a new analyser
+         * @param scene defines hosting scene
+         */
         function Analyser(scene) {
+            /**
+             * Gets or sets the smoothing
+             * @ignorenaming
+             */
             this.SMOOTHING = 0.75;
+            /**
+             * Gets or sets the FFT table size
+             * @ignorenaming
+             */
             this.FFT_SIZE = 512;
+            /**
+             * Gets or sets the bar graph amplitude
+             * @ignorenaming
+             */
             this.BARGRAPHAMPLITUDE = 256;
+            /**
+             * Gets or sets the position of the debug canvas
+             * @ignorenaming
+             */
             this.DEBUGCANVASPOS = { x: 20, y: 20 };
+            /**
+             * Gets or sets the debug canvas size
+             * @ignorenaming
+             */
             this.DEBUGCANVASSIZE = { width: 320, height: 200 };
             this._scene = scene;
             this._audioEngine = LIB.Engine.audioEngine;
@@ -17,6 +47,11 @@
                 this._floatFreqs = new Float32Array(this._webAudioAnalyser.frequencyBinCount);
             }
         }
+        /**
+         * Get the number of data values you will have to play with for the visualization
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/frequencyBinCount
+         * @returns a number
+         */
         Analyser.prototype.getFrequencyBinCount = function () {
             if (this._audioEngine.canUseWebAudio) {
                 return this._webAudioAnalyser.frequencyBinCount;
@@ -25,6 +60,11 @@
                 return 0;
             }
         };
+        /**
+         * Gets the current frequency data as a byte array
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getByteFrequencyData
+         * @returns a Uint8Array
+         */
         Analyser.prototype.getByteFrequencyData = function () {
             if (this._audioEngine.canUseWebAudio) {
                 this._webAudioAnalyser.smoothingTimeConstant = this.SMOOTHING;
@@ -33,6 +73,11 @@
             }
             return this._byteFreqs;
         };
+        /**
+         * Gets the current waveform as a byte array
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getByteTimeDomainData
+         * @returns a Uint8Array
+         */
         Analyser.prototype.getByteTimeDomainData = function () {
             if (this._audioEngine.canUseWebAudio) {
                 this._webAudioAnalyser.smoothingTimeConstant = this.SMOOTHING;
@@ -41,6 +86,11 @@
             }
             return this._byteTime;
         };
+        /**
+         * Gets the current frequency data as a float array
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getByteFrequencyData
+         * @returns a Float32Array
+         */
         Analyser.prototype.getFloatFrequencyData = function () {
             if (this._audioEngine.canUseWebAudio) {
                 this._webAudioAnalyser.smoothingTimeConstant = this.SMOOTHING;
@@ -49,6 +99,9 @@
             }
             return this._floatFreqs;
         };
+        /**
+         * Renders the debug canvas
+         */
         Analyser.prototype.drawDebugCanvas = function () {
             var _this = this;
             if (this._audioEngine.canUseWebAudio) {
@@ -84,6 +137,9 @@
                 }
             }
         };
+        /**
+         * Stops rendering the debug canvas and removes it
+         */
         Analyser.prototype.stopDebugCanvas = function () {
             if (this._debugCanvas) {
                 if (this._registerFunc) {
@@ -95,12 +151,20 @@
                 this._debugCanvasContext = null;
             }
         };
+        /**
+         * Connects two audio nodes
+         * @param inputAudioNode defines first node to connect
+         * @param outputAudioNode defines second node to connect
+         */
         Analyser.prototype.connectAudioNodes = function (inputAudioNode, outputAudioNode) {
             if (this._audioEngine.canUseWebAudio) {
                 inputAudioNode.connect(this._webAudioAnalyser);
                 this._webAudioAnalyser.connect(outputAudioNode);
             }
         };
+        /**
+         * Releases all associated resources
+         */
         Analyser.prototype.dispose = function () {
             if (this._audioEngine.canUseWebAudio) {
                 this._webAudioAnalyser.disconnect();
@@ -111,4 +175,5 @@
     LIB.Analyser = Analyser;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.analyser.js.map
 //# sourceMappingURL=LIB.analyser.js.map

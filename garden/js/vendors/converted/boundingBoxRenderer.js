@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var BoundingBoxRenderer = /** @class */ (function () {
         function BoundingBoxRenderer(scene) {
@@ -17,7 +19,7 @@
                 uniforms: ["world", "viewProjection", "color"]
             });
             var engine = this._scene.getEngine();
-            var boxdata = LIB.VertexData.CreateBox({ size: 1.0 });
+            var boxdata = LIB.VertexData.CreateCube({ size: 1.0 });
             this._vertexBuffers[LIB.VertexBuffer.PositionKind] = new LIB.VertexBuffer(engine, boxdata.positions, LIB.VertexBuffer.PositionKind, false);
             this._createIndexBuffer();
         };
@@ -99,7 +101,7 @@
             engine.setDepthFunctionToLess();
             this._scene.resetCachedMaterial();
             this._colorShader.bind(worldMatrix);
-            engine.drawElementsType(LIB.Material.TriangleFillMode, 0, 24);
+            engine.drawElementsType(LIB.Material.LineListDrawMode, 0, 24);
             this._colorShader.unbind();
             engine.setDepthFunctionToLessOrEqual();
             engine.setDepthWrite(true);
@@ -123,4 +125,5 @@
     LIB.BoundingBoxRenderer = BoundingBoxRenderer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boundingBoxRenderer.js.map
 //# sourceMappingURL=LIB.boundingBoxRenderer.js.map

@@ -1,48 +1,63 @@
+
+var LIB;
 (function (LIB) {
     /**
-    * Full documentation here : http://doc.LIBjs.com/overviews/Solid_Particle_System
-    */
+     * The SPS is a single updatable mesh. The solid particles are simply separate parts or faces fo this big mesh.
+     *As it is just a mesh, the SPS has all the same properties than any other BJS mesh : not more, not less. It can be scaled, rotated, translated, enlighted, textured, moved, etc.
+
+     * The SPS is also a particle system. It provides some methods to manage the particles.
+     * However it is behavior agnostic. This means it has no emitter, no particle physics, no particle recycler. You have to implement your own behavior.
+     *
+     * Full documentation here : http://doc.LIBjs.com/overviews/Solid_Particle_System
+     */
     var SolidParticleSystem = /** @class */ (function () {
         /**
-        * Creates a SPS (Solid Particle System) object.
-        * `name` (String) is the SPS name, this will be the underlying mesh name.
-        * `scene` (Scene) is the scene in which the SPS is added.
-        * `updatable` (optional boolean, default true) : if the SPS must be updatable or immutable.
-        * `isPickable` (optional boolean, default false) : if the solid particles must be pickable.
-        * `enableDepthSort` (optional boolean, default false) : if the solid particles must be sorted in the geometry according to their distance to the camera.
-        * `particleIntersection` (optional boolean, default false) : if the solid particle intersections must be computed.
-        * `boundingSphereOnly` (optional boolean, default false) : if the particle intersection must be computed only with the bounding sphere (no bounding box computation, so faster).
-        * `bSphereRadiusFactor` (optional float, default 1.0) : a number to multiply the boundind sphere radius by in order to reduce it for instance.
-        *  Example : bSphereRadiusFactor = 1.0 / Math.sqrt(3.0) => the bounding sphere exactly matches a spherical mesh.
-        */
+         * Creates a SPS (Solid Particle System) object.
+         * @param name (String) is the SPS name, this will be the underlying mesh name.
+         * @param scene (Scene) is the scene in which the SPS is added.
+         * @param updatable (optional boolean, default true) : if the SPS must be updatable or immutable.
+         * @param isPickable (optional boolean, default false) : if the solid particles must be pickable.
+         * @param enableDepthSort (optional boolean, default false) : if the solid particles must be sorted in the geometry according to their distance to the camera.
+         * @param particleIntersection (optional boolean, default false) : if the solid particle intersections must be computed.
+         * @param boundingSphereOnly (optional boolean, default false) : if the particle intersection must be computed only with the bounding sphere (no bounding box computation, so faster).
+         * @param bSphereRadiusFactor (optional float, default 1.0) : a number to multiply the boundind sphere radius by in order to reduce it for instance.
+         * @example bSphereRadiusFactor = 1.0 / Math.sqrt(3.0) => the bounding sphere exactly matches a spherical mesh.
+         */
         function SolidParticleSystem(name, scene, options) {
-            // public members
             /**
-            *  The SPS array of Solid Particle objects. Just access each particle as with any classic array.
-            *  Example : var p = SPS.particles[i];
-            */
+             *  The SPS array of Solid Particle objects. Just access each particle as with any classic array.
+             *  Example : var p = SPS.particles[i];
+             */
             this.particles = new Array();
             /**
-            * The SPS total number of particles. Read only. Use SPS.counter instead if you need to set your own value.
-            */
+             * The SPS total number of particles. Read only. Use SPS.counter instead if you need to set your own value.
+             */
             this.nbParticles = 0;
             /**
-            * If the particles must ever face the camera (default false). Useful for planar particles.
-            */
+             * If the particles must ever face the camera (default false). Useful for planar particles.
+             */
             this.billboard = false;
             /**
              * Recompute normals when adding a shape
              */
             this.recomputeNormals = true;
             /**
-            * This a counter ofr your own usage. It's not set by any SPS functions.
-            */
+             * This a counter ofr your own usage. It's not set by any SPS functions.
+             */
             this.counter = 0;
             /**
-            * This empty object is intended to store some SPS specific or temporary values in order to lower the Garbage Collector activity.
-            * Please read : http://doc.LIBjs.com/overviews/Solid_Particle_System#garbage-collector-concerns
-            */
+             * This empty object is intended to store some SPS specific or temporary values in order to lower the Garbage Collector activity.
+             * Please read : http://doc.LIBjs.com/overviews/Solid_Particle_System#garbage-collector-concerns
+             */
             this.vars = {};
+            /**
+             * If the particle intersection must be computed only with the bounding sphere (no bounding box computation, so faster). (Internal use only)
+             */
+            this._bSphereOnly = false;
+            /**
+             * A number to multiply the boundind sphere radius by in order to reduce it for instance. (Internal use only)
+             */
+            this._bSphereRadiusFactor = 1.0;
             this._positions = new Array();
             this._indices = new Array();
             this._normals = new Array();
@@ -88,17 +103,18 @@
             this._sinYaw = 0.0;
             this._cosYaw = 0.0;
             this._mustUnrotateFixedNormals = false;
-            this._minimum = LIB.Tmp.Vector3[0];
-            this._maximum = LIB.Tmp.Vector3[1];
-            this._minBbox = LIB.Tmp.Vector3[4];
-            this._maxBbox = LIB.Tmp.Vector3[5];
+            this._minimum = LIB.Vector3.Zero();
+            this._maximum = LIB.Vector3.Zero();
+            this._minBbox = LIB.Vector3.Zero();
+            this._maxBbox = LIB.Vector3.Zero();
             this._particlesIntersect = false;
             this._depthSortFunction = function (p1, p2) {
                 return (p2.sqDistance - p1.sqDistance);
             };
             this._needs32Bits = false;
-            this._bSphereOnly = false;
-            this._bSphereRadiusFactor = 1.0;
+            this._pivotBackTranslation = LIB.Vector3.Zero();
+            this._scaledPivot = LIB.Vector3.Zero();
+            this._particleHasParent = false;
             this.name = name;
             this._scene = scene || LIB.Engine.LastCreatedScene;
             this._camera = scene.activeCamera;
@@ -121,9 +137,10 @@
             }
         }
         /**
-        * Builds the SPS underlying mesh. Returns a standard Mesh.
-        * If no model shape was added to the SPS, the returned mesh is just a single triangular plane.
-        */
+         * Builds the SPS underlying mesh. Returns a standard Mesh.
+         * If no model shape was added to the SPS, the returned mesh is just a single triangular plane.
+         * @returns the created mesh
+         */
         SolidParticleSystem.prototype.buildMesh = function () {
             if (this.nbParticles === 0) {
                 var triangle = LIB.MeshBuilder.CreateDisc("", { radius: 1, tessellation: 3 }, this._scene);
@@ -135,22 +152,21 @@
             this._uvs32 = new Float32Array(this._uvs);
             this._colors32 = new Float32Array(this._colors);
             if (this.recomputeNormals) {
-                LIB.VertexData.ComputeNormals(this._positions32, this._indices, this._normals);
+                LIB.VertexData.ComputeNormals(this._positions32, this._indices32, this._normals);
             }
             this._normals32 = new Float32Array(this._normals);
             this._fixedNormal32 = new Float32Array(this._normals);
-            if (this._mustUnrotateFixedNormals) {
+            if (this._mustUnrotateFixedNormals) { // the particles could be created already rotated in the mesh with a positionFunction
                 this._unrotateFixedNormals();
             }
             var vertexData = new LIB.VertexData();
             vertexData.indices = (this._depthSort) ? this._indices : this._indices32;
             vertexData.set(this._positions32, LIB.VertexBuffer.PositionKind);
             vertexData.set(this._normals32, LIB.VertexBuffer.NormalKind);
-            if (this._uvs32) {
+            if (this._uvs32.length > 0) {
                 vertexData.set(this._uvs32, LIB.VertexBuffer.UVKind);
-                ;
             }
-            if (this._colors32) {
+            if (this._colors32.length > 0) {
                 vertexData.set(this._colors32, LIB.VertexBuffer.ColorKind);
             }
             var mesh = new LIB.Mesh(this.name, this._scene);
@@ -171,14 +187,15 @@
             return mesh;
         };
         /**
-        * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
-        * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
-        * Thus the particles generated from `digest()` have their property `position` set yet.
-        * `mesh` ( Mesh ) is the mesh to be digested
-        * `facetNb` (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
-        * `delta` (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
-        * `number` (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
-        */
+         * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
+         * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
+         * Thus the particles generated from `digest()` have their property `position` set yet.
+         * @param mesh ( Mesh ) is the mesh to be digested
+         * @param options {facetNb} (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
+         * {delta} (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
+         * {number} (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
+         * @returns the current SPS
+         */
         SolidParticleSystem.prototype.digest = function (mesh, options) {
             var size = (options && options.facetNb) || 1;
             var number = (options && options.number) || 0;
@@ -203,7 +220,7 @@
             var facetInd = []; // submesh indices
             var facetUV = []; // submesh UV
             var facetCol = []; // submesh colors
-            var barycenter = LIB.Tmp.Vector3[0];
+            var barycenter = LIB.Vector3.Zero();
             var sizeO = size;
             while (f < totalFacets) {
                 size = sizeO + Math.floor((1 + delta) * Math.random());
@@ -308,6 +325,7 @@
             this._copy.uvs.z = 1.0;
             this._copy.uvs.w = 1.0;
             this._copy.color = null;
+            this._copy.translateFromPivot = false;
         };
         // _meshBuilder : inserts the shape model in the global SPS mesh
         SolidParticleSystem.prototype._meshBuilder = function (p, shape, positions, meshInd, indices, meshUV, uvs, meshCol, colors, meshNor, normals, idx, idxInShape, options) {
@@ -316,7 +334,7 @@
             var c = 0;
             var n = 0;
             this._resetCopy();
-            if (options && options.positionFunction) {
+            if (options && options.positionFunction) { // call to custom positionFunction
                 options.positionFunction(this._copy, idx, idxInShape);
                 this._mustUnrotateFixedNormals = true;
             }
@@ -330,6 +348,15 @@
                 this._quaternionRotationYPR();
             }
             this._quaternionToRotationMatrix();
+            this._scaledPivot.x = this._copy.pivot.x * this._copy.scaling.x;
+            this._scaledPivot.y = this._copy.pivot.y * this._copy.scaling.y;
+            this._scaledPivot.z = this._copy.pivot.z * this._copy.scaling.z;
+            if (this._copy.translateFromPivot) {
+                this._pivotBackTranslation.copyFromFloats(0.0, 0.0, 0.0);
+            }
+            else {
+                this._pivotBackTranslation.copyFrom(this._scaledPivot);
+            }
             for (i = 0; i < shape.length; i++) {
                 this._vertex.x = shape[i].x;
                 this._vertex.y = shape[i].y;
@@ -340,10 +367,11 @@
                 this._vertex.x *= this._copy.scaling.x;
                 this._vertex.y *= this._copy.scaling.y;
                 this._vertex.z *= this._copy.scaling.z;
-                this._vertex.x += this._copy.pivot.x;
-                this._vertex.y += this._copy.pivot.y;
-                this._vertex.z += this._copy.pivot.z;
+                this._vertex.x -= this._scaledPivot.x;
+                this._vertex.y -= this._scaledPivot.y;
+                this._vertex.z -= this._scaledPivot.z;
                 LIB.Vector3.TransformCoordinatesToRef(this._vertex, this._rotMatrix, this._rotated);
+                this._rotated.addInPlace(this._pivotBackTranslation);
                 positions.push(this._copy.position.x + this._rotated.x, this._copy.position.y + this._rotated.y, this._copy.position.z + this._rotated.z);
                 if (meshUV) {
                     uvs.push((this._copy.uvs.z - this._copy.uvs.x) * meshUV[u] + this._copy.uvs.x, (this._copy.uvs.w - this._copy.uvs.y) * meshUV[u + 1] + this._copy.uvs.y);
@@ -418,13 +446,14 @@
             return sp;
         };
         /**
-        * Adds some particles to the SPS from the model shape. Returns the shape id.
-        * Please read the doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#create-an-immutable-sps
-        * `mesh` is any Mesh object that will be used as a model for the solid particles.
-        * `nb` (positive integer) the number of particles to be created from this model
-        * `positionFunction` is an optional javascript function to called for each particle on SPS creation.
-        * `vertexFunction` is an optional javascript function to called for each vertex of each particle on SPS creation
-        */
+         * Adds some particles to the SPS from the model shape. Returns the shape id.
+         * Please read the doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#create-an-immutable-sps
+         * @param mesh is any Mesh object that will be used as a model for the solid particles.
+         * @param nb (positive integer) the number of particles to be created from this model
+         * @param options {positionFunction} is an optional javascript function to called for each particle on SPS creation.
+         * {vertexFunction} is an optional javascript function to called for each vertex of each particle on SPS creation
+         * @returns the number of shapes in the system
+         */
         SolidParticleSystem.prototype.addShape = function (mesh, nb, options) {
             var meshPos = mesh.getVerticesData(LIB.VertexBuffer.PositionKind);
             var meshInd = mesh.getIndices();
@@ -471,7 +500,7 @@
         // rebuilds a particle back to its just built status : if needed, recomputes the custom positions and vertices
         SolidParticleSystem.prototype._rebuildParticle = function (particle) {
             this._resetCopy();
-            if (particle._model._positionFunction) {
+            if (particle._model._positionFunction) { // recall to stored custom positionFunction
                 particle._model._positionFunction(this._copy, particle.idx, particle.idxInShape);
             }
             if (this._copy.rotationQuaternion) {
@@ -484,6 +513,15 @@
                 this._quaternionRotationYPR();
             }
             this._quaternionToRotationMatrix();
+            this._scaledPivot.x = this._particle.pivot.x * this._particle.scaling.x;
+            this._scaledPivot.y = this._particle.pivot.y * this._particle.scaling.y;
+            this._scaledPivot.z = this._particle.pivot.z * this._particle.scaling.z;
+            if (this._copy.translateFromPivot) {
+                this._pivotBackTranslation.copyFromFloats(0.0, 0.0, 0.0);
+            }
+            else {
+                this._pivotBackTranslation.copyFrom(this._scaledPivot);
+            }
             this._shape = particle._model._shape;
             for (var pt = 0; pt < this._shape.length; pt++) {
                 this._vertex.x = this._shape[pt].x;
@@ -495,10 +533,11 @@
                 this._vertex.x *= this._copy.scaling.x;
                 this._vertex.y *= this._copy.scaling.y;
                 this._vertex.z *= this._copy.scaling.z;
-                this._vertex.x += this._copy.pivot.x;
-                this._vertex.y += this._copy.pivot.y;
-                this._vertex.z += this._copy.pivot.z;
+                this._vertex.x -= this._scaledPivot.x;
+                this._vertex.y -= this._scaledPivot.y;
+                this._vertex.z -= this._scaledPivot.z;
                 LIB.Vector3.TransformCoordinatesToRef(this._vertex, this._rotMatrix, this._rotated);
+                this._rotated.addInPlace(this._pivotBackTranslation);
                 this._positions32[particle._pos + pt * 3] = this._copy.position.x + this._rotated.x;
                 this._positions32[particle._pos + pt * 3 + 1] = this._copy.position.y + this._rotated.y;
                 this._positions32[particle._pos + pt * 3 + 2] = this._copy.position.z + this._rotated.z;
@@ -513,11 +552,20 @@
             particle.scaling.x = 1.0;
             particle.scaling.y = 1.0;
             particle.scaling.z = 1.0;
+            particle.uvs.x = 0.0;
+            particle.uvs.y = 0.0;
+            particle.uvs.z = 1.0;
+            particle.uvs.w = 1.0;
+            particle.pivot.x = 0.0;
+            particle.pivot.y = 0.0;
+            particle.pivot.z = 0.0;
+            particle.translateFromPivot = false;
+            particle.parentId = null;
         };
         /**
-        * Rebuilds the whole mesh and updates the VBO : custom positions and vertices are recomputed if needed.
-        * Returns the SPS.
-        */
+         * Rebuilds the whole mesh and updates the VBO : custom positions and vertices are recomputed if needed.
+         * @returns the SPS.
+         */
         SolidParticleSystem.prototype.rebuildMesh = function () {
             for (var p = 0; p < this.particles.length; p++) {
                 this._rebuildParticle(this.particles[p]);
@@ -526,14 +574,14 @@
             return this;
         };
         /**
-        *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
-        *  This method calls `updateParticle()` for each particle of the SPS.
-        *  For an animated SPS, it is usually called within the render loop.
-        * @param start The particle index in the particle array where to start to compute the particle property values _(default 0)_
-        * @param end The particle index in the particle array where to stop to compute the particle property values _(default nbParticle - 1)_
-        * @param update If the mesh must be finally updated on this call after all the particle computations _(default true)_
-        * Returns the SPS.
-        */
+         *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
+         *  This method calls `updateParticle()` for each particle of the SPS.
+         *  For an animated SPS, it is usually called within the render loop.
+         * @param start The particle index in the particle array where to start to compute the particle property values _(default 0)_
+         * @param end The particle index in the particle array where to stop to compute the particle property values _(default nbParticle - 1)_
+         * @param update If the mesh must be finally updated on this call after all the particle computations _(default true)_
+         * @returns the SPS.
+         */
         SolidParticleSystem.prototype.setParticles = function (start, end, update) {
             if (start === void 0) { start = 0; }
             if (end === void 0) { end = this.nbParticles - 1; }
@@ -587,11 +635,11 @@
             }
             end = (end >= this.nbParticles) ? this.nbParticles - 1 : end;
             if (this._computeBoundingBox) {
-                if (start == 0 && end == this.nbParticles - 1) {
+                if (start == 0 && end == this.nbParticles - 1) { // all the particles are updated, then recompute the BBox from scratch
                     LIB.Vector3.FromFloatsToRef(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, this._minimum);
                     LIB.Vector3.FromFloatsToRef(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE, this._maximum);
                 }
-                else {
+                else { // only some particles are updated, then use the current existing BBox basis. Note : it can only increase.
                     if (this.mesh._boundingInfo) {
                         this._minimum.copyFrom(this.mesh._boundingInfo.boundingBox.minimum);
                         this._maximum.copyFrom(this.mesh._boundingInfo.boundingBox.maximum);
@@ -627,6 +675,10 @@
                 }
                 if (this._particle.isVisible) {
                     this._particle._stillInvisible = false; // un-mark permanent invisibility
+                    this._particleHasParent = (this._particle.parentId !== null);
+                    this._scaledPivot.x = this._particle.pivot.x * this._particle.scaling.x;
+                    this._scaledPivot.y = this._particle.pivot.y * this._particle.scaling.y;
+                    this._scaledPivot.z = this._particle.pivot.z * this._particle.scaling.z;
                     // particle rotation matrix
                     if (this.billboard) {
                         this._particle.rotation.x = 0.0;
@@ -644,6 +696,52 @@
                         }
                         this._quaternionToRotationMatrix();
                     }
+                    if (this._particleHasParent) {
+                        this._parent = this.particles[this._particle.parentId];
+                        this._rotated.x = this._particle.position.x * this._parent._rotationMatrix[0] + this._particle.position.y * this._parent._rotationMatrix[3] + this._particle.position.z * this._parent._rotationMatrix[6];
+                        this._rotated.y = this._particle.position.x * this._parent._rotationMatrix[1] + this._particle.position.y * this._parent._rotationMatrix[4] + this._particle.position.z * this._parent._rotationMatrix[7];
+                        this._rotated.z = this._particle.position.x * this._parent._rotationMatrix[2] + this._particle.position.y * this._parent._rotationMatrix[5] + this._particle.position.z * this._parent._rotationMatrix[8];
+                        this._particle._globalPosition.x = this._parent._globalPosition.x + this._rotated.x;
+                        this._particle._globalPosition.y = this._parent._globalPosition.y + this._rotated.y;
+                        this._particle._globalPosition.z = this._parent._globalPosition.z + this._rotated.z;
+                        if (this._computeParticleRotation || this.billboard) {
+                            this._particle._rotationMatrix[0] = this._rotMatrix.m[0] * this._parent._rotationMatrix[0] + this._rotMatrix.m[1] * this._parent._rotationMatrix[3] + this._rotMatrix.m[2] * this._parent._rotationMatrix[6];
+                            this._particle._rotationMatrix[1] = this._rotMatrix.m[0] * this._parent._rotationMatrix[1] + this._rotMatrix.m[1] * this._parent._rotationMatrix[4] + this._rotMatrix.m[2] * this._parent._rotationMatrix[7];
+                            this._particle._rotationMatrix[2] = this._rotMatrix.m[0] * this._parent._rotationMatrix[2] + this._rotMatrix.m[1] * this._parent._rotationMatrix[5] + this._rotMatrix.m[2] * this._parent._rotationMatrix[8];
+                            this._particle._rotationMatrix[3] = this._rotMatrix.m[4] * this._parent._rotationMatrix[0] + this._rotMatrix.m[5] * this._parent._rotationMatrix[3] + this._rotMatrix.m[6] * this._parent._rotationMatrix[6];
+                            this._particle._rotationMatrix[4] = this._rotMatrix.m[4] * this._parent._rotationMatrix[1] + this._rotMatrix.m[5] * this._parent._rotationMatrix[4] + this._rotMatrix.m[6] * this._parent._rotationMatrix[7];
+                            this._particle._rotationMatrix[5] = this._rotMatrix.m[4] * this._parent._rotationMatrix[2] + this._rotMatrix.m[5] * this._parent._rotationMatrix[5] + this._rotMatrix.m[6] * this._parent._rotationMatrix[8];
+                            this._particle._rotationMatrix[6] = this._rotMatrix.m[8] * this._parent._rotationMatrix[0] + this._rotMatrix.m[9] * this._parent._rotationMatrix[3] + this._rotMatrix.m[10] * this._parent._rotationMatrix[6];
+                            this._particle._rotationMatrix[7] = this._rotMatrix.m[8] * this._parent._rotationMatrix[1] + this._rotMatrix.m[9] * this._parent._rotationMatrix[4] + this._rotMatrix.m[10] * this._parent._rotationMatrix[7];
+                            this._particle._rotationMatrix[8] = this._rotMatrix.m[8] * this._parent._rotationMatrix[2] + this._rotMatrix.m[9] * this._parent._rotationMatrix[5] + this._rotMatrix.m[10] * this._parent._rotationMatrix[8];
+                        }
+                    }
+                    else {
+                        this._particle._globalPosition.x = this._particle.position.x;
+                        this._particle._globalPosition.y = this._particle.position.y;
+                        this._particle._globalPosition.z = this._particle.position.z;
+                        if (this._computeParticleRotation || this.billboard) {
+                            this._particle._rotationMatrix[0] = this._rotMatrix.m[0];
+                            this._particle._rotationMatrix[1] = this._rotMatrix.m[1];
+                            this._particle._rotationMatrix[2] = this._rotMatrix.m[2];
+                            this._particle._rotationMatrix[3] = this._rotMatrix.m[4];
+                            this._particle._rotationMatrix[4] = this._rotMatrix.m[5];
+                            this._particle._rotationMatrix[5] = this._rotMatrix.m[6];
+                            this._particle._rotationMatrix[6] = this._rotMatrix.m[8];
+                            this._particle._rotationMatrix[7] = this._rotMatrix.m[9];
+                            this._particle._rotationMatrix[8] = this._rotMatrix.m[10];
+                        }
+                    }
+                    if (this._particle.translateFromPivot) {
+                        this._pivotBackTranslation.x = 0.0;
+                        this._pivotBackTranslation.y = 0.0;
+                        this._pivotBackTranslation.z = 0.0;
+                    }
+                    else {
+                        this._pivotBackTranslation.x = this._scaledPivot.x;
+                        this._pivotBackTranslation.y = this._scaledPivot.y;
+                        this._pivotBackTranslation.z = this._scaledPivot.z;
+                    }
                     // particle vertex loop
                     for (pt = 0; pt < this._shape.length; pt++) {
                         idx = index + pt * 3;
@@ -659,15 +757,18 @@
                         this._vertex.x *= this._particle.scaling.x;
                         this._vertex.y *= this._particle.scaling.y;
                         this._vertex.z *= this._particle.scaling.z;
-                        this._vertex.x += this._particle.pivot.x;
-                        this._vertex.y += this._particle.pivot.y;
-                        this._vertex.z += this._particle.pivot.z;
-                        this._rotated.x = this._vertex.x * this._rotMatrix.m[0] + this._vertex.y * this._rotMatrix.m[4] + this._vertex.z * this._rotMatrix.m[8];
-                        this._rotated.y = this._vertex.x * this._rotMatrix.m[1] + this._vertex.y * this._rotMatrix.m[5] + this._vertex.z * this._rotMatrix.m[9];
-                        this._rotated.z = this._vertex.x * this._rotMatrix.m[2] + this._vertex.y * this._rotMatrix.m[6] + this._vertex.z * this._rotMatrix.m[10];
-                        this._positions32[idx] = this._particle.position.x + this._cam_axisX.x * this._rotated.x + this._cam_axisY.x * this._rotated.y + this._cam_axisZ.x * this._rotated.z;
-                        this._positions32[idx + 1] = this._particle.position.y + this._cam_axisX.y * this._rotated.x + this._cam_axisY.y * this._rotated.y + this._cam_axisZ.y * this._rotated.z;
-                        this._positions32[idx + 2] = this._particle.position.z + this._cam_axisX.z * this._rotated.x + this._cam_axisY.z * this._rotated.y + this._cam_axisZ.z * this._rotated.z;
+                        this._vertex.x -= this._scaledPivot.x;
+                        this._vertex.y -= this._scaledPivot.y;
+                        this._vertex.z -= this._scaledPivot.z;
+                        this._rotated.x = this._vertex.x * this._particle._rotationMatrix[0] + this._vertex.y * this._particle._rotationMatrix[3] + this._vertex.z * this._particle._rotationMatrix[6];
+                        this._rotated.y = this._vertex.x * this._particle._rotationMatrix[1] + this._vertex.y * this._particle._rotationMatrix[4] + this._vertex.z * this._particle._rotationMatrix[7];
+                        this._rotated.z = this._vertex.x * this._particle._rotationMatrix[2] + this._vertex.y * this._particle._rotationMatrix[5] + this._vertex.z * this._particle._rotationMatrix[8];
+                        this._rotated.x += this._pivotBackTranslation.x;
+                        this._rotated.y += this._pivotBackTranslation.y;
+                        this._rotated.z += this._pivotBackTranslation.z;
+                        this._positions32[idx] = this._particle._globalPosition.x + this._cam_axisX.x * this._rotated.x + this._cam_axisY.x * this._rotated.y + this._cam_axisZ.x * this._rotated.z;
+                        this._positions32[idx + 1] = this._particle._globalPosition.y + this._cam_axisX.y * this._rotated.x + this._cam_axisY.y * this._rotated.y + this._cam_axisZ.y * this._rotated.z;
+                        this._positions32[idx + 2] = this._particle._globalPosition.z + this._cam_axisX.z * this._rotated.x + this._cam_axisY.z * this._rotated.y + this._cam_axisZ.z * this._rotated.z;
                         if (this._computeBoundingBox) {
                             if (this._positions32[idx] < this._minimum.x) {
                                 this._minimum.x = this._positions32[idx];
@@ -693,9 +794,9 @@
                             this._normal.x = this._fixedNormal32[idx];
                             this._normal.y = this._fixedNormal32[idx + 1];
                             this._normal.z = this._fixedNormal32[idx + 2];
-                            this._rotated.x = this._normal.x * this._rotMatrix.m[0] + this._normal.y * this._rotMatrix.m[4] + this._normal.z * this._rotMatrix.m[8];
-                            this._rotated.y = this._normal.x * this._rotMatrix.m[1] + this._normal.y * this._rotMatrix.m[5] + this._normal.z * this._rotMatrix.m[9];
-                            this._rotated.z = this._normal.x * this._rotMatrix.m[2] + this._normal.y * this._rotMatrix.m[6] + this._normal.z * this._rotMatrix.m[10];
+                            this._rotated.x = this._normal.x * this._particle._rotationMatrix[0] + this._normal.y * this._particle._rotationMatrix[3] + this._normal.z * this._particle._rotationMatrix[6];
+                            this._rotated.y = this._normal.x * this._particle._rotationMatrix[1] + this._normal.y * this._particle._rotationMatrix[4] + this._normal.z * this._particle._rotationMatrix[7];
+                            this._rotated.z = this._normal.x * this._particle._rotationMatrix[2] + this._normal.y * this._particle._rotationMatrix[5] + this._normal.z * this._particle._rotationMatrix[8];
                             this._normals32[idx] = this._cam_axisX.x * this._rotated.x + this._cam_axisY.x * this._rotated.y + this._cam_axisZ.x * this._rotated.z;
                             this._normals32[idx + 1] = this._cam_axisX.y * this._rotated.x + this._cam_axisY.y * this._rotated.y + this._cam_axisZ.y * this._rotated.z;
                             this._normals32[idx + 2] = this._cam_axisX.z * this._rotated.x + this._cam_axisY.z * this._rotated.y + this._cam_axisZ.z * this._rotated.z;
@@ -712,6 +813,7 @@
                         }
                     }
                 }
+                // particle just set invisible : scaled to zero and positioned at the origin
                 else {
                     this._particle._stillInvisible = true; // mark the particle as invisible
                     for (pt = 0; pt < this._shape.length; pt++) {
@@ -747,9 +849,9 @@
                             this._vertex.x = this._particle._modelBoundingInfo.boundingBox.vectors[b].x * this._particle.scaling.x;
                             this._vertex.y = this._particle._modelBoundingInfo.boundingBox.vectors[b].y * this._particle.scaling.y;
                             this._vertex.z = this._particle._modelBoundingInfo.boundingBox.vectors[b].z * this._particle.scaling.z;
-                            this._rotated.x = this._vertex.x * this._rotMatrix.m[0] + this._vertex.y * this._rotMatrix.m[4] + this._vertex.z * this._rotMatrix.m[8];
-                            this._rotated.y = this._vertex.x * this._rotMatrix.m[1] + this._vertex.y * this._rotMatrix.m[5] + this._vertex.z * this._rotMatrix.m[9];
-                            this._rotated.z = this._vertex.x * this._rotMatrix.m[2] + this._vertex.y * this._rotMatrix.m[6] + this._vertex.z * this._rotMatrix.m[10];
+                            this._rotated.x = this._vertex.x * this._particle._rotationMatrix[0] + this._vertex.y * this._particle._rotationMatrix[3] + this._vertex.z * this._particle._rotationMatrix[6];
+                            this._rotated.y = this._vertex.x * this._particle._rotationMatrix[1] + this._vertex.y * this._particle._rotationMatrix[4] + this._vertex.z * this._particle._rotationMatrix[7];
+                            this._rotated.z = this._vertex.x * this._particle._rotationMatrix[2] + this._vertex.y * this._particle._rotationMatrix[5] + this._vertex.z * this._particle._rotationMatrix[8];
                             bBox.vectors[b].x = this._particle.position.x + this._cam_axisX.x * this._rotated.x + this._cam_axisY.x * this._rotated.y + this._cam_axisZ.x * this._rotated.z;
                             bBox.vectors[b].y = this._particle.position.y + this._cam_axisX.y * this._rotated.x + this._cam_axisY.y * this._rotated.y + this._cam_axisZ.y * this._rotated.z;
                             bBox.vectors[b].z = this._particle.position.z + this._cam_axisX.z * this._rotated.x + this._cam_axisY.z * this._rotated.y + this._cam_axisZ.z * this._rotated.z;
@@ -763,9 +865,9 @@
                     this._maxBbox.x = this._particle._modelBoundingInfo.maximum.x * this._particle.scaling.x;
                     this._maxBbox.y = this._particle._modelBoundingInfo.maximum.y * this._particle.scaling.y;
                     this._maxBbox.z = this._particle._modelBoundingInfo.maximum.z * this._particle.scaling.z;
-                    bSphere.center.x = this._particle.position.x + (this._minBbox.x + this._maxBbox.x) * 0.5;
-                    bSphere.center.y = this._particle.position.y + (this._minBbox.y + this._maxBbox.y) * 0.5;
-                    bSphere.center.z = this._particle.position.z + (this._minBbox.z + this._maxBbox.z) * 0.5;
+                    bSphere.center.x = this._particle._globalPosition.x + (this._minBbox.x + this._maxBbox.x) * 0.5;
+                    bSphere.center.y = this._particle._globalPosition.y + (this._minBbox.y + this._maxBbox.y) * 0.5;
+                    bSphere.center.z = this._particle._globalPosition.z + (this._minBbox.z + this._maxBbox.z) * 0.5;
                     bSphere.radius = this._bSphereRadiusFactor * 0.5 * Math.sqrt((this._maxBbox.x - this._minBbox.x) * (this._maxBbox.x - this._minBbox.x) + (this._maxBbox.y - this._minBbox.y) * (this._maxBbox.y - this._minBbox.y) + (this._maxBbox.z - this._minBbox.z) * (this._maxBbox.z - this._minBbox.z));
                     bSphere._update(this.mesh._worldMatrix);
                 }
@@ -787,7 +889,7 @@
                     if (this._computeParticleVertex || this.mesh.isFacetDataEnabled) {
                         // recompute the normals only if the particles can be morphed, update then also the normal reference array _fixedNormal32[]
                         var params = this.mesh.isFacetDataEnabled ? this.mesh.getFacetDataParameters() : null;
-                        LIB.VertexData.ComputeNormals(this._positions32, this._indices, this._normals32, params);
+                        LIB.VertexData.ComputeNormals(this._positions32, this._indices32, this._normals32, params);
                         for (var i = 0; i < this._normals32.length; i++) {
                             this._fixedNormal32[i] = this._normals32[i];
                         }
@@ -856,7 +958,6 @@
         };
         /**
         * Disposes the SPS.
-        * Returns nothing.
         */
         SolidParticleSystem.prototype.dispose = function () {
             this.mesh.dispose();
@@ -876,10 +977,10 @@
             this.pickedParticles = null;
         };
         /**
-        * Visibilty helper : Recomputes the visible size according to the mesh bounding box
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
-        * Returns the SPS.
-        */
+         * Visibilty helper : Recomputes the visible size according to the mesh bounding box
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+         * @returns the SPS.
+         */
         SolidParticleSystem.prototype.refreshVisibleSize = function () {
             if (!this._isVisibilityBoxLocked) {
                 this.mesh.refreshBoundingInfo();
@@ -887,24 +988,27 @@
             return this;
         };
         /**
-        * Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
-        * @param size the size (float) of the visibility box
-        * note : this doesn't lock the SPS mesh bounding box.
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
-        */
+         * Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
+         * @param size the size (float) of the visibility box
+         * note : this doesn't lock the SPS mesh bounding box.
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+         */
         SolidParticleSystem.prototype.setVisibilityBox = function (size) {
             var vis = size / 2;
             this.mesh._boundingInfo = new LIB.BoundingInfo(new LIB.Vector3(-vis, -vis, -vis), new LIB.Vector3(vis, vis, vis));
         };
         Object.defineProperty(SolidParticleSystem.prototype, "isAlwaysVisible", {
-            // getter and setter
+            /**
+             * Gets whether the SPS as always visible or not
+             * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+             */
             get: function () {
                 return this._alwaysVisible;
             },
             /**
-            * Sets the SPS as always visible or not
-            * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
-            */
+             * Sets the SPS as always visible or not
+             * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+             */
             set: function (val) {
                 this._alwaysVisible = val;
                 this.mesh.alwaysSelectAsActiveMesh = val;
@@ -913,13 +1017,17 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "isVisibilityBoxLocked", {
+            /**
+             * Gets if the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
+             * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+             */
             get: function () {
                 return this._isVisibilityBoxLocked;
             },
             /**
-            * Sets the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
-            * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
-            */
+             * Sets the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
+             * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#sps-visibility
+             */
             set: function (val) {
                 this._isVisibilityBoxLocked = val;
                 var boundingInfo = this.mesh.getBoundingInfo();
@@ -929,16 +1037,19 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "computeParticleRotation", {
-            // getters
+            /**
+             * Gets if `setParticles()` computes the particle rotations or not.
+             * Default value : true. The SPS is faster when it's set to false.
+             * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
+             */
             get: function () {
                 return this._computeParticleRotation;
             },
-            // Optimizer setters
             /**
-            * Tells to `setParticles()` to compute the particle rotations or not.
-            * Default value : true. The SPS is faster when it's set to false.
-            * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
-            */
+             * Tells to `setParticles()` to compute the particle rotations or not.
+             * Default value : true. The SPS is faster when it's set to false.
+             * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
+             */
             set: function (val) {
                 this._computeParticleRotation = val;
             },
@@ -946,14 +1057,19 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "computeParticleColor", {
+            /**
+             * Gets if `setParticles()` computes the particle colors or not.
+             * Default value : true. The SPS is faster when it's set to false.
+             * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
+             */
             get: function () {
                 return this._computeParticleColor;
             },
             /**
-            * Tells to `setParticles()` to compute the particle colors or not.
-            * Default value : true. The SPS is faster when it's set to false.
-            * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
-            */
+             * Tells to `setParticles()` to compute the particle colors or not.
+             * Default value : true. The SPS is faster when it's set to false.
+             * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
+             */
             set: function (val) {
                 this._computeParticleColor = val;
             },
@@ -961,14 +1077,14 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "computeParticleTexture", {
+            /**
+             * Gets if `setParticles()` computes the particle textures or not.
+             * Default value : true. The SPS is faster when it's set to false.
+             * Note : the particle textures are stored values, so setting `computeParticleTexture` to false will keep yet the last colors set.
+             */
             get: function () {
                 return this._computeParticleTexture;
             },
-            /**
-            * Tells to `setParticles()` to compute the particle textures or not.
-            * Default value : true. The SPS is faster when it's set to false.
-            * Note : the particle textures are stored values, so setting `computeParticleTexture` to false will keep yet the last colors set.
-            */
             set: function (val) {
                 this._computeParticleTexture = val;
             },
@@ -976,14 +1092,19 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "computeParticleVertex", {
+            /**
+             * Gets if `setParticles()` calls the vertex function for each vertex of each particle, or not.
+             * Default value : false. The SPS is faster when it's set to false.
+             * Note : the particle custom vertex positions aren't stored values.
+             */
             get: function () {
                 return this._computeParticleVertex;
             },
             /**
-            * Tells to `setParticles()` to call the vertex function for each vertex of each particle, or not.
-            * Default value : false. The SPS is faster when it's set to false.
-            * Note : the particle custom vertex positions aren't stored values.
-            */
+             * Tells to `setParticles()` to call the vertex function for each vertex of each particle, or not.
+             * Default value : false. The SPS is faster when it's set to false.
+             * Note : the particle custom vertex positions aren't stored values.
+             */
             set: function (val) {
                 this._computeParticleVertex = val;
             },
@@ -991,12 +1112,15 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "computeBoundingBox", {
+            /**
+             * Gets if `setParticles()` computes or not the mesh bounding box when computing the particle positions.
+             */
             get: function () {
                 return this._computeBoundingBox;
             },
             /**
-            * Tells to `setParticles()` to compute or not the mesh bounding box when computing the particle positions.
-            */
+             * Tells to `setParticles()` to compute or not the mesh bounding box when computing the particle positions.
+             */
             set: function (val) {
                 this._computeBoundingBox = val;
             },
@@ -1004,14 +1128,19 @@
             configurable: true
         });
         Object.defineProperty(SolidParticleSystem.prototype, "depthSortParticles", {
+            /**
+             * Gets if `setParticles()` sorts or not the distance between each particle and the camera.
+             * Skipped when `enableDepthSort` is set to `false` (default) at construction time.
+             * Default : `true`
+             */
             get: function () {
                 return this._depthSortParticles;
             },
             /**
-            * Tells to `setParticles()` to sort or not the distance between each particle and the camera.
-            * Skipped when `enableDepthSort` is set to `false` (default) at construction time.
-            * Default : `true`
-            */
+             * Tells to `setParticles()` to sort or not the distance between each particle and the camera.
+             * Skipped when `enableDepthSort` is set to `false` (default) at construction time.
+             * Default : `true`
+             */
             set: function (val) {
                 this._depthSortParticles = val;
             },
@@ -1020,60 +1149,65 @@
         });
         // =======================================================================
         // Particle behavior logic
-        // these following methods may be overwritten by the user to fit his needs
+        // these following methods may be overwritten by the user to fit his needs    
         /**
-        * This function does nothing. It may be overwritten to set all the particle first values.
-        * The SPS doesn't call this function, you may have to call it by your own.
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
-        */
+         * This function does nothing. It may be overwritten to set all the particle first values.
+         * The SPS doesn't call this function, you may have to call it by your own.
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
+         */
         SolidParticleSystem.prototype.initParticles = function () {
         };
         /**
-        * This function does nothing. It may be overwritten to recycle a particle.
-        * The SPS doesn't call this function, you may have to call it by your own.
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
-        */
+         * This function does nothing. It may be overwritten to recycle a particle.
+         * The SPS doesn't call this function, you may have to call it by your own.
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
+         * @param particle The particle to recycle
+         * @returns the recycled particle
+         */
         SolidParticleSystem.prototype.recycleParticle = function (particle) {
             return particle;
         };
         /**
-        * Updates a particle : this function should  be overwritten by the user.
-        * It is called on each particle by `setParticles()`. This is the place to code each particle behavior.
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
-        * ex : just set a particle position or velocity and recycle conditions
-        */
+         * Updates a particle : this function should  be overwritten by the user.
+         * It is called on each particle by `setParticles()`. This is the place to code each particle behavior.
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#particle-management
+         * @example : just set a particle position or velocity and recycle conditions
+         * @param particle The particle to update
+         * @returns the updated particle
+         */
         SolidParticleSystem.prototype.updateParticle = function (particle) {
             return particle;
         };
         /**
-        * Updates a vertex of a particle : it can be overwritten by the user.
-        * This will be called on each vertex particle by `setParticles()` if `computeParticleVertex` is set to true only.
-        * @param particle the current particle
-        * @param vertex the current index of the current particle
-        * @param pt the index of the current vertex in the particle shape
-        * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#update-each-particle-shape
-        * ex : just set a vertex particle position
-        */
+         * Updates a vertex of a particle : it can be overwritten by the user.
+         * This will be called on each vertex particle by `setParticles()` if `computeParticleVertex` is set to true only.
+         * @param particle the current particle
+         * @param vertex the current index of the current particle
+         * @param pt the index of the current vertex in the particle shape
+         * doc : http://doc.LIBjs.com/overviews/Solid_Particle_System#update-each-particle-shape
+         * @example : just set a vertex particle position
+         * @returns the updated vertex
+         */
         SolidParticleSystem.prototype.updateParticleVertex = function (particle, vertex, pt) {
             return vertex;
         };
         /**
-        * This will be called before any other treatment by `setParticles()` and will be passed three parameters.
-        * This does nothing and may be overwritten by the user.
-        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param update the boolean update value actually passed to setParticles()
-        */
+         * This will be called before any other treatment by `setParticles()` and will be passed three parameters.
+         * This does nothing and may be overwritten by the user.
+         * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+         * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+         * @param update the boolean update value actually passed to setParticles()
+         */
         SolidParticleSystem.prototype.beforeUpdateParticles = function (start, stop, update) {
         };
         /**
-        * This will be called  by `setParticles()` after all the other treatments and just before the actual mesh update.
-        * This will be passed three parameters.
-        * This does nothing and may be overwritten by the user.
-        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param update the boolean update value actually passed to setParticles()
-        */
+         * This will be called  by `setParticles()` after all the other treatments and just before the actual mesh update.
+         * This will be passed three parameters.
+         * This does nothing and may be overwritten by the user.
+         * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+         * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+         * @param update the boolean update value actually passed to setParticles()
+         */
         SolidParticleSystem.prototype.afterUpdateParticles = function (start, stop, update) {
         };
         return SolidParticleSystem;
@@ -1081,4 +1215,5 @@
     LIB.SolidParticleSystem = SolidParticleSystem;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.solidParticleSystem.js.map
 //# sourceMappingURL=LIB.solidParticleSystem.js.map

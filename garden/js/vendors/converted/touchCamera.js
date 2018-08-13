@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     // We're mainly based on the logic defined into the FreeCamera code
     var TouchCamera = /** @class */ (function (_super) {
@@ -54,4 +57,5 @@
     LIB.TouchCamera = TouchCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.touchCamera.js.map
 //# sourceMappingURL=LIB.touchCamera.js.map

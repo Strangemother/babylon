@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var PhysicsEngine = /** @class */ (function () {
         function PhysicsEngine(gravity, _physicsPlugin) {
@@ -147,4 +149,5 @@
     LIB.PhysicsEngine = PhysicsEngine;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.physicsEngine.js.map
 //# sourceMappingURL=LIB.physicsEngine.js.map

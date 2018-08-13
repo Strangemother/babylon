@@ -1,4 +1,10 @@
+
+var LIB;
 (function (LIB) {
+    /**
+     * Takes information about the orientation of the device as reported by the deviceorientation event to orient the camera.
+     * Screen rotation is taken into account.
+     */
     var FreeCameraDeviceOrientationInput = /** @class */ (function () {
         function FreeCameraDeviceOrientationInput() {
             var _this = this;
@@ -68,4 +74,5 @@
     LIB.CameraInputTypes["FreeCameraDeviceOrientationInput"] = FreeCameraDeviceOrientationInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraDeviceOrientationInput.js.map
 //# sourceMappingURL=LIB.freeCameraDeviceOrientationInput.js.map

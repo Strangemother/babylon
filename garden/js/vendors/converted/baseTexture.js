@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var BaseTexture = /** @class */ (function () {
         function BaseTexture(scene) {
@@ -6,8 +9,29 @@
             this.level = 1;
             this.coordinatesIndex = 0;
             this._coordinatesMode = LIB.Texture.EXPLICIT_MODE;
+            /**
+            * | Value | Type               | Description |
+            * | ----- | ------------------ | ----------- |
+            * | 0     | CLAMP_ADDRESSMODE  |             |
+            * | 1     | WRAP_ADDRESSMODE   |             |
+            * | 2     | MIRROR_ADDRESSMODE |             |
+            */
             this.wrapU = LIB.Texture.WRAP_ADDRESSMODE;
+            /**
+            * | Value | Type               | Description |
+            * | ----- | ------------------ | ----------- |
+            * | 0     | CLAMP_ADDRESSMODE  |             |
+            * | 1     | WRAP_ADDRESSMODE   |             |
+            * | 2     | MIRROR_ADDRESSMODE |             |
+            */
             this.wrapV = LIB.Texture.WRAP_ADDRESSMODE;
+            /**
+            * | Value | Type               | Description |
+            * | ----- | ------------------ | ----------- |
+            * | 0     | CLAMP_ADDRESSMODE  |             |
+            * | 1     | WRAP_ADDRESSMODE   |             |
+            * | 2     | MIRROR_ADDRESSMODE |             |
+            */
             this.wrapR = LIB.Texture.WRAP_ADDRESSMODE;
             this.anisotropicFilteringLevel = BaseTexture.DEFAULT_ANISOTROPIC_FILTERING_LEVEL;
             this.isCube = false;
@@ -21,7 +45,6 @@
             this.animations = new Array();
             /**
             * An event triggered when the texture is disposed.
-            * @type {LIB.Observable}
             */
             this.onDisposeObservable = new LIB.Observable();
             this.delayLoadState = LIB.Engine.DELAYLOADSTATE_NONE;
@@ -41,7 +64,7 @@
                 }
                 this._hasAlpha = value;
                 if (this._scene) {
-                    this._scene.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag);
+                    this._scene.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag | LIB.Material.MiscDirtyFlag);
                 }
             },
             enumerable: true,
@@ -51,6 +74,22 @@
             get: function () {
                 return this._coordinatesMode;
             },
+            /**
+            * How a texture is mapped.
+            *
+            * | Value | Type                                | Description |
+            * | ----- | ----------------------------------- | ----------- |
+            * | 0     | EXPLICIT_MODE                       |             |
+            * | 1     | SPHERICAL_MODE                      |             |
+            * | 2     | PLANAR_MODE                         |             |
+            * | 3     | CUBIC_MODE                          |             |
+            * | 4     | PROJECTION_MODE                     |             |
+            * | 5     | SKYBOX_MODE                         |             |
+            * | 6     | INVCUBIC_MODE                       |             |
+            * | 7     | EQUIRECTANGULAR_MODE                |             |
+            * | 8     | FIXED_EQUIRECTANGULAR_MODE          |             |
+            * | 9     | FIXED_EQUIRECTANGULAR_MIRRORED_MODE |             |
+            */
             set: function (value) {
                 if (this._coordinatesMode === value) {
                     return;
@@ -214,12 +253,12 @@
         };
         Object.defineProperty(BaseTexture.prototype, "sphericalPolynomial", {
             get: function () {
-                if (!this._texture || !LIB.Internals.CubeMapToSphericalPolynomialTools || !this.isReady()) {
+                if (!this._texture || !LIB.CubeMapToSphericalPolynomialTools || !this.isReady()) {
                     return null;
                 }
                 if (!this._texture._sphericalPolynomial) {
                     this._texture._sphericalPolynomial =
-                        LIB.Internals.CubeMapToSphericalPolynomialTools.ConvertCubeMapTextureToSphericalPolynomial(this);
+                        LIB.CubeMapToSphericalPolynomialTools.ConvertCubeMapTextureToSphericalPolynomial(this);
                 }
                 return this._texture._sphericalPolynomial;
             },
@@ -380,4 +419,5 @@
     LIB.BaseTexture = BaseTexture;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.baseTexture.js.map
 //# sourceMappingURL=LIB.baseTexture.js.map

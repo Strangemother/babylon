@@ -1,13 +1,15 @@
+
+
+var LIB;
 (function (LIB) {
     ;
     var MultiRenderTarget = /** @class */ (function (_super) {
         __extends(MultiRenderTarget, _super);
         function MultiRenderTarget(name, size, count, scene, options) {
             var _this = this;
-            options = options || {};
-            var generateMipMaps = options.generateMipMaps ? options.generateMipMaps : false;
-            var generateDepthTexture = options.generateDepthTexture ? options.generateDepthTexture : false;
-            var doNotChangeAspectRatio = options.doNotChangeAspectRatio === undefined ? true : options.doNotChangeAspectRatio;
+            var generateMipMaps = options && options.generateMipMaps ? options.generateMipMaps : false;
+            var generateDepthTexture = options && options.generateDepthTexture ? options.generateDepthTexture : false;
+            var doNotChangeAspectRatio = !options || options.doNotChangeAspectRatio === undefined ? true : options.doNotChangeAspectRatio;
             _this = _super.call(this, name, size, scene, generateMipMaps, doNotChangeAspectRatio) || this;
             _this._engine = scene.getEngine();
             if (!_this.isSupported) {
@@ -17,21 +19,21 @@
             var types = [];
             var samplingModes = [];
             for (var i = 0; i < count; i++) {
-                if (options.types && options.types[i]) {
+                if (options && options.types && options.types[i] !== undefined) {
                     types.push(options.types[i]);
                 }
                 else {
-                    types.push(LIB.Engine.TEXTURETYPE_FLOAT);
+                    types.push(options && options.defaultType ? options.defaultType : LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
                 }
-                if (options.samplingModes && options.samplingModes[i]) {
+                if (options && options.samplingModes && options.samplingModes[i] !== undefined) {
                     samplingModes.push(options.samplingModes[i]);
                 }
                 else {
                     samplingModes.push(LIB.Texture.BILINEAR_SAMPLINGMODE);
                 }
             }
-            var generateDepthBuffer = options.generateDepthBuffer === undefined ? true : options.generateDepthBuffer;
-            var generateStencilBuffer = options.generateStencilBuffer === undefined ? false : options.generateStencilBuffer;
+            var generateDepthBuffer = !options || options.generateDepthBuffer === undefined ? true : options.generateDepthBuffer;
+            var generateStencilBuffer = !options || options.generateStencilBuffer === undefined ? false : options.generateStencilBuffer;
             _this._size = size;
             _this._multiRenderTargetOptions = {
                 samplingModes: samplingModes,
@@ -120,9 +122,7 @@
                 if (this._samples === value) {
                     return;
                 }
-                for (var i = 0; i < this._internalTextures.length; i++) {
-                    this._samples = this._engine.updateRenderTargetTextureSampleCount(this._internalTextures[i], value);
-                }
+                this._samples = this._engine.updateMultipleRenderTargetTextureSampleCount(this._internalTextures, value);
             },
             enumerable: true,
             configurable: true
@@ -131,6 +131,12 @@
             this.releaseInternalTextures();
             this._internalTextures = this._engine.createMultipleRenderTarget(size, this._multiRenderTargetOptions);
             this._createInternalTextures();
+        };
+        MultiRenderTarget.prototype.unbindFrameBuffer = function (engine, faceIndex) {
+            var _this = this;
+            engine.unBindMultiColorAttachmentFramebuffer(this._internalTextures, this.isCube, function () {
+                _this.onAfterRenderObservable.notifyObservers(faceIndex);
+            });
         };
         MultiRenderTarget.prototype.dispose = function () {
             this.releaseInternalTextures();
@@ -152,4 +158,5 @@
     LIB.MultiRenderTarget = MultiRenderTarget;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.multiRenderTarget.js.map
 //# sourceMappingURL=LIB.multiRenderTarget.js.map

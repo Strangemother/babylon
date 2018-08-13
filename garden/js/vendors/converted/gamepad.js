@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var StickValues = /** @class */ (function () {
         function StickValues(x, y) {
@@ -138,4 +141,5 @@
     LIB.GenericPad = GenericPad;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.gamepad.js.map
 //# sourceMappingURL=LIB.gamepad.js.map

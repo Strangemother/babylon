@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var SmartArray = /** @class */ (function () {
         function SmartArray(capacity) {
@@ -97,4 +100,5 @@
     LIB.SmartArrayNoDuplicate = SmartArrayNoDuplicate;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.smartArray.js.map
 //# sourceMappingURL=LIB.smartArray.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FreeCameraMouseInput = /** @class */ (function () {
         function FreeCameraMouseInput(touchEnabled) {
@@ -56,13 +59,12 @@
                             return;
                         }
                         var offsetX = evt.clientX - _this.previousPosition.x;
+                        if (_this.camera.getScene().useRightHandedSystem)
+                            offsetX *= -1;
+                        if (_this.camera.parent && _this.camera.parent._getWorldMatrixDeterminant() < 0)
+                            offsetX *= -1;
+                        _this.camera.cameraRotation.y += offsetX / _this.angularSensibility;
                         var offsetY = evt.clientY - _this.previousPosition.y;
-                        if (_this.camera.getScene().useRightHandedSystem) {
-                            _this.camera.cameraRotation.y -= offsetX / _this.angularSensibility;
-                        }
-                        else {
-                            _this.camera.cameraRotation.y += offsetX / _this.angularSensibility;
-                        }
                         _this.camera.cameraRotation.x += offsetY / _this.angularSensibility;
                         _this.previousPosition = {
                             x: evt.clientX,
@@ -82,13 +84,12 @@
                     return;
                 }
                 var offsetX = evt.movementX || evt.mozMovementX || evt.webkitMovementX || evt.msMovementX || 0;
+                if (_this.camera.getScene().useRightHandedSystem)
+                    offsetX *= -1;
+                if (_this.camera.parent && _this.camera.parent._getWorldMatrixDeterminant() < 0)
+                    offsetX *= -1;
+                _this.camera.cameraRotation.y += offsetX / _this.angularSensibility;
                 var offsetY = evt.movementY || evt.mozMovementY || evt.webkitMovementY || evt.msMovementY || 0;
-                if (_this.camera.getScene().useRightHandedSystem) {
-                    _this.camera.cameraRotation.y -= offsetX / _this.angularSensibility;
-                }
-                else {
-                    _this.camera.cameraRotation.y += offsetX / _this.angularSensibility;
-                }
                 _this.camera.cameraRotation.x += offsetY / _this.angularSensibility;
                 _this.previousPosition = null;
                 if (!noPreventDefault) {
@@ -127,4 +128,5 @@
     LIB.CameraInputTypes["FreeCameraMouseInput"] = FreeCameraMouseInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraMouseInput.js.map
 //# sourceMappingURL=LIB.freeCameraMouseInput.js.map

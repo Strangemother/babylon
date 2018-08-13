@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var FaceAdjacencies = /** @class */ (function () {
         function FaceAdjacencies() {
@@ -168,10 +170,10 @@
                 faceAdjacencies = adjacencies[index];
                 for (var otherIndex = index + 1; otherIndex < adjacencies.length; otherIndex++) {
                     var otherFaceAdjacencies = adjacencies[otherIndex];
-                    if (faceAdjacencies.edgesConnectedCount === 3) {
+                    if (faceAdjacencies.edgesConnectedCount === 3) { // Full
                         break;
                     }
-                    if (otherFaceAdjacencies.edgesConnectedCount === 3) {
+                    if (otherFaceAdjacencies.edgesConnectedCount === 3) { // Full
                         continue;
                     }
                     var otherP0 = indices[otherIndex * 3];
@@ -265,4 +267,5 @@
     LIB.EdgesRenderer = EdgesRenderer;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.edgesRenderer.js.map
 //# sourceMappingURL=LIB.edgesRenderer.js.map

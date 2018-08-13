@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var RenderingManager = /** @class */ (function () {
         function RenderingManager(scene) {
@@ -87,16 +89,22 @@
             }
         };
         RenderingManager.prototype.dispose = function () {
+            this.freeRenderingGroups();
+            this._renderingGroups.length = 0;
+        };
+        /**
+         * Clear the info related to rendering groups preventing retention points during dispose.
+         */
+        RenderingManager.prototype.freeRenderingGroups = function () {
             for (var index = RenderingManager.MIN_RENDERINGGROUPS; index < RenderingManager.MAX_RENDERINGGROUPS; index++) {
                 var renderingGroup = this._renderingGroups[index];
                 if (renderingGroup) {
                     renderingGroup.dispose();
                 }
             }
-            this._renderingGroups.length = 0;
         };
         RenderingManager.prototype._prepareRenderingGroup = function (renderingGroupId) {
-            if (!this._renderingGroups[renderingGroupId]) {
+            if (this._renderingGroups[renderingGroupId] === undefined) {
                 this._renderingGroups[renderingGroupId] = new LIB.RenderingGroup(renderingGroupId, this._scene, this._customOpaqueSortCompareFn[renderingGroupId], this._customAlphaTestSortCompareFn[renderingGroupId], this._customTransparentSortCompareFn[renderingGroupId]);
             }
         };
@@ -110,11 +118,18 @@
             this._prepareRenderingGroup(renderingGroupId);
             this._renderingGroups[renderingGroupId].dispatchParticles(particleSystem);
         };
-        RenderingManager.prototype.dispatch = function (subMesh) {
-            var mesh = subMesh.getMesh();
+        /**
+         * @param subMesh The submesh to dispatch
+         * @param [mesh] Optional reference to the submeshes's mesh. Provide if you have an exiting reference to improve performance.
+         * @param [material] Optional reference to the submeshes's material. Provide if you have an exiting reference to improve performance.
+         */
+        RenderingManager.prototype.dispatch = function (subMesh, mesh, material) {
+            if (mesh === undefined) {
+                mesh = subMesh.getMesh();
+            }
             var renderingGroupId = mesh.renderingGroupId || 0;
             this._prepareRenderingGroup(renderingGroupId);
-            this._renderingGroups[renderingGroupId].dispatch(subMesh);
+            this._renderingGroups[renderingGroupId].dispatch(subMesh, mesh, material);
         };
         /**
          * Overrides the default sort function applied in the renderging group to prepare the meshes.
@@ -173,4 +188,5 @@
     LIB.RenderingManager = RenderingManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.renderingManager.js.map
 //# sourceMappingURL=LIB.renderingManager.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var FreeCameraTouchInput = /** @class */ (function () {
         function FreeCameraTouchInput() {
@@ -118,4 +121,5 @@
     LIB.CameraInputTypes["FreeCameraTouchInput"] = FreeCameraTouchInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCameraTouchInput.js.map
 //# sourceMappingURL=LIB.freeCameraTouchInput.js.map

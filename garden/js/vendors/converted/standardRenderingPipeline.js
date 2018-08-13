@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var StandardRenderingPipeline = /** @class */ (function (_super) {
         __extends(StandardRenderingPipeline, _super);
@@ -215,13 +223,6 @@
             }
             this.addEffect(new LIB.PostProcessRenderEffect(scene.getEngine(), "HDRPassPostProcess", function () { return _this.originalPostProcess; }, true));
             this._currentDepthOfFieldSource = this.originalPostProcess;
-            if (this._vlsEnabled) {
-                // Create volumetric light
-                this._createVolumetricLightPostProcess(scene, ratio);
-                // Create volumetric light final post-process
-                this.volumetricLightFinalPostProcess = new LIB.PostProcess("HDRVLSFinal", "standard", [], [], ratio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false, "#define PASS_POST_PROCESS", LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
-                this.addEffect(new LIB.PostProcessRenderEffect(scene.getEngine(), "HDRVLSFinal", function () { return _this.volumetricLightFinalPostProcess; }, true));
-            }
             if (this._bloomEnabled) {
                 // Create down sample X4 post-process
                 this._createDownSampleX4PostProcess(scene, ratio / 2);
@@ -234,6 +235,13 @@
                 // Create depth-of-field source post-process
                 this.textureAdderFinalPostProcess = new LIB.PostProcess("HDRDepthOfFieldSource", "standard", [], [], ratio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false, "#define PASS_POST_PROCESS", LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
                 this.addEffect(new LIB.PostProcessRenderEffect(scene.getEngine(), "HDRBaseDepthOfFieldSource", function () { return _this.textureAdderFinalPostProcess; }, true));
+            }
+            if (this._vlsEnabled) {
+                // Create volumetric light
+                this._createVolumetricLightPostProcess(scene, ratio);
+                // Create volumetric light final post-process
+                this.volumetricLightFinalPostProcess = new LIB.PostProcess("HDRVLSFinal", "standard", [], [], ratio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false, "#define PASS_POST_PROCESS", LIB.Engine.TEXTURETYPE_UNSIGNED_INT);
+                this.addEffect(new LIB.PostProcessRenderEffect(scene.getEngine(), "HDRVLSFinal", function () { return _this.volumetricLightFinalPostProcess; }, true));
             }
             if (this._lensFlareEnabled) {
                 // Create lens flare post-process
@@ -371,7 +379,7 @@
             // Merge
             this.volumetricLightMergePostProces = new LIB.PostProcess("HDRVLSMerge", "standard", [], ["originalSampler"], ratio, null, LIB.Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false, "#define VLSMERGE");
             this.volumetricLightMergePostProces.onApply = function (effect) {
-                effect.setTextureFromPostProcess("originalSampler", _this.originalPostProcess);
+                effect.setTextureFromPostProcess("originalSampler", _this._bloomEnabled ? _this.textureAdderFinalPostProcess : _this.originalPostProcess);
                 _this._currentDepthOfFieldSource = _this.volumetricLightFinalPostProcess;
             };
             this.addEffect(new LIB.PostProcessRenderEffect(scene.getEngine(), "HDRVLSMerge", function () { return _this.volumetricLightMergePostProces; }, true));
@@ -647,24 +655,39 @@
             this.blurHPostProcesses = [];
             this.blurVPostProcesses = [];
         };
-        // Dispose
+        /**
+         * Dispose of the pipeline and stop all post processes
+         */
         StandardRenderingPipeline.prototype.dispose = function () {
             this._disposePostProcesses();
             this._scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(this._name, this._cameras);
             _super.prototype.dispose.call(this);
         };
-        // Serialize rendering pipeline
+        /**
+         * Serialize the rendering pipeline (Used when exporting)
+         * @returns the serialized object
+         */
         StandardRenderingPipeline.prototype.serialize = function () {
             var serializationObject = LIB.SerializationHelper.Serialize(this);
+            if (this.sourceLight) {
+                serializationObject.sourceLightId = this.sourceLight.id;
+            }
             serializationObject.customType = "StandardRenderingPipeline";
             return serializationObject;
         };
         /**
-         * Static members
+         * Parse the serialized pipeline
+         * @param source Source pipeline.
+         * @param scene The scene to load the pipeline to.
+         * @param rootUrl The URL of the serialized pipeline.
+         * @returns An instantiated pipeline from the serialized object.
          */
-        // Parse serialized pipeline
         StandardRenderingPipeline.Parse = function (source, scene, rootUrl) {
-            return LIB.SerializationHelper.Parse(function () { return new StandardRenderingPipeline(source._name, scene, source._ratio); }, source, scene, rootUrl);
+            var p = LIB.SerializationHelper.Parse(function () { return new StandardRenderingPipeline(source._name, scene, source._ratio); }, source, scene, rootUrl);
+            if (source.sourceLightId) {
+                p.sourceLight = scene.getLightByID(source.sourceLightId);
+            }
+            return p;
         };
         // Luminance steps
         StandardRenderingPipeline.LuminanceSteps = 6;
@@ -763,4 +786,5 @@
     LIB.StandardRenderingPipeline = StandardRenderingPipeline;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.standardRenderingPipeline.js.map
 //# sourceMappingURL=LIB.standardRenderingPipeline.js.map

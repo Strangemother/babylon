@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var TextureTools = /** @class */ (function () {
         function TextureTools() {
@@ -60,4 +62,5 @@
     LIB.TextureTools = TextureTools;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.textureTools.js.map
 //# sourceMappingURL=LIB.textureTools.js.map

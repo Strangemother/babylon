@@ -1,8 +1,17 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var FreeCamera = /** @class */ (function (_super) {
         __extends(FreeCamera, _super);
-        function FreeCamera(name, position, scene) {
-            var _this = _super.call(this, name, position, scene) || this;
+        function FreeCamera(name, position, scene, setActiveOnSceneIfNoneActive) {
+            if (setActiveOnSceneIfNoneActive === void 0) { setActiveOnSceneIfNoneActive = true; }
+            var _this = _super.call(this, name, position, scene, setActiveOnSceneIfNoneActive) || this;
             _this.ellipsoid = new LIB.Vector3(0.5, 1, 0.5);
             _this.ellipsoidOffset = new LIB.Vector3(0, 0, 0);
             _this.checkCollisions = false;
@@ -36,12 +45,20 @@
         }
         Object.defineProperty(FreeCamera.prototype, "angularSensibility", {
             //-- begin properties for backward compatibility for inputs
+            /**
+             * Gets the input sensibility for a mouse input. (default is 2000.0)
+             * Higher values reduce sensitivity.
+             */
             get: function () {
                 var mouse = this.inputs.attached["mouse"];
                 if (mouse)
                     return mouse.angularSensibility;
                 return 0;
             },
+            /**
+             * Sets the input sensibility for a mouse input. (default is 2000.0)
+             * Higher values reduce sensitivity.
+             */
             set: function (value) {
                 var mouse = this.inputs.attached["mouse"];
                 if (mouse)
@@ -196,4 +213,5 @@
     LIB.FreeCamera = FreeCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.freeCamera.js.map
 //# sourceMappingURL=LIB.freeCamera.js.map

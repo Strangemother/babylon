@@ -1,3 +1,10 @@
+
+// LIB.JS Chromatic Aberration GLSL Shader
+// Author: Olivier Guyot
+// Separates very slightly R, G and B colors on the edges of the screen
+// Inspired by Francois Tarlier & Martins Upitis
+
+var LIB;
 (function (LIB) {
     var LensRenderingPipeline = /** @class */ (function (_super) {
         __extends(LensRenderingPipeline, _super);
@@ -42,17 +49,14 @@
             // - grain texture
             /**
             * The chromatic aberration PostProcess id in the pipeline
-            * @type {string}
             */
             _this.LensChromaticAberrationEffect = "LensChromaticAberrationEffect";
             /**
             * The highlights enhancing PostProcess id in the pipeline
-            * @type {string}
             */
             _this.HighlightsEnhancingEffect = "HighlightsEnhancingEffect";
             /**
             * The depth-of-field PostProcess id in the pipeline
-            * @type {string}
             */
             _this.LensDepthOfFieldEffect = "LensDepthOfFieldEffect";
             _this._scene = scene;
@@ -143,13 +147,16 @@
         // colors shifting and distortion
         LensRenderingPipeline.prototype._createChromaticAberrationPostProcess = function (ratio) {
             var _this = this;
-            this._chromaticAberrationPostProcess = new LIB.PostProcess("LensChromaticAberration", "chromaticAberration", ["chromatic_aberration", "screen_width", "screen_height"], // uniforms
+            this._chromaticAberrationPostProcess = new LIB.PostProcess("LensChromaticAberration", "chromaticAberration", ["chromatic_aberration", "screen_width", "screen_height", "direction", "radialIntensity", "centerPosition"], // uniforms
             [], // samplers
             ratio, null, LIB.Texture.TRILINEAR_SAMPLINGMODE, this._scene.getEngine(), false);
             this._chromaticAberrationPostProcess.onApply = function (effect) {
                 effect.setFloat('chromatic_aberration', _this._chromaticAberration);
                 effect.setFloat('screen_width', _this._scene.getEngine().getRenderWidth());
                 effect.setFloat('screen_height', _this._scene.getEngine().getRenderHeight());
+                effect.setFloat('radialIntensity', 1);
+                effect.setFloat2('direction', 17, 17);
+                effect.setFloat2('centerPosition', 0.5, 0.5);
             };
         };
         // highlights enhancing
@@ -220,4 +227,5 @@
     LIB.LensRenderingPipeline = LensRenderingPipeline;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.lensRenderingPipeline.js.map
 //# sourceMappingURL=LIB.lensRenderingPipeline.js.map

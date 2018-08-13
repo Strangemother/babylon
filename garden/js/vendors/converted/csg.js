@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     // Unique ID when we import meshes from LIB to CSG
     var currentCSGMeshId = 0;
@@ -8,7 +10,7 @@
     // `flip()`, and `interpolate()` methods that behave analogous to the ones
     // defined by `LIB.CSG.Vertex`. This class provides `normal` so convenience
     // functions like `LIB.CSG.sphere()` can return a smooth vertex normal, but `normal`
-    // is not used anywhere else.
+    // is not used anywhere else. 
     // Same goes for uv, it allows to keep the original vertex uv coordinates of the 2 meshes
     var Vertex = /** @class */ (function () {
         function Vertex(pos, normal, uv) {
@@ -127,7 +129,7 @@
     // # class Polygon
     // Represents a convex polygon. The vertices used to initialize a polygon must
     // be coplanar and form a convex loop.
-    //
+    // 
     // Each convex polygon has a `shared` property, which is shared between all
     // polygons that are clones of each other or were split from the same polygon.
     // This can be used to define per-polygon properties (such as surface color).
@@ -508,4 +510,5 @@
     LIB.CSG = CSG;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.csg.js.map
 //# sourceMappingURL=LIB.csg.js.map

@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var StereoscopicInterlacePostProcess = /** @class */ (function (_super) {
         __extends(StereoscopicInterlacePostProcess, _super);
@@ -19,4 +22,5 @@
     LIB.StereoscopicInterlacePostProcess = StereoscopicInterlacePostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.stereoscopicInterlacePostProcess.js.map
 //# sourceMappingURL=LIB.stereoscopicInterlacePostProcess.js.map

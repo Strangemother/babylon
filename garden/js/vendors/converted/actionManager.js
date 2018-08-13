@@ -1,16 +1,32 @@
+
+var LIB;
 (function (LIB) {
     /**
-     * ActionEvent is the event beint sent when an action is triggered.
+     * ActionEvent is the event being sent when an action is triggered.
      */
     var ActionEvent = /** @class */ (function () {
         /**
-         * @param source The mesh or sprite that triggered the action.
+         * Creates a new ActionEvent
+         * @param source The mesh or sprite that triggered the action
          * @param pointerX The X mouse cursor position at the time of the event
          * @param pointerY The Y mouse cursor position at the time of the event
          * @param meshUnderPointer The mesh that is currently pointed at (can be null)
          * @param sourceEvent the original (browser) event that triggered the ActionEvent
+         * @param additionalData additional data for the event
          */
-        function ActionEvent(source, pointerX, pointerY, meshUnderPointer, sourceEvent, additionalData) {
+        function ActionEvent(
+        /** The mesh or sprite that triggered the action */
+        source, 
+        /** The X mouse cursor position at the time of the event */
+        pointerX, 
+        /** The Y mouse cursor position at the time of the event */
+        pointerY, 
+        /** The mesh that is currently pointed at (can be null) */
+        meshUnderPointer, 
+        /** the original (browser) event that triggered the ActionEvent */
+        sourceEvent, 
+        /** additional data for the event */
+        additionalData) {
             this.source = source;
             this.pointerX = pointerX;
             this.pointerY = pointerY;
@@ -21,17 +37,21 @@
         /**
          * Helper function to auto-create an ActionEvent from a source mesh.
          * @param source The source mesh that triggered the event
-         * @param evt {Event} The original (browser) event
+         * @param evt The original (browser) event
+         * @param additionalData additional data for the event
+         * @returns the new ActionEvent
          */
         ActionEvent.CreateNew = function (source, evt, additionalData) {
             var scene = source.getScene();
             return new ActionEvent(source, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt, additionalData);
         };
         /**
-         * Helper function to auto-create an ActionEvent from a source mesh.
+         * Helper function to auto-create an ActionEvent from a source sprite
          * @param source The source sprite that triggered the event
          * @param scene Scene associated with the sprite
-         * @param evt {Event} The original (browser) event
+         * @param evt The original (browser) event
+         * @param additionalData additional data for the event
+         * @returns the new ActionEvent
          */
         ActionEvent.CreateNewFromSprite = function (source, scene, evt, additionalData) {
             return new ActionEvent(source, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt, additionalData);
@@ -39,11 +59,20 @@
         /**
          * Helper function to auto-create an ActionEvent from a scene. If triggered by a mesh use ActionEvent.CreateNew
          * @param scene the scene where the event occurred
-         * @param evt {Event} The original (browser) event
+         * @param evt The original (browser) event
+         * @returns the new ActionEvent
          */
         ActionEvent.CreateNewFromScene = function (scene, evt) {
             return new ActionEvent(null, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt);
         };
+        /**
+         * Helper function to auto-create an ActionEvent from a primitive
+         * @param prim defines the target primitive
+         * @param pointerPos defines the pointer position
+         * @param evt The original (browser) event
+         * @param additionalData additional data for the event
+         * @returns the new ActionEvent
+         */
         ActionEvent.CreateNewFromPrimitive = function (prim, pointerPos, evt, additionalData) {
             return new ActionEvent(prim, pointerPos.x, pointerPos.y, null, evt, additionalData);
         };
@@ -53,16 +82,27 @@
     /**
      * Action Manager manages all events to be triggered on a given mesh or the global scene.
      * A single scene can have many Action Managers to handle predefined actions on specific meshes.
+     * @see http://doc.LIBjs.com/how_to/how_to_use_actions
      */
     var ActionManager = /** @class */ (function () {
+        /**
+         * Creates a new action manager
+         * @param scene defines the hosting scene
+         */
         function ActionManager(scene) {
             // Members
+            /** Gets the list of actions */
             this.actions = new Array();
+            /** Gets the cursor to use when hovering items */
             this.hoverCursor = '';
-            this._scene = scene;
+            this._scene = scene || LIB.Engine.LastCreatedScene;
             scene._actionManagers.push(this);
         }
         Object.defineProperty(ActionManager, "NothingTrigger", {
+            /**
+             * Nothing
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._NothingTrigger;
             },
@@ -70,6 +110,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPickTrigger", {
+            /**
+             * On pick
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPickTrigger;
             },
@@ -77,6 +121,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnLeftPickTrigger", {
+            /**
+             * On left pick
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnLeftPickTrigger;
             },
@@ -84,6 +132,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnRightPickTrigger", {
+            /**
+             * On right pick
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnRightPickTrigger;
             },
@@ -91,6 +143,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnCenterPickTrigger", {
+            /**
+             * On center pick
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnCenterPickTrigger;
             },
@@ -98,6 +154,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPickDownTrigger", {
+            /**
+             * On pick down
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPickDownTrigger;
             },
@@ -105,6 +165,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnDoublePickTrigger", {
+            /**
+             * On double pick
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnDoublePickTrigger;
             },
@@ -112,6 +176,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPickUpTrigger", {
+            /**
+             * On pick up
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPickUpTrigger;
             },
@@ -119,7 +187,11 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPickOutTrigger", {
-            /// This trigger will only be raised if you also declared a OnPickDown
+            /**
+             * On pick out.
+             * This trigger will only be raised if you also declared a OnPickDown
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPickOutTrigger;
             },
@@ -127,6 +199,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnLongPressTrigger", {
+            /**
+             * On long press
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnLongPressTrigger;
             },
@@ -134,6 +210,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPointerOverTrigger", {
+            /**
+             * On pointer over
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPointerOverTrigger;
             },
@@ -141,6 +221,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnPointerOutTrigger", {
+            /**
+             * On pointer out
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnPointerOutTrigger;
             },
@@ -148,6 +232,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnEveryFrameTrigger", {
+            /**
+             * On every frame
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnEveryFrameTrigger;
             },
@@ -155,6 +243,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnIntersectionEnterTrigger", {
+            /**
+             * On intersection enter
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnIntersectionEnterTrigger;
             },
@@ -162,6 +254,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnIntersectionExitTrigger", {
+            /**
+             * On intersection exit
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnIntersectionExitTrigger;
             },
@@ -169,6 +265,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnKeyDownTrigger", {
+            /**
+             * On key down
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnKeyDownTrigger;
             },
@@ -176,6 +276,10 @@
             configurable: true
         });
         Object.defineProperty(ActionManager, "OnKeyUpTrigger", {
+            /**
+             * On key up
+             * @see http://doc.LIBjs.com/how_to/how_to_use_actions#triggers
+             */
             get: function () {
                 return ActionManager._OnKeyUpTrigger;
             },
@@ -183,6 +287,9 @@
             configurable: true
         });
         // Methods
+        /**
+         * Releases all associated resources
+         */
         ActionManager.prototype.dispose = function () {
             var index = this._scene._actionManagers.indexOf(this);
             for (var i = 0; i < this.actions.length; i++) {
@@ -196,13 +303,17 @@
                 this._scene._actionManagers.splice(index, 1);
             }
         };
+        /**
+         * Gets hosting scene
+         * @returns the hosting scene
+         */
         ActionManager.prototype.getScene = function () {
             return this._scene;
         };
         /**
          * Does this action manager handles actions of any of the given triggers
-         * @param {number[]} triggers - the triggers to be tested
-         * @return {boolean} whether one (or more) of the triggers is handeled
+         * @param triggers defines the triggers to be tested
+         * @return a boolean indicating whether one (or more) of the triggers is handled
          */
         ActionManager.prototype.hasSpecificTriggers = function (triggers) {
             for (var index = 0; index < this.actions.length; index++) {
@@ -215,14 +326,22 @@
         };
         /**
          * Does this action manager handles actions of a given trigger
-         * @param {number} trigger - the trigger to be tested
-         * @return {boolean} whether the trigger is handeled
+         * @param trigger defines the trigger to be tested
+         * @param parameterPredicate defines an optional predicate to filter triggers by parameter
+         * @return whether the trigger is handled
          */
-        ActionManager.prototype.hasSpecificTrigger = function (trigger) {
+        ActionManager.prototype.hasSpecificTrigger = function (trigger, parameterPredicate) {
             for (var index = 0; index < this.actions.length; index++) {
                 var action = this.actions[index];
                 if (action.trigger === trigger) {
-                    return true;
+                    if (parameterPredicate) {
+                        if (parameterPredicate(action.getTriggerParameter())) {
+                            return true;
+                        }
+                    }
+                    else {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -230,7 +349,6 @@
         Object.defineProperty(ActionManager.prototype, "hasPointerTriggers", {
             /**
              * Does this action manager has pointer triggers
-             * @return {boolean} whether or not it has pointer triggers
              */
             get: function () {
                 for (var index = 0; index < this.actions.length; index++) {
@@ -247,7 +365,6 @@
         Object.defineProperty(ActionManager.prototype, "hasPickTriggers", {
             /**
              * Does this action manager has pick triggers
-             * @return {boolean} whether or not it has pick triggers
              */
             get: function () {
                 for (var index = 0; index < this.actions.length; index++) {
@@ -264,8 +381,7 @@
         Object.defineProperty(ActionManager, "HasTriggers", {
             /**
              * Does exist one action manager with at least one trigger
-             * @return {boolean} whether or not it exists one action manager with one trigger
-            **/
+             **/
             get: function () {
                 for (var t in ActionManager.Triggers) {
                     if (ActionManager.Triggers.hasOwnProperty(t)) {
@@ -280,8 +396,7 @@
         Object.defineProperty(ActionManager, "HasPickTriggers", {
             /**
              * Does exist one action manager with at least one pick trigger
-             * @return {boolean} whether or not it exists one action manager with one pick trigger
-            **/
+             **/
             get: function () {
                 for (var t in ActionManager.Triggers) {
                     if (ActionManager.Triggers.hasOwnProperty(t)) {
@@ -298,8 +413,8 @@
         });
         /**
          * Does exist one action manager that handles actions of a given trigger
-         * @param {number} trigger - the trigger to be tested
-         * @return {boolean} whether the trigger is handeled by at least one action manager
+         * @param trigger defines the trigger to be tested
+         * @return a boolean indicating whether the trigger is handeled by at least one action manager
         **/
         ActionManager.HasSpecificTrigger = function (trigger) {
             for (var t in ActionManager.Triggers) {
@@ -314,8 +429,8 @@
         };
         /**
          * Registers an action to this action manager
-         * @param {LIB.Action} action - the action to be registered
-         * @return {LIB.Action} the action amended (prepared) after registration
+         * @param action defines the action to be registered
+         * @return the action amended (prepared) after registration
          */
         ActionManager.prototype.registerAction = function (action) {
             if (action.trigger === ActionManager.OnEveryFrameTrigger) {
@@ -336,9 +451,27 @@
             return action;
         };
         /**
+         * Unregisters an action to this action manager
+         * @param action defines the action to be unregistered
+         * @return a boolean indicating whether the action has been unregistered
+         */
+        ActionManager.prototype.unregisterAction = function (action) {
+            var index = this.actions.indexOf(action);
+            if (index !== -1) {
+                this.actions.splice(index, 1);
+                ActionManager.Triggers[action.trigger] -= 1;
+                if (ActionManager.Triggers[action.trigger] === 0) {
+                    delete ActionManager.Triggers[action.trigger];
+                }
+                delete action._actionManager;
+                return true;
+            }
+            return false;
+        };
+        /**
          * Process a specific trigger
-         * @param {number} trigger - the trigger to process
-         * @param evt {LIB.ActionEvent} the event details to be processed
+         * @param trigger defines the trigger to process
+         * @param evt defines the event details to be processed
          */
         ActionManager.prototype.processTrigger = function (trigger, evt) {
             for (var index = 0; index < this.actions.length; index++) {
@@ -367,6 +500,7 @@
                 }
             }
         };
+        /** @hidden */
         ActionManager.prototype._getEffectiveTarget = function (target, propertyPath) {
             var properties = propertyPath.split(".");
             for (var index = 0; index < properties.length - 1; index++) {
@@ -374,10 +508,16 @@
             }
             return target;
         };
+        /** @hidden */
         ActionManager.prototype._getProperty = function (propertyPath) {
             var properties = propertyPath.split(".");
             return properties[properties.length - 1];
         };
+        /**
+         * Serialize this manager to a JSON object
+         * @param name defines the property name to store this manager
+         * @returns a JSON representation of this manager
+         */
         ActionManager.prototype.serialize = function (name) {
             var root = {
                 children: new Array(),
@@ -413,6 +553,12 @@
             }
             return root;
         };
+        /**
+         * Creates a new ActionManager from a JSON data
+         * @param parsedActions defines the JSON data to read from
+         * @param object defines the hosting mesh
+         * @param scene defines the hosting scene
+         */
         ActionManager.Parse = function (parsedActions, object, scene) {
             var actionManager = new ActionManager(scene);
             if (object === null)
@@ -568,6 +714,11 @@
                 }
             }
         };
+        /**
+         * Get a trigger name by index
+         * @param trigger defines the trigger index
+         * @returns a trigger name
+         */
         ActionManager.GetTriggerName = function (trigger) {
             switch (trigger) {
                 case 0: return "NothingTrigger";
@@ -607,10 +758,12 @@
         ActionManager._OnKeyDownTrigger = 14;
         ActionManager._OnKeyUpTrigger = 15;
         ActionManager._OnPickOutTrigger = 16;
+        /** Gets the list of active triggers */
         ActionManager.Triggers = {};
         return ActionManager;
     }());
     LIB.ActionManager = ActionManager;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.actionManager.js.map
 //# sourceMappingURL=LIB.actionManager.js.map

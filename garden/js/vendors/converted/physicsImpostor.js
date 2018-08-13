@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var PhysicsImpostor = /** @class */ (function () {
         function PhysicsImpostor(object, type, _options, _scene) {
@@ -451,7 +453,7 @@
                 return null;
             return new PhysicsImpostor(newObject, this.type, this._options, this._scene);
         };
-        PhysicsImpostor.prototype.dispose = function () {
+        PhysicsImpostor.prototype.dispose = function ( /*disposeChildren: boolean = true*/) {
             var _this = this;
             //no dispose if no physics engine is available.
             if (!this._physicsEngine) {
@@ -604,4 +606,5 @@
     LIB.PhysicsImpostor = PhysicsImpostor;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.physicsImpostor.js.map
 //# sourceMappingURL=LIB.physicsImpostor.js.map

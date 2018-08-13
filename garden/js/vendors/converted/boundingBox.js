@@ -1,11 +1,27 @@
+
+var LIB;
 (function (LIB) {
     var BoundingBox = /** @class */ (function () {
-        function BoundingBox(minimum, maximum) {
-            this.minimum = minimum;
-            this.maximum = maximum;
-            this.vectors = new Array();
+        /**
+         * Creates a new bounding box
+         * @param min defines the minimum vector (in local space)
+         * @param max defines the maximum vector (in local space)
+         */
+        function BoundingBox(min, max) {
             this.vectorsWorld = new Array();
+            this.reConstruct(min, max);
+        }
+        // Methods
+        /**
+         * Recreates the entire bounding box from scratch
+         * @param min defines the new minimum vector (in local space)
+         * @param max defines the new maximum vector (in local space)
+         */
+        BoundingBox.prototype.reConstruct = function (min, max) {
+            this.minimum = min.clone();
+            this.maximum = max.clone();
             // Bounding vectors
+            this.vectors = new Array();
             this.vectors.push(this.minimum.clone());
             this.vectors.push(this.maximum.clone());
             this.vectors.push(this.minimum.clone());
@@ -32,9 +48,8 @@
             this.maximumWorld = LIB.Vector3.Zero();
             this.centerWorld = LIB.Vector3.Zero();
             this.extendSizeWorld = LIB.Vector3.Zero();
-            this._update(LIB.Matrix.Identity());
-        }
-        // Methods
+            this._update(this._worldMatrix || LIB.Matrix.Identity());
+        };
         BoundingBox.prototype.getWorldMatrix = function () {
             return this._worldMatrix;
         };
@@ -146,4 +161,5 @@
     LIB.BoundingBox = BoundingBox;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.boundingBox.js.map
 //# sourceMappingURL=LIB.boundingBox.js.map

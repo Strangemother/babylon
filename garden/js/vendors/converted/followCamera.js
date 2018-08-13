@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     var FollowCamera = /** @class */ (function (_super) {
         __extends(FollowCamera, _super);
@@ -114,4 +122,5 @@
     LIB.ArcFollowCamera = ArcFollowCamera;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.followCamera.js.map
 //# sourceMappingURL=LIB.followCamera.js.map

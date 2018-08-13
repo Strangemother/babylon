@@ -1,6 +1,15 @@
+
+
+
+
+
+
+
+var LIB;
 (function (LIB) {
     /**
      * Background material defines definition.
+     * @hidden Mainly internal Use
      */
     var BackgroundMaterialDefines = /** @class */ (function (_super) {
         __extends(BackgroundMaterialDefines, _super);
@@ -54,10 +63,19 @@
              */
             _this.USERGBCOLOR = false;
             /**
+             * True if highlight and shadow levels have been specified. It can help ensuring the main perceived color
+             * stays aligned with the desired configuration.
+             */
+            _this.USEHIGHLIGHTANDSHADOWCOLORS = false;
+            /**
              * True to add noise in order to reduce the banding effect.
              */
             _this.NOISE = false;
-            // Image Processing Configuration.
+            /**
+             * is the reflection texture in BGR color scheme?
+             * Mainly used to solve a bug in ios10 video tag
+             */
+            _this.REFLECTIONBGR = false;
             _this.IMAGEPROCESSING = false;
             _this.VIGNETTE = false;
             _this.VIGNETTEBLENDMODEMULTIPLY = false;
@@ -87,6 +105,7 @@
             _this.REFLECTIONMAP_OPPOSITEZ = false;
             _this.LODINREFLECTIONALPHA = false;
             _this.GAMMAREFLECTION = false;
+            _this.EQUIRECTANGULAR_RELFECTION_FOV = false;
             // Default BJS.
             _this.MAINUV1 = false;
             _this.MAINUV2 = false;
@@ -111,50 +130,111 @@
     var BackgroundMaterial = /** @class */ (function (_super) {
         __extends(BackgroundMaterial, _super);
         /**
-         * constructor
-         * @param name The name of the material
+         * Instantiates a Background Material in the given scene
+         * @param name The friendly name of the material
          * @param scene The scene to add the material to
          */
         function BackgroundMaterial(name, scene) {
             var _this = _super.call(this, name, scene) || this;
+            /**
+             * Key light Color (multiply against the environement texture)
+             */
             _this.primaryColor = LIB.Color3.White();
-            _this.primaryLevel = 1;
-            _this.secondaryColor = LIB.Color3.Gray();
-            _this.secondaryLevel = 1;
-            _this.tertiaryColor = LIB.Color3.Black();
-            _this.tertiaryLevel = 1;
+            _this._primaryColorShadowLevel = 0;
+            _this._primaryColorHighlightLevel = 0;
+            /**
+             * Reflection Texture used in the material.
+             * Should be author in a specific way for the best result (refer to the documentation).
+             */
             _this.reflectionTexture = null;
+            /**
+             * Reflection Texture level of blur.
+             *
+             * Can be use to reuse an existing HDR Texture and target a specific LOD to prevent authoring the
+             * texture twice.
+             */
             _this.reflectionBlur = 0;
+            /**
+             * Diffuse Texture used in the material.
+             * Should be author in a specific way for the best result (refer to the documentation).
+             */
             _this.diffuseTexture = null;
+            _this._shadowLights = null;
             /**
              * Specify the list of lights casting shadow on the material.
              * All scene shadow lights will be included if null.
              */
-            _this._shadowLights = null;
             _this.shadowLights = null;
-            _this.shadowBlurScale = 1;
+            /**
+             * Helps adjusting the shadow to a softer level if required.
+             * 0 means black shadows and 1 means no shadows.
+             */
             _this.shadowLevel = 0;
+            /**
+             * In case of opacity Fresnel or reflection falloff, this is use as a scene center.
+             * It is usually zero but might be interesting to modify according to your setup.
+             */
             _this.sceneCenter = LIB.Vector3.Zero();
+            /**
+             * This helps specifying that the material is falling off to the sky box at grazing angle.
+             * This helps ensuring a nice transition when the camera goes under the ground.
+             */
             _this.opacityFresnel = true;
+            /**
+             * This helps specifying that the material is falling off from diffuse to the reflection texture at grazing angle.
+             * This helps adding a mirror texture on the ground.
+             */
             _this.reflectionFresnel = false;
+            /**
+             * This helps specifying the falloff radius off the reflection texture from the sceneCenter.
+             * This helps adding a nice falloff effect to the reflection if used as a mirror for instance.
+             */
             _this.reflectionFalloffDistance = 0.0;
+            /**
+             * This specifies the weight of the reflection against the background in case of reflection Fresnel.
+             */
             _this.reflectionAmount = 1.0;
+            /**
+             * This specifies the weight of the reflection at grazing angle.
+             */
             _this.reflectionReflectance0 = 0.05;
+            /**
+             * This specifies the weight of the reflection at a perpendicular point of view.
+             */
             _this.reflectionReflectance90 = 0.5;
+            /**
+             * Helps to directly use the maps channels instead of their level.
+             */
             _this.useRGBColor = true;
+            /**
+             * This helps reducing the banding effect that could occur on the background.
+             */
             _this.enableNoise = false;
+            _this._fovMultiplier = 1.0;
+            /**
+             * Enable the FOV adjustment feature controlled by fovMultiplier.
+             */
+            _this.useEquirectangularFOV = false;
+            _this._maxSimultaneousLights = 4;
             /**
              * Number of Simultaneous lights allowed on the material.
              */
-            _this._maxSimultaneousLights = 4;
             _this.maxSimultaneousLights = 4;
             /**
              * Keep track of the image processing observer to allow dispose and replace.
              */
             _this._imageProcessingObserver = null;
+            /**
+             * Due to a bug in iOS10, video tags (which are using the background material) are in BGR and not RGB.
+             * Setting this flag to true (not done automatically!) will convert it back to RGB.
+             */
+            _this.switchToBGR = false;
             // Temp values kept as cache in the material.
             _this._renderTargets = new LIB.SmartArray(16);
             _this._reflectionControls = LIB.Vector4.Zero();
+            _this._white = LIB.Color3.White();
+            _this._primaryShadowColor = LIB.Color3.Black();
+            _this._primaryHighlightColor = LIB.Color3.Black();
             // Setup the default processing configuration to the scene.
             _this._attachImageProcessingConfiguration(null);
             _this.getRenderTargetTextures = function () {
@@ -169,6 +249,60 @@
             };
             return _this;
         }
+        Object.defineProperty(BackgroundMaterial.prototype, "_perceptualColor", {
+            /**
+             * Experimental Internal Use Only.
+             *
+             * Key light Color in "perceptual value" meaning the color you would like to see on screen.
+             * This acts as a helper to set the primary color to a more "human friendly" value.
+             * Conversion to linear space as well as exposure and tone mapping correction will be applied to keep the
+             * output color as close as possible from the chosen value.
+             * (This does not account for contrast color grading and color curves as they are considered post effect and not directly
+             * part of lighting setup.)
+             */
+            get: function () {
+                return this.__perceptualColor;
+            },
+            set: function (value) {
+                this.__perceptualColor = value;
+                this._computePrimaryColorFromPerceptualColor();
+                this._markAllSubMeshesAsLightsDirty();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(BackgroundMaterial.prototype, "primaryColorShadowLevel", {
+            /**
+             * Defines the level of the shadows (dark area of the reflection map) in order to help scaling the colors.
+             * The color opposite to the primary color is used at the level chosen to define what the black area would look.
+             */
+            get: function () {
+                return this._primaryColorShadowLevel;
+            },
+            set: function (value) {
+                this._primaryColorShadowLevel = value;
+                this._computePrimaryColors();
+                this._markAllSubMeshesAsLightsDirty();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(BackgroundMaterial.prototype, "primaryColorHighlightLevel", {
+            /**
+             * Defines the level of the highliights (highlight area of the reflection map) in order to help scaling the colors.
+             * The primary color is used at the level chosen to define what the white area would look.
+             */
+            get: function () {
+                return this._primaryColorHighlightLevel;
+            },
+            set: function (value) {
+                this._primaryColorHighlightLevel = value;
+                this._computePrimaryColors();
+                this._markAllSubMeshesAsLightsDirty();
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(BackgroundMaterial.prototype, "reflectionStandardFresnelWeight", {
             /**
              * Sets the reflection reflectance fresnel values according to the default standard
@@ -178,14 +312,32 @@
                 var reflectionWeight = value;
                 if (reflectionWeight < 0.5) {
                     reflectionWeight = reflectionWeight * 2.0;
-                    this.reflectionReflectance0 = BackgroundMaterial.standardReflectance0 * reflectionWeight;
-                    this.reflectionReflectance90 = BackgroundMaterial.standardReflectance90 * reflectionWeight;
+                    this.reflectionReflectance0 = BackgroundMaterial.StandardReflectance0 * reflectionWeight;
+                    this.reflectionReflectance90 = BackgroundMaterial.StandardReflectance90 * reflectionWeight;
                 }
                 else {
                     reflectionWeight = reflectionWeight * 2.0 - 1.0;
-                    this.reflectionReflectance0 = BackgroundMaterial.standardReflectance0 + (1.0 - BackgroundMaterial.standardReflectance0) * reflectionWeight;
-                    this.reflectionReflectance90 = BackgroundMaterial.standardReflectance90 + (1.0 - BackgroundMaterial.standardReflectance90) * reflectionWeight;
+                    this.reflectionReflectance0 = BackgroundMaterial.StandardReflectance0 + (1.0 - BackgroundMaterial.StandardReflectance0) * reflectionWeight;
+                    this.reflectionReflectance90 = BackgroundMaterial.StandardReflectance90 + (1.0 - BackgroundMaterial.StandardReflectance90) * reflectionWeight;
                 }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(BackgroundMaterial.prototype, "fovMultiplier", {
+            /**
+             * The current fov(field of view) multiplier, 0.0 - 2.0. Defaults to 1.0. Lower values "zoom in" and higher values "zoom out".
+             * Best used when trying to implement visual zoom effects like fish-eye or binoculars while not adjusting camera fov.
+             * Recommended to be keep at 1.0 except for special cases.
+             */
+            get: function () {
+                return this._fovMultiplier;
+            },
+            set: function (value) {
+                if (isNaN(value)) {
+                    value = 1.0;
+                }
+                this._fovMultiplier = Math.max(0.0, Math.min(2.0, value));
             },
             enumerable: true,
             configurable: true
@@ -212,6 +364,7 @@
             }
             // Attaches observer.
             this._imageProcessingObserver = this._imageProcessingConfiguration.onUpdateParameters.add(function (conf) {
+                _this._computePrimaryColorFromPerceptualColor();
                 _this._markAllSubMeshesAsImageProcessingDirty();
             });
         };
@@ -380,6 +533,7 @@
          * @param mesh The mesh to render
          * @param subMesh The submesh to check against
          * @param useInstances Specify wether or not the material is used with instances
+         * @returns true if all the dependencies are ready (Textures, Effects...)
          */
         BackgroundMaterial.prototype.isReadyForSubMesh = function (mesh, subMesh, useInstances) {
             var _this = this;
@@ -435,15 +589,13 @@
                         defines.REFLECTIONBLUR = this._reflectionBlur > 0;
                         defines.REFLECTIONMAP_OPPOSITEZ = this.getScene().useRightHandedSystem ? !reflectionTexture.invertZ : reflectionTexture.invertZ;
                         defines.LODINREFLECTIONALPHA = reflectionTexture.lodLevelInAlpha;
+                        defines.EQUIRECTANGULAR_RELFECTION_FOV = this.useEquirectangularFOV;
+                        defines.REFLECTIONBGR = this.switchToBGR;
                         if (reflectionTexture.coordinatesMode === LIB.Texture.INVCUBIC_MODE) {
                             defines.INVERTCUBICMAP = true;
                         }
                         defines.REFLECTIONMAP_3D = reflectionTexture.isCube;
                         switch (reflectionTexture.coordinatesMode) {
-                            case LIB.Texture.CUBIC_MODE:
-                            case LIB.Texture.INVCUBIC_MODE:
-                                defines.REFLECTIONMAP_CUBIC = true;
-                                break;
                             case LIB.Texture.EXPLICIT_MODE:
                                 defines.REFLECTIONMAP_EXPLICIT = true;
                                 break;
@@ -468,6 +620,11 @@
                             case LIB.Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE:
                                 defines.REFLECTIONMAP_MIRROREDEQUIRECTANGULAR_FIXED = true;
                                 break;
+                            case LIB.Texture.CUBIC_MODE:
+                            case LIB.Texture.INVCUBIC_MODE:
+                            default:
+                                defines.REFLECTIONMAP_CUBIC = true;
+                                break;
                         }
                         if (this.reflectionFresnel) {
                             defines.REFLECTIONFRESNEL = true;
@@ -484,6 +641,7 @@
                     }
                     else {
                         defines.REFLECTION = false;
+                        defines.REFLECTIONFRESNEL = false;
                         defines.REFLECTIONFALLOFF = false;
                         defines.REFLECTIONBLUR = false;
                         defines.REFLECTIONMAP_3D = false;
@@ -506,6 +664,9 @@
                 defines.USERGBCOLOR = this._useRGBColor;
                 defines.NOISE = this._enableNoise;
             }
+            if (defines._areLightsDirty) {
+                defines.USEHIGHLIGHTANDSHADOWCOLORS = !this._useRGBColor && (this._primaryColorShadowLevel !== 0 || this._primaryColorHighlightLevel !== 0);
+            }
             if (defines._areImageProcessingDirty) {
                 if (!this._imageProcessingConfiguration.isReady()) {
                     return false;
@@ -513,9 +674,9 @@
                 this._imageProcessingConfiguration.prepareDefines(defines);
             }
             // Misc.
-            LIB.MaterialHelper.PrepareDefinesForMisc(mesh, scene, false, this.pointsCloud, this.fogEnabled, defines);
+            LIB.MaterialHelper.PrepareDefinesForMisc(mesh, scene, false, this.pointsCloud, this.fogEnabled, this._shouldTurnAlphaTestOn(mesh), defines);
             // Values that need to be evaluated on every frame
-            LIB.MaterialHelper.PrepareDefinesForFrameBoundValues(scene, engine, defines, useInstances, false);
+            LIB.MaterialHelper.PrepareDefinesForFrameBoundValues(scene, engine, defines, useInstances);
             // Attribs
             if (LIB.MaterialHelper.PrepareDefinesForAttributes(mesh, defines, false, true, false)) {
                 if (mesh) {
@@ -557,8 +718,8 @@
                 var uniforms = ["world", "view", "viewProjection", "vEyePosition", "vLightsType",
                     "vFogInfos", "vFogColor", "pointSize",
                     "vClipPlane", "mBones",
-                    "vPrimaryColor", "vSecondaryColor", "vTertiaryColor",
-                    "vReflectionInfos", "reflectionMatrix", "vReflectionMicrosurfaceInfos",
+                    "vPrimaryColor", "vPrimaryColorShadow",
+                    "vReflectionInfos", "reflectionMatrix", "vReflectionMicrosurfaceInfos", "fFovMultiplier",
                     "shadowLevel", "alpha",
                     "vBackgroundCenter", "vReflectionControl",
                     "vDiffuseInfos", "diffuseMatrix",
@@ -602,18 +763,50 @@
             return true;
         };
         /**
+         * Compute the primary color according to the chosen perceptual color.
+         */
+        BackgroundMaterial.prototype._computePrimaryColorFromPerceptualColor = function () {
+            if (!this.__perceptualColor) {
+                return;
+            }
+            this._primaryColor.copyFrom(this.__perceptualColor);
+            // Revert gamma space.
+            this._primaryColor.toLinearSpaceToRef(this._primaryColor);
+            // Revert image processing configuration.
+            if (this._imageProcessingConfiguration) {
+                // Revert Exposure.
+                this._primaryColor.scaleToRef(1 / this._imageProcessingConfiguration.exposure, this._primaryColor);
+            }
+            this._computePrimaryColors();
+        };
+        /**
+         * Compute the highlights and shadow colors according to their chosen levels.
+         */
+        BackgroundMaterial.prototype._computePrimaryColors = function () {
+            if (this._primaryColorShadowLevel === 0 && this._primaryColorHighlightLevel === 0) {
+                return;
+            }
+            // Find the highlight color based on the configuration.
+            this._primaryColor.scaleToRef(this._primaryColorShadowLevel, this._primaryShadowColor);
+            this._primaryColor.subtractToRef(this._primaryShadowColor, this._primaryShadowColor);
+            // Find the shadow color based on the configuration.
+            this._white.subtractToRef(this._primaryColor, this._primaryHighlightColor);
+            this._primaryHighlightColor.scaleToRef(this._primaryColorHighlightLevel, this._primaryHighlightColor);
+            this._primaryColor.addToRef(this._primaryHighlightColor, this._primaryHighlightColor);
+        };
+        /**
          * Build the uniform buffer used in the material.
          */
         BackgroundMaterial.prototype.buildUniformLayout = function () {
             // Order is important !
             this._uniformBuffer.addUniform("vPrimaryColor", 4);
-            this._uniformBuffer.addUniform("vSecondaryColor", 4);
-            this._uniformBuffer.addUniform("vTertiaryColor", 4);
+            this._uniformBuffer.addUniform("vPrimaryColorShadow", 4);
             this._uniformBuffer.addUniform("vDiffuseInfos", 2);
             this._uniformBuffer.addUniform("vReflectionInfos", 2);
             this._uniformBuffer.addUniform("diffuseMatrix", 16);
             this._uniformBuffer.addUniform("reflectionMatrix", 16);
             this._uniformBuffer.addUniform("vReflectionMicrosurfaceInfos", 3);
+            this._uniformBuffer.addUniform("fFovMultiplier", 1);
             this._uniformBuffer.addUniform("pointSize", 1);
             this._uniformBuffer.addUniform("shadowLevel", 1);
             this._uniformBuffer.addUniform("alpha", 1);
@@ -686,10 +879,15 @@
                     if (this.pointsCloud) {
                         this._uniformBuffer.updateFloat("pointSize", this.pointSize);
                     }
-                    this._uniformBuffer.updateColor4("vPrimaryColor", this._primaryColor, this._primaryLevel);
-                    this._uniformBuffer.updateColor4("vSecondaryColor", this._secondaryColor, this._secondaryLevel);
-                    this._uniformBuffer.updateColor4("vTertiaryColor", this._tertiaryColor, this._tertiaryLevel);
+                    if (defines.USEHIGHLIGHTANDSHADOWCOLORS) {
+                        this._uniformBuffer.updateColor4("vPrimaryColor", this._primaryHighlightColor, 1.0);
+                        this._uniformBuffer.updateColor4("vPrimaryColorShadow", this._primaryShadowColor, 1.0);
+                    }
+                    else {
+                        this._uniformBuffer.updateColor4("vPrimaryColor", this._primaryColor, 1.0);
+                    }
                 }
+                this._uniformBuffer.updateFloat("fFovMultiplier", this._fovMultiplier);
                 // Textures
                 if (scene.texturesEnabled) {
                     if (this._diffuseTexture && LIB.StandardMaterial.DiffuseTextureEnabled) {
@@ -733,8 +931,8 @@
         };
         /**
          * Dispose the material.
-         * @forceDisposeEffect Force disposal of the associated effect.
-         * @forceDisposeTextures Force disposal of the associated textures.
+         * @param forceDisposeEffect Force disposal of the associated effect.
+         * @param forceDisposeTextures Force disposal of the associated textures.
          */
         BackgroundMaterial.prototype.dispose = function (forceDisposeEffect, forceDisposeTextures) {
             if (forceDisposeEffect === void 0) { forceDisposeEffect = false; }
@@ -755,7 +953,7 @@
         };
         /**
          * Clones the material.
-         * @name The cloned name.
+         * @param name The cloned name.
          * @returns The cloned material.
          */
         BackgroundMaterial.prototype.clone = function (name) {
@@ -780,9 +978,9 @@
         };
         /**
          * Parse a JSON input to create back a background material.
-         * @param source
-         * @param scene
-         * @param rootUrl
+         * @param source The JSON data to parse
+         * @param scene The scene to create the parsed material in
+         * @param rootUrl The root url of the assets the material depends upon
          * @returns the instantiated BackgroundMaterial.
          */
         BackgroundMaterial.Parse = function (source, scene, rootUrl) {
@@ -791,11 +989,11 @@
         /**
          * Standard reflectance value at parallel view angle.
          */
-        BackgroundMaterial.standardReflectance0 = 0.05;
+        BackgroundMaterial.StandardReflectance0 = 0.05;
         /**
          * Standard reflectance value at grazing angle.
          */
-        BackgroundMaterial.standardReflectance90 = 0.5;
+        BackgroundMaterial.StandardReflectance90 = 0.5;
         __decorate([
             LIB.serializeAsColor3()
         ], BackgroundMaterial.prototype, "_primaryColor", void 0);
@@ -803,35 +1001,17 @@
             LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
         ], BackgroundMaterial.prototype, "primaryColor", void 0);
         __decorate([
-            LIB.serialize()
-        ], BackgroundMaterial.prototype, "_primaryLevel", void 0);
-        __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
-        ], BackgroundMaterial.prototype, "primaryLevel", void 0);
-        __decorate([
             LIB.serializeAsColor3()
-        ], BackgroundMaterial.prototype, "_secondaryColor", void 0);
-        __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
-        ], BackgroundMaterial.prototype, "secondaryColor", void 0);
+        ], BackgroundMaterial.prototype, "__perceptualColor", void 0);
         __decorate([
             LIB.serialize()
-        ], BackgroundMaterial.prototype, "_secondaryLevel", void 0);
-        __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
-        ], BackgroundMaterial.prototype, "secondaryLevel", void 0);
-        __decorate([
-            LIB.serializeAsColor3()
-        ], BackgroundMaterial.prototype, "_tertiaryColor", void 0);
-        __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
-        ], BackgroundMaterial.prototype, "tertiaryColor", void 0);
+        ], BackgroundMaterial.prototype, "_primaryColorShadowLevel", void 0);
         __decorate([
             LIB.serialize()
-        ], BackgroundMaterial.prototype, "_tertiaryLevel", void 0);
+        ], BackgroundMaterial.prototype, "_primaryColorHighlightLevel", void 0);
         __decorate([
             LIB.expandToProperty("_markAllSubMeshesAsLightsDirty")
-        ], BackgroundMaterial.prototype, "tertiaryLevel", void 0);
+        ], BackgroundMaterial.prototype, "primaryColorHighlightLevel", null);
         __decorate([
             LIB.serializeAsTexture()
         ], BackgroundMaterial.prototype, "_reflectionTexture", void 0);
@@ -853,12 +1033,6 @@
         __decorate([
             LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
         ], BackgroundMaterial.prototype, "shadowLights", void 0);
-        __decorate([
-            LIB.serialize()
-        ], BackgroundMaterial.prototype, "_shadowBlurScale", void 0);
-        __decorate([
-            LIB.expandToProperty("_markAllSubMeshesAsTexturesDirty")
-        ], BackgroundMaterial.prototype, "shadowBlurScale", void 0);
         __decorate([
             LIB.serialize()
         ], BackgroundMaterial.prototype, "_shadowLevel", void 0);
@@ -933,4 +1107,5 @@
     LIB.BackgroundMaterial = BackgroundMaterial;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.backgroundMaterial.js.map
 //# sourceMappingURL=LIB.backgroundMaterial.js.map

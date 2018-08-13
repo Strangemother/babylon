@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var GroundMesh = /** @class */ (function (_super) {
         __extends(GroundMesh, _super);
@@ -130,8 +133,8 @@
         // a quad is two triangular facets separated by a slope, so a "facet" element is 1 slope + 2 facets
         // slope : Vector2(c, h) = 2D diagonal line equation setting appart two triangular facets in a quad : z = cx + h
         // facet1 : Vector4(a, b, c, d) = first facet 3D plane equation : ax + by + cz + d = 0
-        // facet2 :  Vector4(a, b, c, d) = second facet 3D plane equation : ax + by + cz + d = 0
-        // Returns the GroundMesh.
+        // facet2 :  Vector4(a, b, c, d) = second facet 3D plane equation : ax + by + cz + d = 0  
+        // Returns the GroundMesh.  
         GroundMesh.prototype._initHeightQuads = function () {
             var subdivisionsX = this._subdivisionsX;
             var subdivisionsY = this._subdivisionsY;
@@ -147,8 +150,8 @@
         // Compute each quad element values and update the the heightMap array :
         // slope : Vector2(c, h) = 2D diagonal line equation setting appart two triangular facets in a quad : z = cx + h
         // facet1 : Vector4(a, b, c, d) = first facet 3D plane equation : ax + by + cz + d = 0
-        // facet2 :  Vector4(a, b, c, d) = second facet 3D plane equation : ax + by + cz + d = 0
-        // Returns the GroundMesh.
+        // facet2 :  Vector4(a, b, c, d) = second facet 3D plane equation : ax + by + cz + d = 0  
+        // Returns the GroundMesh.  
         GroundMesh.prototype._computeHeightQuads = function () {
             var positions = this.getVerticesData(LIB.VertexBuffer.PositionKind);
             if (!positions) {
@@ -242,4 +245,5 @@
     LIB.GroundMesh = GroundMesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.groundMesh.js.map
 //# sourceMappingURL=LIB.groundMesh.js.map

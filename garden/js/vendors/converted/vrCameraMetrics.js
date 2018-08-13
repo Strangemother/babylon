@@ -1,3 +1,5 @@
+
+var LIB;
 (function (LIB) {
     var VRCameraMetrics = /** @class */ (function () {
         function VRCameraMetrics() {
@@ -70,4 +72,5 @@
     LIB.VRCameraMetrics = VRCameraMetrics;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.vrCameraMetrics.js.map
 //# sourceMappingURL=LIB.vrCameraMetrics.js.map

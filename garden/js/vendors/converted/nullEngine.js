@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var NullEngineOptions = /** @class */ (function () {
         function NullEngineOptions() {
@@ -80,6 +83,9 @@
         };
         NullEngine.prototype.getLockstepMaxSteps = function () {
             return this._options.lockstepMaxSteps;
+        };
+        NullEngine.prototype.getHardwareScalingLevel = function () {
+            return 1.0;
         };
         NullEngine.prototype.createVertexBuffer = function (vertices) {
             return {
@@ -210,7 +216,6 @@
                 this._currentProgram = null;
                 this._stencilState.reset();
                 this._depthCullingState.reset();
-                this.setDepthFunctionToLessOrEqual();
                 this._alphaState.reset();
             }
             this._cachedVertexBuffers = null;
@@ -225,6 +230,8 @@
         };
         NullEngine.prototype._createTexture = function () {
             return {};
+        };
+        NullEngine.prototype._releaseTexture = function (texture) {
         };
         NullEngine.prototype.createTexture = function (urlArg, noMipmap, invertY, scene, samplingMode, onLoad, onError, buffer, fallBack, format) {
             if (samplingMode === void 0) { samplingMode = LIB.Texture.TRILINEAR_SAMPLINGMODE; }
@@ -319,7 +326,14 @@
         NullEngine.prototype.updateDynamicIndexBuffer = function (indexBuffer, indices, offset) {
             if (offset === void 0) { offset = 0; }
         };
-        NullEngine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, vertices, offset, count) {
+        /**
+         * Updates a dynamic vertex buffer.
+         * @param vertexBuffer the vertex buffer to update
+         * @param data the data used to update the vertex buffer
+         * @param byteOffset the byte offset of the data (optional)
+         * @param byteLength the byte length of the data (optional)
+         */
+        NullEngine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, vertices, byteOffset, byteLength) {
         };
         NullEngine.prototype._bindTextureDirectly = function (target, texture) {
             if (this._boundTexturesCache[this._activeChannel] !== texture) {
@@ -339,9 +353,12 @@
             }
             return false;
         };
+        NullEngine.prototype.releaseEffects = function () {
+        };
         return NullEngine;
     }(LIB.Engine));
     LIB.NullEngine = NullEngine;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.nullEngine.js.map
 //# sourceMappingURL=LIB.nullEngine.js.map

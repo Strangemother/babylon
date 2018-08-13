@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var ArcRotateCameraKeyboardMoveInput = /** @class */ (function () {
         function ArcRotateCameraKeyboardMoveInput() {
@@ -159,4 +162,5 @@
     LIB.CameraInputTypes["ArcRotateCameraKeyboardMoveInput"] = ArcRotateCameraKeyboardMoveInput;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.arcRotateCameraKeyboardMoveInput.js.map
 //# sourceMappingURL=LIB.arcRotateCameraKeyboardMoveInput.js.map

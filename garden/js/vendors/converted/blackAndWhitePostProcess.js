@@ -1,3 +1,6 @@
+
+
+var LIB;
 (function (LIB) {
     var BlackAndWhitePostProcess = /** @class */ (function (_super) {
         __extends(BlackAndWhitePostProcess, _super);
@@ -14,4 +17,5 @@
     LIB.BlackAndWhitePostProcess = BlackAndWhitePostProcess;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.blackAndWhitePostProcess.js.map
 //# sourceMappingURL=LIB.blackAndWhitePostProcess.js.map

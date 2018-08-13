@@ -1,4 +1,7 @@
+
+var LIB;
 (function (LIB) {
+    /** @hidden */
     var ClickInfo = /** @class */ (function () {
         function ClickInfo() {
             this._singleClick = false;
@@ -79,26 +82,59 @@
     LIB.RenderingGroupInfo = RenderingGroupInfo;
     /**
      * Represents a scene to be rendered by the engine.
-     * @see http://doc.LIBjs.com/page.php?p=21911
+     * @see http://doc.LIBjs.com/features/scene
      */
     var Scene = /** @class */ (function () {
         /**
-         * @constructor
-         * @param {LIB.Engine} engine - the engine to be used to render this scene.
+         * Creates a new Scene
+         * @param engine defines the engine to use to render this scene
          */
         function Scene(engine) {
             // Members
+            /**
+             * Gets or sets a boolean that indicates if the scene must clear the render buffer before rendering a frame
+             */
             this.autoClear = true;
+            /**
+             * Gets or sets a boolean that indicates if the scene must clear the depth and stencil buffers before rendering a frame
+             */
             this.autoClearDepthAndStencil = true;
+            /**
+             * Defines the color used to clear the render buffer (Default is (0.2, 0.2, 0.3, 1.0))
+             */
             this.clearColor = new LIB.Color4(0.2, 0.2, 0.3, 1.0);
+            /**
+             * Defines the color used to simulate the ambient color (Default is (0, 0, 0))
+             */
             this.ambientColor = new LIB.Color3(0, 0, 0);
-            this.forceWireframe = false;
+            this._forceWireframe = false;
             this._forcePointsCloud = false;
+            /**
+             * Gets or sets a boolean indicating if all bounding boxes must be rendered
+             */
             this.forceShowBoundingBoxes = false;
+            /**
+             * Gets or sets a boolean indicating if animations are enabled
+             */
             this.animationsEnabled = true;
+            this._animationPropertiesOverride = null;
+            /**
+             * Gets or sets a boolean indicating if a constant deltatime has to be used
+             * This is mostly useful for testing purposes when you do not want the animations to scale with the framerate
+             */
             this.useConstantAnimationDeltaTime = false;
+            /**
+             * Gets or sets a boolean indicating if the scene must keep the meshUnderPointer property updated
+             * Please note that it requires to run a ray cast through the scene on every frame
+             */
             this.constantlyUpdateMeshUnderPointer = false;
+            /**
+             * Defines the HTML cursor to use when hovering over interactive elements
+             */
             this.hoverCursor = "pointer";
+            /**
+             * Defines the HTML default cursor to use (empty by default)
+             */
             this.defaultCursor = "";
             /**
              * This is used to call preventDefault() on pointer down
@@ -106,176 +142,155 @@
              */
             this.preventDefaultOnPointerDown = true;
             // Metadata
+            /**
+             * Gets or sets user defined metadata
+             */
             this.metadata = null;
             /**
+             * Use this array to add regular expressions used to disable offline support for specific urls
+             */
+            this.disableOfflineSupportExceptionRules = new Array();
+            /**
             * An event triggered when the scene is disposed.
-            * @type {LIB.Observable}
             */
             this.onDisposeObservable = new LIB.Observable();
+            this._onDisposeObserver = null;
             /**
             * An event triggered before rendering the scene (right after animations and physics)
-            * @type {LIB.Observable}
             */
             this.onBeforeRenderObservable = new LIB.Observable();
+            this._onBeforeRenderObserver = null;
             /**
             * An event triggered after rendering the scene
-            * @type {LIB.Observable}
             */
             this.onAfterRenderObservable = new LIB.Observable();
+            this._onAfterRenderObserver = null;
             /**
             * An event triggered before animating the scene
-            * @type {LIB.Observable}
             */
             this.onBeforeAnimationsObservable = new LIB.Observable();
             /**
             * An event triggered after animations processing
-            * @type {LIB.Observable}
             */
             this.onAfterAnimationsObservable = new LIB.Observable();
             /**
             * An event triggered before draw calls are ready to be sent
-            * @type {LIB.Observable}
             */
             this.onBeforeDrawPhaseObservable = new LIB.Observable();
             /**
             * An event triggered after draw calls have been sent
-            * @type {LIB.Observable}
             */
             this.onAfterDrawPhaseObservable = new LIB.Observable();
             /**
             * An event triggered when physic simulation is about to be run
-            * @type {LIB.Observable}
             */
             this.onBeforePhysicsObservable = new LIB.Observable();
             /**
             * An event triggered when physic simulation has been done
-            * @type {LIB.Observable}
             */
             this.onAfterPhysicsObservable = new LIB.Observable();
             /**
             * An event triggered when the scene is ready
-            * @type {LIB.Observable}
             */
             this.onReadyObservable = new LIB.Observable();
             /**
             * An event triggered before rendering a camera
-            * @type {LIB.Observable}
             */
             this.onBeforeCameraRenderObservable = new LIB.Observable();
+            this._onBeforeCameraRenderObserver = null;
             /**
             * An event triggered after rendering a camera
-            * @type {LIB.Observable}
             */
             this.onAfterCameraRenderObservable = new LIB.Observable();
+            this._onAfterCameraRenderObserver = null;
             /**
             * An event triggered when active meshes evaluation is about to start
-            * @type {LIB.Observable}
             */
             this.onBeforeActiveMeshesEvaluationObservable = new LIB.Observable();
             /**
             * An event triggered when active meshes evaluation is done
-            * @type {LIB.Observable}
             */
             this.onAfterActiveMeshesEvaluationObservable = new LIB.Observable();
             /**
             * An event triggered when particles rendering is about to start
             * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-            * @type {LIB.Observable}
             */
             this.onBeforeParticlesRenderingObservable = new LIB.Observable();
             /**
             * An event triggered when particles rendering is done
             * Note: This event can be trigger more than once per frame (because particles can be rendered by render target textures as well)
-            * @type {LIB.Observable}
             */
             this.onAfterParticlesRenderingObservable = new LIB.Observable();
             /**
             * An event triggered when sprites rendering is about to start
             * Note: This event can be trigger more than once per frame (because sprites can be rendered by render target textures as well)
-            * @type {LIB.Observable}
             */
             this.onBeforeSpritesRenderingObservable = new LIB.Observable();
             /**
             * An event triggered when sprites rendering is done
             * Note: This event can be trigger more than once per frame (because sprites can be rendered by render target textures as well)
-            * @type {LIB.Observable}
             */
             this.onAfterSpritesRenderingObservable = new LIB.Observable();
             /**
             * An event triggered when SceneLoader.Append or SceneLoader.Load or SceneLoader.ImportMesh were successfully executed
-            * @type {LIB.Observable}
             */
             this.onDataLoadedObservable = new LIB.Observable();
             /**
             * An event triggered when a camera is created
-            * @type {LIB.Observable}
             */
             this.onNewCameraAddedObservable = new LIB.Observable();
             /**
             * An event triggered when a camera is removed
-            * @type {LIB.Observable}
             */
             this.onCameraRemovedObservable = new LIB.Observable();
             /**
             * An event triggered when a light is created
-            * @type {LIB.Observable}
             */
             this.onNewLightAddedObservable = new LIB.Observable();
             /**
             * An event triggered when a light is removed
-            * @type {LIB.Observable}
             */
             this.onLightRemovedObservable = new LIB.Observable();
             /**
             * An event triggered when a geometry is created
-            * @type {LIB.Observable}
             */
             this.onNewGeometryAddedObservable = new LIB.Observable();
             /**
             * An event triggered when a geometry is removed
-            * @type {LIB.Observable}
             */
             this.onGeometryRemovedObservable = new LIB.Observable();
             /**
             * An event triggered when a transform node is created
-            * @type {LIB.Observable}
             */
             this.onNewTransformNodeAddedObservable = new LIB.Observable();
             /**
             * An event triggered when a transform node is removed
-            * @type {LIB.Observable}
             */
             this.onTransformNodeRemovedObservable = new LIB.Observable();
             /**
             * An event triggered when a mesh is created
-            * @type {LIB.Observable}
             */
             this.onNewMeshAddedObservable = new LIB.Observable();
             /**
             * An event triggered when a mesh is removed
-            * @type {LIB.Observable}
             */
             this.onMeshRemovedObservable = new LIB.Observable();
             /**
             * An event triggered when render targets are about to be rendered
             * Can happen multiple times per frame.
-            * @type {LIB.Observable}
             */
-            this.OnBeforeRenderTargetsRenderObservable = new LIB.Observable();
+            this.onBeforeRenderTargetsRenderObservable = new LIB.Observable();
             /**
             * An event triggered when render targets were rendered.
             * Can happen multiple times per frame.
-            * @type {LIB.Observable}
             */
-            this.OnAfterRenderTargetsRenderObservable = new LIB.Observable();
+            this.onAfterRenderTargetsRenderObservable = new LIB.Observable();
             /**
             * An event triggered before calculating deterministic simulation step
-            * @type {LIB.Observable}
             */
             this.onBeforeStepObservable = new LIB.Observable();
             /**
             * An event triggered after calculating deterministic simulation step
-            * @type {LIB.Observable}
             */
             this.onAfterStepObservable = new LIB.Observable();
             /**
@@ -285,7 +300,11 @@
              */
             this.onRenderingGroupObservable = new LIB.Observable();
             // Animations
+            /**
+             * Gets a list of Animations associated with the scene
+             */
             this.animations = [];
+            this._registeredForLateAnimationBindings = new LIB.SmartArrayNoDuplicate(256);
             /**
              * This observable event is triggered when any ponter event is triggered. It is registered during Scene.attachControl() and it is called BEFORE the 3D engine process anything (mesh/sprite picking for instance).
              * You have the possibility to skip the process and the call to onPointerObservable by setting PointerInfoPre.skipOnPointerObservable to true
@@ -306,6 +325,7 @@
             this._previousStartingPointerPosition = new LIB.Vector2(0, 0);
             this._startingPointerTime = 0;
             this._previousStartingPointerTime = 0;
+            this._pointerCaptures = {};
             // Deterministic lockstep
             this._timeAccumulator = 0;
             this._currentStepId = 0;
@@ -320,114 +340,213 @@
              * Observable event triggered each time an keyboard event is received from the hosting window
              */
             this.onKeyboardObservable = new LIB.Observable();
-            // Coordinate system
-            /**
-            * use right-handed coordinate system on this scene.
-            * @type {boolean}
-            */
+            // Coordinates system
             this._useRightHandedSystem = false;
             // Fog
             this._fogEnabled = true;
             this._fogMode = Scene.FOGMODE_NONE;
+            /**
+            * Gets or sets the fog color to use
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
+            */
             this.fogColor = new LIB.Color3(0.2, 0.2, 0.3);
+            /**
+            * Gets or sets the fog density to use
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
+            */
             this.fogDensity = 0.1;
+            /**
+            * Gets or sets the fog start distance to use
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
+            */
             this.fogStart = 0;
+            /**
+            * Gets or sets the fog end distance to use
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
+            */
             this.fogEnd = 1000.0;
             // Lights
-            /**
-            * is shadow enabled on this scene.
-            * @type {boolean}
-            */
             this._shadowsEnabled = true;
-            /**
-            * is light enabled on this scene.
-            * @type {boolean}
-            */
             this._lightsEnabled = true;
             /**
-            * All of the lights added to this scene.
-            * @see LIB.Light
-            * @type {LIB.Light[]}
+            * All of the lights added to this scene
+            * @see http://doc.LIBjs.com/LIB101/lights
             */
             this.lights = new Array();
             // Cameras
-            /** All of the cameras added to this scene. */
+            /** All of the cameras added to this scene.
+             * @see http://doc.LIBjs.com/LIB101/cameras
+             */
             this.cameras = new Array();
             /** All of the active cameras added to this scene. */
             this.activeCameras = new Array();
             // Meshes
             /**
-            * All of the tranform nodes added to this scene.
-            * @see LIB.TransformNode
-            * @type {LIB.TransformNode[]}
+            * All of the tranform nodes added to this scene
+            * @see http://doc.LIBjs.com/how_to/transformnode
             */
             this.transformNodes = new Array();
             /**
-            * All of the (abstract) meshes added to this scene.
-            * @see LIB.AbstractMesh
-            * @type {LIB.AbstractMesh[]}
+            * All of the (abstract) meshes added to this scene
             */
             this.meshes = new Array();
             /**
-            * All of the animation groups added to this scene.
-            * @see LIB.AnimationGroup
-            * @type {LIB.AnimationGroup[]}
+            * All of the animation groups added to this scene
+            * @see http://doc.LIBjs.com/how_to/group
             */
             this.animationGroups = new Array();
             // Geometries
             this._geometries = new Array();
+            /**
+            * All of the materials added to this scene
+            * @see http://doc.LIBjs.com/LIB101/materials
+            */
             this.materials = new Array();
+            /**
+            * All of the multi-materials added to this scene
+            * @see http://doc.LIBjs.com/how_to/multi_materials
+            */
             this.multiMaterials = new Array();
             // Textures
             this._texturesEnabled = true;
+            /**
+            * All of the textures added to this scene
+            */
             this.textures = new Array();
             // Particles
+            /**
+            * Gets or sets a boolean indicating if particles are enabled on this scene
+            */
             this.particlesEnabled = true;
+            /**
+            * All of the particle systems added to this scene
+            * @see http://doc.LIBjs.com/LIB101/particles
+            */
             this.particleSystems = new Array();
             // Sprites
+            /**
+            * Gets or sets a boolean indicating if sprites are enabled on this scene
+            */
             this.spritesEnabled = true;
+            /**
+            * All of the sprite managers added to this scene
+            * @see http://doc.LIBjs.com/LIB101/sprites
+            */
             this.spriteManagers = new Array();
-            // Layers
+            /**
+             * The list of layers (background and foreground) of the scene
+             */
             this.layers = new Array();
-            this.highlightLayers = new Array();
+            /**
+             * The list of effect layers (highlights/glow) added to the scene
+             * @see http://doc.LIBjs.com/how_to/highlight_layer
+             * @see http://doc.LIBjs.com/how_to/glow_layer
+             */
+            this.effectLayers = new Array();
             // Skeletons
             this._skeletonsEnabled = true;
+            /**
+             * The list of skeletons added to the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_use_bones_and_skeletons
+             */
             this.skeletons = new Array();
             // Morph targets
+            /**
+             * The list of morph target managers added to the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_dynamically_morph_a_mesh
+             */
             this.morphTargetManagers = new Array();
             // Lens flares
+            /**
+            * Gets or sets a boolean indicating if lens flares are enabled on this scene
+            */
             this.lensFlaresEnabled = true;
+            /**
+             * The list of lens flare system added to the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_use_lens_flares
+             */
             this.lensFlareSystems = new Array();
             // Collisions
+            /**
+            * Gets or sets a boolean indicating if collisions are enabled on this scene
+            * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
+            */
             this.collisionsEnabled = true;
-            /** Defines the gravity applied to this scene */
+            /**
+             * Defines the gravity applied to this scene (used only for collisions)
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity
+             */
             this.gravity = new LIB.Vector3(0, -9.807, 0);
             // Postprocesses
-            this.postProcesses = new Array();
+            /**
+            * Gets or sets a boolean indicating if postprocesses are enabled on this scene
+            */
             this.postProcessesEnabled = true;
+            /**
+             * The list of postprocesses added to the scene
+             */
+            this.postProcesses = new Array();
             // Customs render targets
+            /**
+            * Gets or sets a boolean indicating if render targets are enabled on this scene
+            */
             this.renderTargetsEnabled = true;
+            /**
+            * Gets or sets a boolean indicating if next render targets must be dumped as image for debugging purposes
+            * We recommend not using it and instead rely on Spector.js: http://spector.LIBjs.com
+            */
             this.dumpNextRenderTargets = false;
+            /**
+             * The list of user defined render targets added to the scene
+             */
             this.customRenderTargets = new Array();
-            // Imported meshes
+            /**
+             * Gets the list of meshes imported to the scene through SceneLoader
+             */
             this.importedMeshesFiles = new Array();
             // Probes
+            /**
+            * Gets or sets a boolean indicating if probes are enabled on this scene
+            */
             this.probesEnabled = true;
+            /**
+             * The list of reflection probes added to the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_use_reflection_probes
+             */
             this.reflectionProbes = new Array();
+            /** @hidden */
             this._actionManagers = new Array();
             this._meshesForIntersections = new LIB.SmartArrayNoDuplicate(256);
             // Procedural textures
+            /**
+            * Gets or sets a boolean indicating if procedural textures are enabled on this scene
+            */
             this.proceduralTexturesEnabled = true;
-            this._proceduralTextures = new Array();
+            /**
+             * The list of procedural textures added to the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_use_procedural_textures
+             */
+            this.proceduralTextures = new Array();
+            /**
+             * The list of sound tracks added to the scene
+             * @see http://doc.LIBjs.com/how_to/playing_sounds_and_music
+             */
             this.soundTracks = new Array();
             this._audioEnabled = true;
             this._headphone = false;
             // Performance counters
             this._totalVertices = new LIB.PerfCounter();
+            /** @hidden */
             this._activeIndices = new LIB.PerfCounter();
+            /** @hidden */
             this._activeParticles = new LIB.PerfCounter();
+            /** @hidden */
             this._activeBones = new LIB.PerfCounter();
             this._animationTime = 0;
+            /**
+             * Gets or sets a general scale for animation speed
+             * @see https://www.LIBjs-playground.com/#IBU2W7#3
+             */
             this.animationTimeScale = 1;
             this._renderId = 0;
             this._executeWhenReadyTimeoutId = -1;
@@ -436,21 +555,34 @@
             this._projectionUpdateFlag = -1;
             this._alternateViewUpdateFlag = -1;
             this._alternateProjectionUpdateFlag = -1;
+            /** @hidden */
             this._toBeDisposed = new LIB.SmartArray(256);
             this._activeRequests = new Array();
             this._pendingData = new Array();
             this._isDisposed = false;
+            /**
+             * Gets or sets a boolean indicating that all submeshes of active meshes must be rendered
+             * Use this boolean to avoid computing frustum clipping on submeshes (This could help when you are CPU bound)
+             */
+            this.dispatchAllSubMeshesOfActiveMeshes = false;
             this._activeMeshes = new LIB.SmartArray(256);
             this._processedMaterials = new LIB.SmartArray(256);
             this._renderTargets = new LIB.SmartArrayNoDuplicate(256);
+            /** @hidden */
             this._activeParticleSystems = new LIB.SmartArray(256);
             this._activeSkeletons = new LIB.SmartArrayNoDuplicate(32);
             this._softwareSkinnedMeshes = new LIB.SmartArrayNoDuplicate(32);
+            /** @hidden */
             this._activeAnimatables = new Array();
             this._transformMatrix = LIB.Matrix.Zero();
             this._useAlternateCameraConfiguration = false;
             this._alternateRendering = false;
+            /**
+             * Gets or sets a boolean indicating if lights must be sorted by priority (off by default)
+             * This is useful if there are more lights that the maximum simulteanous authorized
+             */
             this.requireLightSorting = false;
+            this._depthRenderer = {};
             this._activeMeshesFrozen = false;
             this._tempPickingRay = LIB.Ray ? LIB.Ray.Zero() : null;
             this._engine = engine || LIB.Engine.LastCreatedEngine;
@@ -546,10 +678,30 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Scene.prototype, "forceWireframe", {
+            get: function () {
+                return this._forceWireframe;
+            },
+            /**
+             * Gets or sets a boolean indicating if all rendering must be done in wireframe
+             */
+            set: function (value) {
+                if (this._forceWireframe === value) {
+                    return;
+                }
+                this._forceWireframe = value;
+                this.markAllMaterialsAsDirty(LIB.Material.MiscDirtyFlag);
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Scene.prototype, "forcePointsCloud", {
             get: function () {
                 return this._forcePointsCloud;
             },
+            /**
+             * Gets or sets a boolean indicating if all rendering must be done in point cloud
+             */
             set: function (value) {
                 if (this._forcePointsCloud === value) {
                     return;
@@ -560,8 +712,21 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Scene.prototype, "animationPropertiesOverride", {
+            /**
+             * Gets or sets the animation properties override
+             */
+            get: function () {
+                return this._animationPropertiesOverride;
+            },
+            set: function (value) {
+                this._animationPropertiesOverride = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Scene.prototype, "onDispose", {
-            /** A function to be executed when this scene is disposed. */
+            /** Sets a function to be executed when this scene is disposed. */
             set: function (callback) {
                 if (this._onDisposeObserver) {
                     this.onDisposeObservable.remove(this._onDisposeObserver);
@@ -572,7 +737,7 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "beforeRender", {
-            /** A function to be executed before rendering this scene */
+            /** Sets a function to be executed before rendering this scene */
             set: function (callback) {
                 if (this._onBeforeRenderObserver) {
                     this.onBeforeRenderObservable.remove(this._onBeforeRenderObserver);
@@ -585,7 +750,7 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "afterRender", {
-            /** A function to be executed after rendering this scene */
+            /** Sets a function to be executed after rendering this scene */
             set: function (callback) {
                 if (this._onAfterRenderObserver) {
                     this.onAfterRenderObservable.remove(this._onAfterRenderObserver);
@@ -598,6 +763,7 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "beforeCameraRender", {
+            /** Sets a function to be executed before rendering a camera*/
             set: function (callback) {
                 if (this._onBeforeCameraRenderObserver) {
                     this.onBeforeCameraRenderObservable.remove(this._onBeforeCameraRenderObserver);
@@ -608,6 +774,7 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "afterCameraRender", {
+            /** Sets a function to be executed after rendering a camera*/
             set: function (callback) {
                 if (this._onAfterCameraRenderObserver) {
                     this.onAfterCameraRenderObservable.remove(this._onAfterCameraRenderObserver);
@@ -618,6 +785,10 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "gamepadManager", {
+            /**
+             * Gets the gamepad manager associated with the scene
+             * @see http://doc.LIBjs.com/how_to/how_to_use_gamepads
+             */
             get: function () {
                 if (!this._gamepadManager) {
                     this._gamepadManager = new LIB.GamepadManager(this);
@@ -628,6 +799,9 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "unTranslatedPointer", {
+            /**
+             * Gets the pointer coordinates without any translation (ie. straight out of the pointer event)
+             */
             get: function () {
                 return new LIB.Vector2(this._unTranslatedPointerX, this._unTranslatedPointerY);
             },
@@ -638,6 +812,9 @@
             get: function () {
                 return this._useRightHandedSystem;
             },
+            /**
+            * Gets or sets a boolean indicating if the scene must use right-handed coordinates system
+            */
             set: function (value) {
                 if (this._useRightHandedSystem === value) {
                     return;
@@ -648,14 +825,29 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Sets the step Id used by deterministic lock step
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         * @param newStepId defines the step Id
+         */
         Scene.prototype.setStepId = function (newStepId) {
             this._currentStepId = newStepId;
         };
         ;
+        /**
+         * Gets the step Id used by deterministic lock step
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         * @returns the step Id
+         */
         Scene.prototype.getStepId = function () {
             return this._currentStepId;
         };
         ;
+        /**
+         * Gets the internal step used by deterministic lock step
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         * @returns the internal step
+         */
         Scene.prototype.getInternalStep = function () {
             return this._currentInternalStep;
         };
@@ -665,7 +857,8 @@
                 return this._fogEnabled;
             },
             /**
-            * is fog enabled on this scene.
+            * Gets or sets a boolean indicating if fog is enabled on this scene
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
             */
             set: function (value) {
                 if (this._fogEnabled === value) {
@@ -681,6 +874,10 @@
             get: function () {
                 return this._fogMode;
             },
+            /**
+            * Gets or sets the fog mode to use
+            * @see http://doc.LIBjs.com/LIB101/environment#fog
+            */
             set: function (value) {
                 if (this._fogMode === value) {
                     return;
@@ -695,6 +892,9 @@
             get: function () {
                 return this._shadowsEnabled;
             },
+            /**
+            * Gets or sets a boolean indicating if shadows are enabled on this scene
+            */
             set: function (value) {
                 if (this._shadowsEnabled === value) {
                     return;
@@ -709,6 +909,9 @@
             get: function () {
                 return this._lightsEnabled;
             },
+            /**
+            * Gets or sets a boolean indicating if lights are enabled on this scene
+            */
             set: function (value) {
                 if (this._lightsEnabled === value) {
                     return;
@@ -738,6 +941,9 @@
             get: function () {
                 return this._texturesEnabled;
             },
+            /**
+            * Gets or sets a boolean indicating if textures are enabled on this scene
+            */
             set: function (value) {
                 if (this._texturesEnabled === value) {
                     return;
@@ -752,6 +958,9 @@
             get: function () {
                 return this._skeletonsEnabled;
             },
+            /**
+            * Gets or sets a boolean indicating if skeletons are enabled on this scene
+            */
             set: function (value) {
                 if (this._skeletonsEnabled === value) {
                     return;
@@ -763,6 +972,11 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "postProcessRenderPipelineManager", {
+            /**
+             * Gets the postprocess render pipeline manager
+             * @see http://doc.LIBjs.com/how_to/how_to_use_postprocessrenderpipeline
+             * @see http://doc.LIBjs.com/how_to/using_default_rendering_pipeline
+             */
             get: function () {
                 if (!this._postProcessRenderPipelineManager) {
                     this._postProcessRenderPipelineManager = new LIB.PostProcessRenderPipelineManager();
@@ -773,6 +987,9 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "mainSoundTrack", {
+            /**
+             * Gets the main soundtrack associated with the scene
+             */
             get: function () {
                 if (!this._mainSoundTrack) {
                     this._mainSoundTrack = new LIB.SoundTrack(this, { mainTrack: true });
@@ -783,6 +1000,7 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "_isAlternateRenderingEnabled", {
+            /** @hidden */
             get: function () {
                 return this._alternateRendering;
             },
@@ -790,14 +1008,38 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "frustumPlanes", {
+            /**
+             * Gets the list of frustum planes (built from the active camera)
+             */
             get: function () {
                 return this._frustumPlanes;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Scene.prototype, "geometryBufferRenderer", {
+            /**
+             * Gets the current geometry buffer associated to the scene.
+             */
+            get: function () {
+                return this._geometryBufferRenderer;
+            },
+            /**
+             * Sets the current geometry buffer for the scene.
+             */
+            set: function (geometryBufferRenderer) {
+                if (geometryBufferRenderer && geometryBufferRenderer.isSupported) {
+                    this._geometryBufferRenderer = geometryBufferRenderer;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Scene.prototype, "debugLayer", {
-            // Properties
+            /**
+             * Gets the debug layer associated with the scene
+             * @see http://doc.LIBjs.com/features/playground_debuglayer
+             */
             get: function () {
                 if (!this._debugLayer) {
                     this._debugLayer = new LIB.DebugLayer(this);
@@ -808,6 +1050,10 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "workerCollisions", {
+            /**
+             * Gets a boolean indicating if collisions are processed on a web worker
+             * @see http://doc.LIBjs.com/LIB101/cameras,_mesh_collisions_and_gravity#web-worker-based-collision-system-since-21
+             */
             get: function () {
                 return this._workerCollisions;
             },
@@ -815,7 +1061,7 @@
                 if (!LIB.CollisionCoordinatorLegacy) {
                     return;
                 }
-                enabled = (enabled && !!Worker);
+                enabled = (enabled && !!Worker && !!LIB.CollisionWorker);
                 this._workerCollisions = enabled;
                 if (this.collisionCoordinator) {
                     this.collisionCoordinator.destroy();
@@ -827,6 +1073,10 @@
             configurable: true
         });
         Object.defineProperty(Scene.prototype, "selectionOctree", {
+            /**
+             * Gets the octree used to boost mesh selection (picking)
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene_with_octrees
+             */
             get: function () {
                 return this._selectionOctree;
             },
@@ -835,8 +1085,7 @@
         });
         Object.defineProperty(Scene.prototype, "meshUnderPointer", {
             /**
-             * The mesh that is currently under the pointer.
-             * @return {LIB.AbstractMesh} mesh under the pointer/mouse cursor or null if none.
+             * Gets the mesh that is currently under the pointer
              */
             get: function () {
                 return this._pointerOverMesh;
@@ -846,8 +1095,7 @@
         });
         Object.defineProperty(Scene.prototype, "pointerX", {
             /**
-             * Current on-screen X position of the pointer
-             * @return {number} X position of the pointer
+             * Gets the current on-screen X position of the pointer
              */
             get: function () {
                 return this._pointerX;
@@ -857,8 +1105,7 @@
         });
         Object.defineProperty(Scene.prototype, "pointerY", {
             /**
-             * Current on-screen Y position of the pointer
-             * @return {number} Y position of the pointer
+             * Gets the current on-screen Y position of the pointer
              */
             get: function () {
                 return this._pointerY;
@@ -866,77 +1113,141 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the cached material (ie. the latest rendered one)
+         * @returns the cached material
+         */
         Scene.prototype.getCachedMaterial = function () {
             return this._cachedMaterial;
         };
+        /**
+         * Gets the cached effect (ie. the latest rendered one)
+         * @returns the cached effect
+         */
         Scene.prototype.getCachedEffect = function () {
             return this._cachedEffect;
         };
+        /**
+         * Gets the cached visibility state (ie. the latest rendered one)
+         * @returns the cached visibility state
+         */
         Scene.prototype.getCachedVisibility = function () {
             return this._cachedVisibility;
         };
+        /**
+         * Gets a boolean indicating if the current material / effect / visibility must be bind again
+         * @param material defines the current material
+         * @param effect defines the current effect
+         * @param visibility defines the current visibility state
+         * @returns true if one parameter is not cached
+         */
         Scene.prototype.isCachedMaterialInvalid = function (material, effect, visibility) {
             if (visibility === void 0) { visibility = 1; }
             return this._cachedEffect !== effect || this._cachedMaterial !== material || this._cachedVisibility !== visibility;
         };
+        /**
+         * Gets the bounding box renderer associated with the scene
+         * @returns a BoundingBoxRenderer
+         */
         Scene.prototype.getBoundingBoxRenderer = function () {
             if (!this._boundingBoxRenderer) {
                 this._boundingBoxRenderer = new LIB.BoundingBoxRenderer(this);
             }
             return this._boundingBoxRenderer;
         };
+        /**
+         * Gets the outline renderer associated with the scene
+         * @returns a OutlineRenderer
+         */
         Scene.prototype.getOutlineRenderer = function () {
             return this._outlineRenderer;
         };
+        /**
+         * Gets the engine associated with the scene
+         * @returns an Engine
+         */
         Scene.prototype.getEngine = function () {
             return this._engine;
         };
+        /**
+         * Gets the total number of vertices rendered per frame
+         * @returns the total number of vertices rendered per frame
+         */
         Scene.prototype.getTotalVertices = function () {
             return this._totalVertices.current;
         };
         Object.defineProperty(Scene.prototype, "totalVerticesPerfCounter", {
+            /**
+             * Gets the performance counter for total vertices
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene#instrumentation
+             */
             get: function () {
                 return this._totalVertices;
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the total number of active indices rendered per frame (You can deduce the number of rendered triangles by dividing this number by 3)
+         * @returns the total number of active indices rendered per frame
+         */
         Scene.prototype.getActiveIndices = function () {
             return this._activeIndices.current;
         };
         Object.defineProperty(Scene.prototype, "totalActiveIndicesPerfCounter", {
+            /**
+             * Gets the performance counter for active indices
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene#instrumentation
+             */
             get: function () {
                 return this._activeIndices;
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the total number of active particles rendered per frame
+         * @returns the total number of active particles rendered per frame
+         */
         Scene.prototype.getActiveParticles = function () {
             return this._activeParticles.current;
         };
         Object.defineProperty(Scene.prototype, "activeParticlesPerfCounter", {
+            /**
+             * Gets the performance counter for active particles
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene#instrumentation
+             */
             get: function () {
                 return this._activeParticles;
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the total number of active bones rendered per frame
+         * @returns the total number of active bones rendered per frame
+         */
         Scene.prototype.getActiveBones = function () {
             return this._activeBones.current;
         };
         Object.defineProperty(Scene.prototype, "activeBonesPerfCounter", {
+            /**
+             * Gets the performance counter for active bones
+             * @see http://doc.LIBjs.com/how_to/optimizing_your_scene#instrumentation
+             */
             get: function () {
                 return this._activeBones;
             },
             enumerable: true,
             configurable: true
         });
-        // Stats
+        /** @hidden */
         Scene.prototype.getInterFramePerfCounter = function () {
             LIB.Tools.Warn("getInterFramePerfCounter is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "interFramePerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("interFramePerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -944,11 +1255,13 @@
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         Scene.prototype.getLastFrameDuration = function () {
             LIB.Tools.Warn("getLastFrameDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "lastFramePerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("lastFramePerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -956,11 +1269,13 @@
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         Scene.prototype.getEvaluateActiveMeshesDuration = function () {
             LIB.Tools.Warn("getEvaluateActiveMeshesDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "evaluateActiveMeshesDurationPerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("evaluateActiveMeshesDurationPerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -968,18 +1283,25 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the array of active meshes
+         * @returns an array of AbstractMesh
+         */
         Scene.prototype.getActiveMeshes = function () {
             return this._activeMeshes;
         };
+        /** @hidden */
         Scene.prototype.getRenderTargetsDuration = function () {
             LIB.Tools.Warn("getRenderTargetsDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
+        /** @hidden */
         Scene.prototype.getRenderDuration = function () {
             LIB.Tools.Warn("getRenderDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "renderDurationPerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("renderDurationPerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -987,11 +1309,13 @@
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         Scene.prototype.getParticlesDuration = function () {
             LIB.Tools.Warn("getParticlesDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "particlesDurationPerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("particlesDurationPerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -999,11 +1323,13 @@
             enumerable: true,
             configurable: true
         });
+        /** @hidden */
         Scene.prototype.getSpritesDuration = function () {
             LIB.Tools.Warn("getSpritesDuration is deprecated. Please use SceneInstrumentation class");
             return 0;
         };
         Object.defineProperty(Scene.prototype, "spriteDuractionPerfCounter", {
+            /** @hidden */
             get: function () {
                 LIB.Tools.Warn("spriteDuractionPerfCounter is deprecated. Please use SceneInstrumentation class");
                 return null;
@@ -1011,12 +1337,21 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the animation ratio (which is 1.0 is the scene renders at 60fps and 2 if the scene renders at 30fps, etc.)
+         * @returns a number
+         */
         Scene.prototype.getAnimationRatio = function () {
             return this._animationRatio;
         };
+        /**
+         * Gets an unique Id for the current frame
+         * @returns a number
+         */
         Scene.prototype.getRenderId = function () {
             return this._renderId;
         };
+        /** Call this function if you want to manually increment the render Id*/
         Scene.prototype.incrementRenderId = function () {
             this._renderId++;
         };
@@ -1044,9 +1379,12 @@
         /**
          * Use this method to simulate a pointer move on a mesh
          * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+         * @param pickResult pickingInfo of the object wished to simulate pointer event on
+         * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+         * @returns the current scene
          */
-        Scene.prototype.simulatePointerMove = function (pickResult) {
-            var evt = new PointerEvent("pointermove");
+        Scene.prototype.simulatePointerMove = function (pickResult, pointerEventInit) {
+            var evt = new PointerEvent("pointermove", pointerEventInit);
             return this._processPointerMove(pickResult, evt);
         };
         Scene.prototype._processPointerMove = function (pickResult, evt) {
@@ -1089,11 +1427,11 @@
                 }
             }
             if (pickResult) {
+                var type = evt.type === "mousewheel" || evt.type === "DOMMouseScroll" ? LIB.PointerEventTypes.POINTERWHEEL : LIB.PointerEventTypes.POINTERMOVE;
                 if (this.onPointerMove) {
-                    this.onPointerMove(evt, pickResult);
+                    this.onPointerMove(evt, pickResult, type);
                 }
                 if (this.onPointerObservable.hasObservers()) {
-                    var type = evt.type === "mousewheel" || evt.type === "DOMMouseScroll" ? LIB.PointerEventTypes.POINTERWHEEL : LIB.PointerEventTypes.POINTERMOVE;
                     var pi = new LIB.PointerInfo(type, evt, pickResult);
                     this.onPointerObservable.notifyObservers(pi, type);
                 }
@@ -1103,9 +1441,12 @@
         /**
          * Use this method to simulate a pointer down on a mesh
          * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+         * @param pickResult pickingInfo of the object wished to simulate pointer event on
+         * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+         * @returns the current scene
          */
-        Scene.prototype.simulatePointerDown = function (pickResult) {
-            var evt = new PointerEvent("pointerdown");
+        Scene.prototype.simulatePointerDown = function (pickResult, pointerEventInit) {
+            var evt = new PointerEvent("pointerdown", pointerEventInit);
             return this._processPointerDown(pickResult, evt);
         };
         Scene.prototype._processPointerDown = function (pickResult, evt) {
@@ -1133,7 +1474,7 @@
                             var pickResult = _this.pick(_this._unTranslatedPointerX, _this._unTranslatedPointerY, function (mesh) { return (mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasSpecificTrigger(LIB.ActionManager.OnLongPressTrigger) && mesh == _this._pickedDownMesh); }, false, _this.cameraToUseForPointers);
                             if (pickResult && pickResult.hit && pickResult.pickedMesh && actionManager) {
                                 if (_this._totalPointersPressed !== 0 &&
-                                    ((new Date().getTime() - _this._startingPointerTime) > Scene.LongPressDelay) &&
+                                    ((Date.now() - _this._startingPointerTime) > Scene.LongPressDelay) &&
                                     (Math.abs(_this._startingPointerPosition.x - _this._pointerX) < Scene.DragMovementThreshold &&
                                         Math.abs(_this._startingPointerPosition.y - _this._pointerY) < Scene.DragMovementThreshold)) {
                                     _this._startingPointerTime = 0;
@@ -1145,11 +1486,11 @@
                 }
             }
             if (pickResult) {
+                var type = LIB.PointerEventTypes.POINTERDOWN;
                 if (this.onPointerDown) {
-                    this.onPointerDown(evt, pickResult);
+                    this.onPointerDown(evt, pickResult, type);
                 }
                 if (this.onPointerObservable.hasObservers()) {
-                    var type = LIB.PointerEventTypes.POINTERDOWN;
                     var pi = new LIB.PointerInfo(type, evt, pickResult);
                     this.onPointerObservable.notifyObservers(pi, type);
                 }
@@ -1159,9 +1500,12 @@
         /**
          * Use this method to simulate a pointer up on a mesh
          * The pickResult parameter can be obtained from a scene.pick or scene.pickWithRay
+         * @param pickResult pickingInfo of the object wished to simulate pointer event on
+         * @param pointerEventInit pointer event state to be used when simulating the pointer event (eg. pointer id for multitouch)
+         * @returns the current scene
          */
-        Scene.prototype.simulatePointerUp = function (pickResult) {
-            var evt = new PointerEvent("pointerup");
+        Scene.prototype.simulatePointerUp = function (pickResult, pointerEventInit) {
+            var evt = new PointerEvent("pointerup", pointerEventInit);
             var clickInfo = new ClickInfo();
             clickInfo.singleClick = true;
             clickInfo.ignore = true;
@@ -1175,9 +1519,9 @@
                         this.onPointerPick(evt, pickResult);
                     }
                     if (clickInfo.singleClick && !clickInfo.ignore && this.onPointerObservable.hasObservers()) {
-                        var type = LIB.PointerEventTypes.POINTERPICK;
-                        var pi = new LIB.PointerInfo(type, evt, pickResult);
-                        this.onPointerObservable.notifyObservers(pi, type);
+                        var type_1 = LIB.PointerEventTypes.POINTERPICK;
+                        var pi = new LIB.PointerInfo(type_1, evt, pickResult);
+                        this.onPointerObservable.notifyObservers(pi, type_1);
                     }
                 }
                 if (pickResult.pickedMesh.actionManager) {
@@ -1198,29 +1542,29 @@
                 this._pickedDownMesh !== this._pickedUpMesh) {
                 this._pickedDownMesh.actionManager.processTrigger(LIB.ActionManager.OnPickOutTrigger, LIB.ActionEvent.CreateNew(this._pickedDownMesh, evt));
             }
-            if (this.onPointerUp) {
-                this.onPointerUp(evt, pickResult);
-            }
+            var type = LIB.PointerEventTypes.POINTERUP;
             if (this.onPointerObservable.hasObservers()) {
                 if (!clickInfo.ignore) {
                     if (!clickInfo.hasSwiped) {
                         if (clickInfo.singleClick && this.onPointerObservable.hasSpecificMask(LIB.PointerEventTypes.POINTERTAP)) {
-                            var type = LIB.PointerEventTypes.POINTERTAP;
-                            var pi = new LIB.PointerInfo(type, evt, pickResult);
-                            this.onPointerObservable.notifyObservers(pi, type);
+                            var type_2 = LIB.PointerEventTypes.POINTERTAP;
+                            var pi = new LIB.PointerInfo(type_2, evt, pickResult);
+                            this.onPointerObservable.notifyObservers(pi, type_2);
                         }
                         if (clickInfo.doubleClick && this.onPointerObservable.hasSpecificMask(LIB.PointerEventTypes.POINTERDOUBLETAP)) {
-                            var type = LIB.PointerEventTypes.POINTERDOUBLETAP;
-                            var pi = new LIB.PointerInfo(type, evt, pickResult);
-                            this.onPointerObservable.notifyObservers(pi, type);
+                            var type_3 = LIB.PointerEventTypes.POINTERDOUBLETAP;
+                            var pi = new LIB.PointerInfo(type_3, evt, pickResult);
+                            this.onPointerObservable.notifyObservers(pi, type_3);
                         }
                     }
                 }
                 else {
-                    var type = LIB.PointerEventTypes.POINTERUP;
                     var pi = new LIB.PointerInfo(type, evt, pickResult);
                     this.onPointerObservable.notifyObservers(pi, type);
                 }
+            }
+            if (this.onPointerUp) {
+                this.onPointerUp(evt, pickResult, type);
             }
             return this;
         };
@@ -1248,7 +1592,7 @@
             };
             this._delayedSimpleClick = function (btn, clickInfo, cb) {
                 // double click delay is over and that no double click has been raised since, or the 2 consecutive keys pressed are different
-                if ((new Date().getTime() - _this._previousStartingPointerTime > Scene.DoubleClickDelay && !_this._doubleClickOccured) ||
+                if ((Date.now() - _this._previousStartingPointerTime > Scene.DoubleClickDelay && !_this._doubleClickOccured) ||
                     btn !== _this._previousButtonPressed) {
                     _this._doubleClickOccured = false;
                     clickInfo.singleClick = true;
@@ -1285,12 +1629,13 @@
                         }
                         if (checkSingleClickImmediately) {
                             // single click detected if double click delay is over or two different successive keys pressed without exclusive double click or no double click required
-                            if (new Date().getTime() - _this._previousStartingPointerTime > Scene.DoubleClickDelay ||
+                            if (Date.now() - _this._previousStartingPointerTime > Scene.DoubleClickDelay ||
                                 btn !== _this._previousButtonPressed) {
                                 clickInfo.singleClick = true;
                                 cb(clickInfo, _this._currentPickResult);
                             }
                         }
+                        // at least one double click is required to be check and exclusive double click is enabled
                         else {
                             // wait that no double click has been raised during the double click delay
                             _this._previousDelayedSimpleClickTimeout = _this._delayedSimpleClickTimeout;
@@ -1306,7 +1651,7 @@
                         if (checkDoubleClick) {
                             // two successive keys pressed are equal, double click delay is not over and double click has not just occurred
                             if (btn === _this._previousButtonPressed &&
-                                new Date().getTime() - _this._previousStartingPointerTime < Scene.DoubleClickDelay &&
+                                Date.now() - _this._previousStartingPointerTime < Scene.DoubleClickDelay &&
                                 !_this._doubleClickOccured) {
                                 // pointer has not moved for 2 clicks, it's a double click
                                 if (!clickInfo.hasSwiped &&
@@ -1322,6 +1667,7 @@
                                     _this._previousDelayedSimpleClickTimeout = _this._delayedSimpleClickTimeout;
                                     cb(clickInfo, _this._currentPickResult);
                                 }
+                                // if the two successive clicks are too far, it's just two simple clicks
                                 else {
                                     _this._doubleClickOccured = false;
                                     _this._previousStartingPointerTime = _this._startingPointerTime;
@@ -1340,6 +1686,7 @@
                                     }
                                 }
                             }
+                            // just the first click of the double has been raised
                             else {
                                 _this._doubleClickOccured = false;
                                 _this._previousStartingPointerTime = _this._startingPointerTime;
@@ -1359,7 +1706,7 @@
             this._onPointerMove = function (evt) {
                 _this._updatePointerPosition(evt);
                 // PreObservable support
-                if (_this.onPrePointerObservable.hasObservers()) {
+                if (_this.onPrePointerObservable.hasObservers() && !_this._pointerCaptures[evt.pointerId]) {
                     var type = evt.type === "mousewheel" || evt.type === "DOMMouseScroll" ? LIB.PointerEventTypes.POINTERWHEEL : LIB.PointerEventTypes.POINTERMOVE;
                     var pi = new LIB.PointerInfoPre(type, evt, _this._unTranslatedPointerX, _this._unTranslatedPointerY);
                     _this.onPrePointerObservable.notifyObservers(pi, type);
@@ -1398,9 +1745,10 @@
                 if (!_this.cameraToUseForPointers && !_this.activeCamera) {
                     return;
                 }
+                _this._pointerCaptures[evt.pointerId] = true;
                 _this._startingPointerPosition.x = _this._pointerX;
                 _this._startingPointerPosition.y = _this._pointerY;
-                _this._startingPointerTime = new Date().getTime();
+                _this._startingPointerTime = Date.now();
                 if (!_this.pointerDownPredicate) {
                     _this.pointerDownPredicate = function (mesh) {
                         return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled();
@@ -1436,7 +1784,7 @@
                 }
             };
             this._onPointerUp = function (evt) {
-                if (_this._totalPointersPressed === 0) {
+                if (_this._totalPointersPressed === 0) { // We are attaching the pointer up to windows because of a bug in FF
                     return; // So we need to test it the pointer down was pressed before.
                 }
                 _this._totalPointersPressed--;
@@ -1445,7 +1793,7 @@
                 _this._updatePointerPosition(evt);
                 _this._initClickEvent(_this.onPrePointerObservable, _this.onPointerObservable, evt, function (clickInfo, pickResult) {
                     // PreObservable support
-                    if (_this.onPrePointerObservable.hasObservers()) {
+                    if (_this.onPrePointerObservable.hasObservers() && !_this._pointerCaptures[evt.pointerId]) {
                         if (!clickInfo.ignore) {
                             if (!clickInfo.hasSwiped) {
                                 if (clickInfo.singleClick && _this.onPrePointerObservable.hasSpecificMask(LIB.PointerEventTypes.POINTERTAP)) {
@@ -1478,6 +1826,7 @@
                     if (!_this.cameraToUseForPointers && !_this.activeCamera) {
                         return;
                     }
+                    _this._pointerCaptures[evt.pointerId] = false;
                     if (!_this.pointerUpPredicate) {
                         _this.pointerUpPredicate = function (mesh) {
                             return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.isEnabled();
@@ -1492,21 +1841,23 @@
                     }
                     _this._processPointerUp(pickResult, evt, clickInfo);
                     // Sprites
-                    if (_this.spriteManagers.length > 0) {
-                        var spritePickResult = _this.pickSprite(_this._unTranslatedPointerX, _this._unTranslatedPointerY, _this._spritePredicate, false, _this.cameraToUseForPointers || undefined);
-                        if (spritePickResult) {
-                            if (spritePickResult.hit && spritePickResult.pickedSprite) {
-                                if (spritePickResult.pickedSprite.actionManager) {
-                                    spritePickResult.pickedSprite.actionManager.processTrigger(LIB.ActionManager.OnPickUpTrigger, LIB.ActionEvent.CreateNewFromSprite(spritePickResult.pickedSprite, _this, evt));
+                    if (!clickInfo.ignore) {
+                        if (_this.spriteManagers.length > 0) {
+                            var spritePickResult = _this.pickSprite(_this._unTranslatedPointerX, _this._unTranslatedPointerY, _this._spritePredicate, false, _this.cameraToUseForPointers || undefined);
+                            if (spritePickResult) {
+                                if (spritePickResult.hit && spritePickResult.pickedSprite) {
                                     if (spritePickResult.pickedSprite.actionManager) {
-                                        if (Math.abs(_this._startingPointerPosition.x - _this._pointerX) < Scene.DragMovementThreshold && Math.abs(_this._startingPointerPosition.y - _this._pointerY) < Scene.DragMovementThreshold) {
-                                            spritePickResult.pickedSprite.actionManager.processTrigger(LIB.ActionManager.OnPickTrigger, LIB.ActionEvent.CreateNewFromSprite(spritePickResult.pickedSprite, _this, evt));
+                                        spritePickResult.pickedSprite.actionManager.processTrigger(LIB.ActionManager.OnPickUpTrigger, LIB.ActionEvent.CreateNewFromSprite(spritePickResult.pickedSprite, _this, evt));
+                                        if (spritePickResult.pickedSprite.actionManager) {
+                                            if (Math.abs(_this._startingPointerPosition.x - _this._pointerX) < Scene.DragMovementThreshold && Math.abs(_this._startingPointerPosition.y - _this._pointerY) < Scene.DragMovementThreshold) {
+                                                spritePickResult.pickedSprite.actionManager.processTrigger(LIB.ActionManager.OnPickTrigger, LIB.ActionEvent.CreateNewFromSprite(spritePickResult.pickedSprite, _this, evt));
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            if (_this._pickedDownSprite && _this._pickedDownSprite.actionManager && _this._pickedDownSprite !== spritePickResult.pickedSprite) {
-                                _this._pickedDownSprite.actionManager.processTrigger(LIB.ActionManager.OnPickOutTrigger, LIB.ActionEvent.CreateNewFromSprite(_this._pickedDownSprite, _this, evt));
+                                if (_this._pickedDownSprite && _this._pickedDownSprite.actionManager && _this._pickedDownSprite !== spritePickResult.pickedSprite) {
+                                    _this._pickedDownSprite.actionManager.processTrigger(LIB.ActionManager.OnPickOutTrigger, LIB.ActionEvent.CreateNewFromSprite(_this._pickedDownSprite, _this, evt));
+                                }
                             }
                         }
                     }
@@ -1581,6 +1932,7 @@
             }
             canvas.tabIndex = 1;
         };
+        /** Detaches all event handlers*/
         Scene.prototype.detachControl = function () {
             var engine = this.getEngine();
             var eventPrefix = LIB.Tools.GetPointerPrefix();
@@ -1609,7 +1961,11 @@
             this.onPointerObservable.clear();
             this.onPrePointerObservable.clear();
         };
-        // Ready
+        /**
+         * This function will check if the scene can be rendered (textures are loaded, shaders are compiled)
+         * Delay loaded resources are not taking in account
+         * @return true if all required resources are ready
+         */
         Scene.prototype.isReady = function () {
             if (this._isDisposed) {
                 return false;
@@ -1618,6 +1974,7 @@
                 return false;
             }
             var index;
+            var engine = this.getEngine();
             // Geometries
             for (index = 0; index < this._geometries.length; index++) {
                 var geometry = this._geometries[index];
@@ -1634,38 +1991,114 @@
                 if (!mesh.subMeshes || mesh.subMeshes.length === 0) {
                     continue;
                 }
-                if (!mesh.isReady()) {
+                if (!mesh.isReady(true)) {
                     return false;
                 }
-                var mat = mesh.material;
-                if (mat) {
-                    if (!mat.isReady(mesh)) {
+                // Effect layers
+                var hardwareInstancedRendering = mesh.getClassName() === "InstancedMesh" || engine.getCaps().instancedArrays && mesh.instances.length > 0;
+                for (var _i = 0, _a = this.effectLayers; _i < _a.length; _i++) {
+                    var layer = _a[_i];
+                    if (!layer.hasMesh(mesh)) {
+                        continue;
+                    }
+                    for (var _b = 0, _c = mesh.subMeshes; _b < _c.length; _b++) {
+                        var subMesh = _c[_b];
+                        if (!layer.isReady(subMesh, hardwareInstancedRendering)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            // Post-processes
+            if (this.activeCameras && this.activeCameras.length > 0) {
+                for (var _d = 0, _e = this.activeCameras; _d < _e.length; _d++) {
+                    var camera = _e[_d];
+                    if (!camera.isReady(true)) {
                         return false;
                     }
                 }
             }
+            else if (this.activeCamera) {
+                if (!this.activeCamera.isReady(true)) {
+                    return false;
+                }
+            }
+            // Particles
+            for (var _f = 0, _g = this.particleSystems; _f < _g.length; _f++) {
+                var particleSystem = _g[_f];
+                if (!particleSystem.isReady()) {
+                    return false;
+                }
+            }
             return true;
         };
+        /** Resets all cached information relative to material (including effect and visibility) */
         Scene.prototype.resetCachedMaterial = function () {
             this._cachedMaterial = null;
             this._cachedEffect = null;
             this._cachedVisibility = null;
         };
+        /**
+         * Registers a function to be called before every frame render
+         * @param func defines the function to register
+         */
         Scene.prototype.registerBeforeRender = function (func) {
             this.onBeforeRenderObservable.add(func);
         };
+        /**
+         * Unregisters a function called before every frame render
+         * @param func defines the function to unregister
+         */
         Scene.prototype.unregisterBeforeRender = function (func) {
             this.onBeforeRenderObservable.removeCallback(func);
         };
+        /**
+         * Registers a function to be called after every frame render
+         * @param func defines the function to register
+         */
         Scene.prototype.registerAfterRender = function (func) {
             this.onAfterRenderObservable.add(func);
         };
+        /**
+         * Unregisters a function called after every frame render
+         * @param func defines the function to unregister
+         */
         Scene.prototype.unregisterAfterRender = function (func) {
             this.onAfterRenderObservable.removeCallback(func);
         };
+        Scene.prototype._executeOnceBeforeRender = function (func) {
+            var _this = this;
+            var execFunc = function () {
+                func();
+                setTimeout(function () {
+                    _this.unregisterBeforeRender(execFunc);
+                });
+            };
+            this.registerBeforeRender(execFunc);
+        };
+        /**
+         * The provided function will run before render once and will be disposed afterwards.
+         * A timeout delay can be provided so that the function will be executed in N ms.
+         * The timeout is using the browser's native setTimeout so time percision cannot be guaranteed.
+         * @param func The function to be executed.
+         * @param timeout optional delay in ms
+         */
+        Scene.prototype.executeOnceBeforeRender = function (func, timeout) {
+            var _this = this;
+            if (timeout !== undefined) {
+                setTimeout(function () {
+                    _this._executeOnceBeforeRender(func);
+                }, timeout);
+            }
+            else {
+                this._executeOnceBeforeRender(func);
+            }
+        };
+        /** @hidden */
         Scene.prototype._addPendingData = function (data) {
             this._pendingData.push(data);
         };
+        /** @hidden */
         Scene.prototype._removePendingData = function (data) {
             var wasLoading = this.isLoading;
             var index = this._pendingData.indexOf(data);
@@ -1676,10 +2109,17 @@
                 this.onDataLoadedObservable.notifyObservers(this);
             }
         };
+        /**
+         * Returns the number of items waiting to be loaded
+         * @returns the number of items waiting to be loaded
+         */
         Scene.prototype.getWaitingItemsCount = function () {
             return this._pendingData.length;
         };
         Object.defineProperty(Scene.prototype, "isLoading", {
+            /**
+             * Returns a boolean indicating if the scene is still loading data
+             */
             get: function () {
                 return this._pendingData.length > 0;
             },
@@ -1687,8 +2127,8 @@
             configurable: true
         });
         /**
-         * Registers a function to be executed when the scene is ready.
-         * @param {Function} func - the function to be executed.
+         * Registers a function to be executed when the scene is ready
+         * @param {Function} func - the function to be executed
          */
         Scene.prototype.executeWhenReady = function (func) {
             var _this = this;
@@ -1700,6 +2140,19 @@
                 _this._checkIsReady();
             }, 150);
         };
+        /**
+         * Returns a promise that resolves when the scene is ready
+         * @returns A promise that resolves when the scene is ready
+         */
+        Scene.prototype.whenReadyAsync = function () {
+            var _this = this;
+            return new Promise(function (resolve) {
+                _this.executeWhenReady(function () {
+                    resolve();
+                });
+            });
+        };
+        /** @hidden */
         Scene.prototype._checkIsReady = function () {
             var _this = this;
             if (this.isReady()) {
@@ -1715,22 +2168,44 @@
         // Animations
         /**
          * Will start the animation sequence of a given target
-         * @param target - the target
-         * @param {number} from - from which frame should animation start
-         * @param {number} to - till which frame should animation run.
-         * @param {boolean} [loop] - should the animation loop
-         * @param {number} [speedRatio] - the speed in which to run the animation
-         * @param {Function} [onAnimationEnd] function to be executed when the animation ended.
-         * @param {LIB.Animatable} [animatable] an animatable object. If not provided a new one will be created from the given params.
-         * Returns {LIB.Animatable} the animatable object created for this animation
-         * See LIB.Animatable
+         * @param target defines the target
+         * @param from defines from which frame should animation start
+         * @param to defines until which frame should animation run.
+         * @param weight defines the weight to apply to the animation (1.0 by default)
+         * @param loop defines if the animation loops
+         * @param speedRatio defines the speed in which to run the animation (1.0 by default)
+         * @param onAnimationEnd defines the function to be executed when the animation ends
+         * @param animatable defines an animatable object. If not provided a new one will be created from the given params
+         * @returns the animatable object created for this animation
          */
-        Scene.prototype.beginAnimation = function (target, from, to, loop, speedRatio, onAnimationEnd, animatable) {
+        Scene.prototype.beginWeightedAnimation = function (target, from, to, weight, loop, speedRatio, onAnimationEnd, animatable) {
+            if (weight === void 0) { weight = 1.0; }
             if (speedRatio === void 0) { speedRatio = 1.0; }
+            var returnedAnimatable = this.beginAnimation(target, from, to, loop, speedRatio, onAnimationEnd, animatable, false);
+            returnedAnimatable.weight = weight;
+            return returnedAnimatable;
+        };
+        /**
+         * Will start the animation sequence of a given target
+         * @param target defines the target
+         * @param from defines from which frame should animation start
+         * @param to defines until which frame should animation run.
+         * @param loop defines if the animation loops
+         * @param speedRatio defines the speed in which to run the animation (1.0 by default)
+         * @param onAnimationEnd defines the function to be executed when the animation ends
+         * @param animatable defines an animatable object. If not provided a new one will be created from the given params
+         * @param stopCurrent defines if the current animations must be stopped first (true by default)
+         * @returns the animatable object created for this animation
+         */
+        Scene.prototype.beginAnimation = function (target, from, to, loop, speedRatio, onAnimationEnd, animatable, stopCurrent) {
+            if (speedRatio === void 0) { speedRatio = 1.0; }
+            if (stopCurrent === void 0) { stopCurrent = true; }
             if (from > to && speedRatio > 0) {
                 speedRatio *= -1;
             }
-            this.stopAnimation(target);
+            if (stopCurrent) {
+                this.stopAnimation(target);
+            }
             if (!animatable) {
                 animatable = new LIB.Animatable(this, target, from, to, loop, speedRatio, onAnimationEnd);
             }
@@ -1742,12 +2217,23 @@
             if (target.getAnimatables) {
                 var animatables = target.getAnimatables();
                 for (var index = 0; index < animatables.length; index++) {
-                    this.beginAnimation(animatables[index], from, to, loop, speedRatio, onAnimationEnd, animatable);
+                    this.beginAnimation(animatables[index], from, to, loop, speedRatio, onAnimationEnd, animatable, stopCurrent);
                 }
             }
             animatable.reset();
             return animatable;
         };
+        /**
+         * Begin a new animation on a given node
+         * @param target defines the target where the animation will take place
+         * @param animations defines the list of animations to start
+         * @param from defines the initial value
+         * @param to defines the final value
+         * @param loop defines if you want animation to loop (off by default)
+         * @param speedRatio defines the speed ratio to apply to all animations
+         * @param onAnimationEnd defines the callback to call when an animation ends (will be called once per node)
+         * @returns the list of created animatables
+         */
         Scene.prototype.beginDirectAnimation = function (target, animations, from, to, loop, speedRatio, onAnimationEnd) {
             if (speedRatio === undefined) {
                 speedRatio = 1.0;
@@ -1755,6 +2241,32 @@
             var animatable = new LIB.Animatable(this, target, from, to, loop, speedRatio, onAnimationEnd, animations);
             return animatable;
         };
+        /**
+         * Begin a new animation on a given node and its hierarchy
+         * @param target defines the root node where the animation will take place
+         * @param directDescendantsOnly if true only direct descendants will be used, if false direct and also indirect (children of children, an so on in a recursive manner) descendants will be used.
+         * @param animations defines the list of animations to start
+         * @param from defines the initial value
+         * @param to defines the final value
+         * @param loop defines if you want animation to loop (off by default)
+         * @param speedRatio defines the speed ratio to apply to all animations
+         * @param onAnimationEnd defines the callback to call when an animation ends (will be called once per node)
+         * @returns the list of animatables created for all nodes
+         */
+        Scene.prototype.beginDirectHierarchyAnimation = function (target, directDescendantsOnly, animations, from, to, loop, speedRatio, onAnimationEnd) {
+            var children = target.getDescendants(directDescendantsOnly);
+            var result = [];
+            for (var _i = 0, children_1 = children; _i < children_1.length; _i++) {
+                var child = children_1[_i];
+                result.push(this.beginDirectAnimation(child, animations, from, to, loop, speedRatio, onAnimationEnd));
+            }
+            return result;
+        };
+        /**
+         * Gets the animatable associated with a specific target
+         * @param target defines the target of the animatable
+         * @returns the required animatable if found
+         */
         Scene.prototype.getAnimatableByTarget = function (target) {
             for (var index = 0; index < this._activeAnimatables.length; index++) {
                 if (this._activeAnimatables[index].target === target) {
@@ -1763,7 +2275,24 @@
             }
             return null;
         };
+        /**
+         * Gets all animatables associated with a given target
+         * @param target defines the target to look animatables for
+         * @returns an array of Animatables
+         */
+        Scene.prototype.getAllAnimatablesByTarget = function (target) {
+            var result = [];
+            for (var index = 0; index < this._activeAnimatables.length; index++) {
+                if (this._activeAnimatables[index].target === target) {
+                    result.push(this._activeAnimatables[index]);
+                }
+            }
+            return result;
+        };
         Object.defineProperty(Scene.prototype, "animatables", {
+            /**
+             * Gets all animatable attached to the scene
+             */
             get: function () {
                 return this._activeAnimatables;
             },
@@ -1773,12 +2302,12 @@
         /**
          * Will stop the animation of the given target
          * @param target - the target
-         * @param animationName - the name of the animation to stop (all animations will be stopped is empty)
-         * @see beginAnimation
+         * @param animationName - the name of the animation to stop (all animations will be stopped if empty)
          */
         Scene.prototype.stopAnimation = function (target, animationName) {
-            var animatable = this.getAnimatableByTarget(target);
-            if (animatable) {
+            var animatables = this.getAllAnimatablesByTarget(target);
+            for (var _i = 0, animatables_1 = animatables; _i < animatables_1.length; _i++) {
+                var animatable = animatables_1[_i];
                 animatable.stop(animationName);
             }
         };
@@ -1791,6 +2320,10 @@
                     this._activeAnimatables[i].stop();
                 }
                 this._activeAnimatables = [];
+            }
+            for (var _i = 0, _a = this.animationGroups; _i < _a.length; _i++) {
+                var group = _a[_i];
+                group.stop();
             }
         };
         Scene.prototype._animate = function () {
@@ -1811,20 +2344,210 @@
             for (var index = 0; index < this._activeAnimatables.length; index++) {
                 this._activeAnimatables[index]._animate(this._animationTime);
             }
+            // Late animation bindings
+            this._processLateAnimationBindings();
+        };
+        /** @hidden */
+        Scene.prototype._registerTargetForLateAnimationBinding = function (runtimeAnimation, originalValue) {
+            var target = runtimeAnimation.target;
+            this._registeredForLateAnimationBindings.pushNoDuplicate(target);
+            if (!target._lateAnimationHolders) {
+                target._lateAnimationHolders = {};
+            }
+            if (!target._lateAnimationHolders[runtimeAnimation.targetPath]) {
+                target._lateAnimationHolders[runtimeAnimation.targetPath] = {
+                    totalWeight: 0,
+                    animations: [],
+                    originalValue: originalValue
+                };
+            }
+            target._lateAnimationHolders[runtimeAnimation.targetPath].animations.push(runtimeAnimation);
+            target._lateAnimationHolders[runtimeAnimation.targetPath].totalWeight += runtimeAnimation.weight;
+        };
+        Scene.prototype._processLateAnimationBindingsForMatrices = function (holder) {
+            var normalizer = 1.0;
+            var finalPosition = LIB.Tmp.Vector3[0];
+            var finalScaling = LIB.Tmp.Vector3[1];
+            var finalQuaternion = LIB.Tmp.Quaternion[0];
+            var startIndex = 0;
+            var originalAnimation = holder.animations[0];
+            var originalValue = holder.originalValue;
+            var scale = 1;
+            if (holder.totalWeight < 1.0) {
+                // We need to mix the original value in
+                originalValue.decompose(finalScaling, finalQuaternion, finalPosition);
+                scale = 1.0 - holder.totalWeight;
+            }
+            else {
+                startIndex = 1;
+                // We need to normalize the weights
+                normalizer = holder.totalWeight;
+                originalAnimation.currentValue.decompose(finalScaling, finalQuaternion, finalPosition);
+                scale = originalAnimation.weight / normalizer;
+                if (scale == 1) {
+                    return originalAnimation.currentValue;
+                }
+            }
+            finalScaling.scaleInPlace(scale);
+            finalPosition.scaleInPlace(scale);
+            finalQuaternion.scaleInPlace(scale);
+            for (var animIndex = startIndex; animIndex < holder.animations.length; animIndex++) {
+                var runtimeAnimation = holder.animations[animIndex];
+                var scale = runtimeAnimation.weight / normalizer;
+                var currentPosition = LIB.Tmp.Vector3[2];
+                var currentScaling = LIB.Tmp.Vector3[3];
+                var currentQuaternion = LIB.Tmp.Quaternion[1];
+                runtimeAnimation.currentValue.decompose(currentScaling, currentQuaternion, currentPosition);
+                currentScaling.scaleAndAddToRef(scale, finalScaling);
+                currentQuaternion.scaleAndAddToRef(scale, finalQuaternion);
+                currentPosition.scaleAndAddToRef(scale, finalPosition);
+            }
+            LIB.Matrix.ComposeToRef(finalScaling, finalQuaternion, finalPosition, originalAnimation._workValue);
+            return originalAnimation._workValue;
+        };
+        Scene.prototype._processLateAnimationBindingsForQuaternions = function (holder) {
+            var originalAnimation = holder.animations[0];
+            var originalValue = holder.originalValue;
+            if (holder.animations.length === 1) {
+                return LIB.Quaternion.Slerp(originalValue, originalAnimation.currentValue, Math.min(1.0, holder.totalWeight));
+            }
+            var normalizer = 1.0;
+            var quaternions;
+            var weights;
+            if (holder.totalWeight < 1.0) {
+                var scale = 1.0 - holder.totalWeight;
+                quaternions = [];
+                weights = [];
+                quaternions.push(originalValue);
+                weights.push(scale);
+            }
+            else {
+                if (holder.animations.length === 2) { // Slerp as soon as we can
+                    return LIB.Quaternion.Slerp(holder.animations[0].currentValue, holder.animations[1].currentValue, holder.animations[1].weight / holder.totalWeight);
+                }
+                quaternions = [];
+                weights = [];
+                normalizer = holder.totalWeight;
+            }
+            for (var animIndex = 0; animIndex < holder.animations.length; animIndex++) {
+                var runtimeAnimation = holder.animations[animIndex];
+                quaternions.push(runtimeAnimation.currentValue);
+                weights.push(runtimeAnimation.weight / normalizer);
+            }
+            // https://gamedev.stackexchange.com/questions/62354/method-for-interpolation-between-3-quaternions
+            var cumulativeAmount = 0;
+            var cumulativeQuaternion = null;
+            for (var index = 0; index < quaternions.length;) {
+                if (!cumulativeQuaternion) {
+                    cumulativeQuaternion = LIB.Quaternion.Slerp(quaternions[index], quaternions[index + 1], weights[index + 1] / (weights[index] + weights[index + 1]));
+                    cumulativeAmount = weights[index] + weights[index + 1];
+                    index += 2;
+                    continue;
+                }
+                cumulativeAmount += weights[index];
+                LIB.Quaternion.SlerpToRef(cumulativeQuaternion, quaternions[index], weights[index] / cumulativeAmount, cumulativeQuaternion);
+                index++;
+            }
+            return cumulativeQuaternion;
+        };
+        Scene.prototype._processLateAnimationBindings = function () {
+            if (!this._registeredForLateAnimationBindings.length) {
+                return;
+            }
+            for (var index = 0; index < this._registeredForLateAnimationBindings.length; index++) {
+                var target = this._registeredForLateAnimationBindings.data[index];
+                for (var path in target._lateAnimationHolders) {
+                    var holder = target._lateAnimationHolders[path];
+                    var originalAnimation = holder.animations[0];
+                    var originalValue = holder.originalValue;
+                    var matrixDecomposeMode = LIB.Animation.AllowMatrixDecomposeForInterpolation && originalValue.m; // ie. data is matrix
+                    var finalValue = void 0;
+                    if (matrixDecomposeMode) {
+                        finalValue = this._processLateAnimationBindingsForMatrices(holder);
+                    }
+                    else {
+                        var quaternionMode = originalValue.w !== undefined;
+                        if (quaternionMode) {
+                            finalValue = this._processLateAnimationBindingsForQuaternions(holder);
+                        }
+                        else {
+                            var startIndex = 0;
+                            var normalizer = 1.0;
+                            if (holder.totalWeight < 1.0) {
+                                // We need to mix the original value in
+                                if (originalValue.scale) {
+                                    finalValue = originalValue.scale(1.0 - holder.totalWeight);
+                                }
+                                else {
+                                    finalValue = originalValue * (1.0 - holder.totalWeight);
+                                }
+                            }
+                            else {
+                                // We need to normalize the weights
+                                normalizer = holder.totalWeight;
+                                var scale_1 = originalAnimation.weight / normalizer;
+                                if (scale_1 !== 1) {
+                                    if (originalAnimation.currentValue.scale) {
+                                        finalValue = originalAnimation.currentValue.scale(scale_1);
+                                    }
+                                    else {
+                                        finalValue = originalAnimation.currentValue * scale_1;
+                                    }
+                                }
+                                else {
+                                    finalValue = originalAnimation.currentValue;
+                                }
+                                startIndex = 1;
+                            }
+                            for (var animIndex = startIndex; animIndex < holder.animations.length; animIndex++) {
+                                var runtimeAnimation = holder.animations[animIndex];
+                                var scale = runtimeAnimation.weight / normalizer;
+                                if (runtimeAnimation.currentValue.scaleAndAddToRef) {
+                                    runtimeAnimation.currentValue.scaleAndAddToRef(scale, finalValue);
+                                }
+                                else {
+                                    finalValue += runtimeAnimation.currentValue * scale;
+                                }
+                            }
+                        }
+                    }
+                    target[path] = finalValue;
+                }
+                target._lateAnimationHolders = {};
+            }
+            this._registeredForLateAnimationBindings.reset();
         };
         // Matrix
+        /** @hidden */
         Scene.prototype._switchToAlternateCameraConfiguration = function (active) {
             this._useAlternateCameraConfiguration = active;
         };
+        /**
+         * Gets the current view matrix
+         * @returns a Matrix
+         */
         Scene.prototype.getViewMatrix = function () {
             return this._useAlternateCameraConfiguration ? this._alternateViewMatrix : this._viewMatrix;
         };
+        /**
+         * Gets the current projection matrix
+         * @returns a Matrix
+         */
         Scene.prototype.getProjectionMatrix = function () {
             return this._useAlternateCameraConfiguration ? this._alternateProjectionMatrix : this._projectionMatrix;
         };
+        /**
+         * Gets the current transform matrix
+         * @returns a Matrix made of View * Projection
+         */
         Scene.prototype.getTransformMatrix = function () {
             return this._useAlternateCameraConfiguration ? this._alternateTransformMatrix : this._transformMatrix;
         };
+        /**
+         * Sets the current transform matrix
+         * @param view defines the View matrix to use
+         * @param projection defines the Projection matrix to use
+         */
         Scene.prototype.setTransformMatrix = function (view, projection) {
             if (this._viewUpdateFlag === view.updateFlag && this._projectionUpdateFlag === projection.updateFlag) {
                 return;
@@ -1852,6 +2575,7 @@
                 this._sceneUbo.update();
             }
         };
+        /** @hidden */
         Scene.prototype._setAlternateTransformMatrix = function (view, projection) {
             if (this._alternateViewUpdateFlag === view.updateFlag && this._alternateProjectionUpdateFlag === projection.updateFlag) {
                 return;
@@ -1873,36 +2597,70 @@
                 this._alternateSceneUbo.update();
             }
         };
+        /**
+         * Gets the uniform buffer used to store scene data
+         * @returns a UniformBuffer
+         */
         Scene.prototype.getSceneUniformBuffer = function () {
             return this._useAlternateCameraConfiguration ? this._alternateSceneUbo : this._sceneUbo;
         };
-        // Methods
+        /**
+         * Gets an unique (relatively to the current scene) Id
+         * @returns an unique number for the scene
+         */
         Scene.prototype.getUniqueId = function () {
             var result = Scene._uniqueIdCounter;
             Scene._uniqueIdCounter++;
             return result;
         };
+        /**
+         * Add a mesh to the list of scene's meshes
+         * @param newMesh defines the mesh to add
+         */
         Scene.prototype.addMesh = function (newMesh) {
             this.meshes.push(newMesh);
             //notify the collision coordinator
             if (this.collisionCoordinator) {
                 this.collisionCoordinator.onMeshAdded(newMesh);
             }
+            newMesh._resyncLightSources();
             this.onNewMeshAddedObservable.notifyObservers(newMesh);
         };
-        Scene.prototype.removeMesh = function (toRemove) {
+        /**
+           * Remove a mesh for the list of scene's meshes
+           * @param toRemove defines the mesh to remove
+           * @param recursive if all child meshes should also be removed from the scene
+           * @returns the index where the mesh was in the mesh list
+           */
+        Scene.prototype.removeMesh = function (toRemove, recursive) {
+            var _this = this;
+            if (recursive === void 0) { recursive = false; }
             var index = this.meshes.indexOf(toRemove);
             if (index !== -1) {
                 // Remove from the scene if mesh found
                 this.meshes.splice(index, 1);
             }
             this.onMeshRemovedObservable.notifyObservers(toRemove);
+            if (recursive) {
+                toRemove.getChildMeshes().forEach(function (m) {
+                    _this.removeMesh(m);
+                });
+            }
             return index;
         };
+        /**
+         * Add a transform node to the list of scene's transform nodes
+         * @param newTransformNode defines the transform node to add
+         */
         Scene.prototype.addTransformNode = function (newTransformNode) {
             this.transformNodes.push(newTransformNode);
             this.onNewTransformNodeAddedObservable.notifyObservers(newTransformNode);
         };
+        /**
+         * Remove a transform node for the list of scene's transform nodes
+         * @param toRemove defines the transform node to remove
+         * @returns the index where the transform node was in the transform node list
+         */
         Scene.prototype.removeTransformNode = function (toRemove) {
             var index = this.transformNodes.indexOf(toRemove);
             if (index !== -1) {
@@ -1912,6 +2670,11 @@
             this.onTransformNodeRemovedObservable.notifyObservers(toRemove);
             return index;
         };
+        /**
+         * Remove a skeleton for the list of scene's skeletons
+         * @param toRemove defines the skeleton to remove
+         * @returns the index where the skeleton was in the skeleton list
+         */
         Scene.prototype.removeSkeleton = function (toRemove) {
             var index = this.skeletons.indexOf(toRemove);
             if (index !== -1) {
@@ -1920,6 +2683,11 @@
             }
             return index;
         };
+        /**
+         * Remove a morph target for the list of scene's morph targets
+         * @param toRemove defines the morph target to remove
+         * @returns the index where the morph target was in the morph target list
+         */
         Scene.prototype.removeMorphTargetManager = function (toRemove) {
             var index = this.morphTargetManagers.indexOf(toRemove);
             if (index !== -1) {
@@ -1928,9 +2696,19 @@
             }
             return index;
         };
+        /**
+         * Remove a light for the list of scene's lights
+         * @param toRemove defines the light to remove
+         * @returns the index where the light was in the light list
+         */
         Scene.prototype.removeLight = function (toRemove) {
             var index = this.lights.indexOf(toRemove);
             if (index !== -1) {
+                // Remove from meshes
+                for (var _i = 0, _a = this.meshes; _i < _a.length; _i++) {
+                    var mesh = _a[_i];
+                    mesh._removeLightSource(toRemove);
+                }
                 // Remove from the scene if mesh found
                 this.lights.splice(index, 1);
                 this.sortLightsByPriority();
@@ -1938,6 +2716,11 @@
             this.onLightRemovedObservable.notifyObservers(toRemove);
             return index;
         };
+        /**
+         * Remove a camera for the list of scene's cameras
+         * @param toRemove defines the camera to remove
+         * @returns the index where the camera was in the camera list
+         */
         Scene.prototype.removeCamera = function (toRemove) {
             var index = this.cameras.indexOf(toRemove);
             if (index !== -1) {
@@ -1962,24 +2745,235 @@
             this.onCameraRemovedObservable.notifyObservers(toRemove);
             return index;
         };
+        /**
+         * Remove a particle system for the list of scene's particle systems
+         * @param toRemove defines the particle system to remove
+         * @returns the index where the particle system was in the particle system list
+         */
+        Scene.prototype.removeParticleSystem = function (toRemove) {
+            var index = this.particleSystems.indexOf(toRemove);
+            if (index !== -1) {
+                this.particleSystems.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Remove a animation for the list of scene's animations
+         * @param toRemove defines the animation to remove
+         * @returns the index where the animation was in the animation list
+         */
+        Scene.prototype.removeAnimation = function (toRemove) {
+            var index = this.animations.indexOf(toRemove);
+            if (index !== -1) {
+                this.animations.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given animation group from this scene.
+         * @param toRemove The animation group to remove
+         * @returns The index of the removed animation group
+         */
+        Scene.prototype.removeAnimationGroup = function (toRemove) {
+            var index = this.animationGroups.indexOf(toRemove);
+            if (index !== -1) {
+                this.animationGroups.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given multi-material from this scene.
+         * @param toRemove The multi-material to remove
+         * @returns The index of the removed multi-material
+         */
+        Scene.prototype.removeMultiMaterial = function (toRemove) {
+            var index = this.multiMaterials.indexOf(toRemove);
+            if (index !== -1) {
+                this.multiMaterials.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given material from this scene.
+         * @param toRemove The material to remove
+         * @returns The index of the removed material
+         */
+        Scene.prototype.removeMaterial = function (toRemove) {
+            var index = this.materials.indexOf(toRemove);
+            if (index !== -1) {
+                this.materials.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given lens flare system from this scene.
+         * @param toRemove The lens flare system to remove
+         * @returns The index of the removed lens flare system
+         */
+        Scene.prototype.removeLensFlareSystem = function (toRemove) {
+            var index = this.lensFlareSystems.indexOf(toRemove);
+            if (index !== -1) {
+                this.lensFlareSystems.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given action manager from this scene.
+         * @param toRemove The action manager to remove
+         * @returns The index of the removed action manager
+         */
+        Scene.prototype.removeActionManager = function (toRemove) {
+            var index = this._actionManagers.indexOf(toRemove);
+            if (index !== -1) {
+                this._actionManagers.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given effect layer from this scene.
+         * @param toRemove defines the effect layer to remove
+         * @returns the index of the removed effect layer
+         */
+        Scene.prototype.removeEffectLayer = function (toRemove) {
+            var index = this.effectLayers.indexOf(toRemove);
+            if (index !== -1) {
+                this.effectLayers.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Removes the given texture from this scene.
+         * @param toRemove The texture to remove
+         * @returns The index of the removed texture
+         */
+        Scene.prototype.removeTexture = function (toRemove) {
+            var index = this.textures.indexOf(toRemove);
+            if (index !== -1) {
+                this.textures.splice(index, 1);
+            }
+            return index;
+        };
+        /**
+         * Adds the given light to this scene
+         * @param newLight The light to add
+         */
         Scene.prototype.addLight = function (newLight) {
             this.lights.push(newLight);
             this.sortLightsByPriority();
+            // Add light to all meshes (To support if the light is removed and then readded)
+            for (var _i = 0, _a = this.meshes; _i < _a.length; _i++) {
+                var mesh = _a[_i];
+                if (mesh._lightSources.indexOf(newLight) === -1) {
+                    mesh._lightSources.push(newLight);
+                    mesh._resyncLightSources();
+                }
+            }
             this.onNewLightAddedObservable.notifyObservers(newLight);
         };
+        /**
+         * Sorts the list list based on light priorities
+         */
         Scene.prototype.sortLightsByPriority = function () {
             if (this.requireLightSorting) {
-                this.lights.sort(LIB.Light.compareLightsPriority);
+                this.lights.sort(LIB.Light.CompareLightsPriority);
             }
         };
+        /**
+         * Adds the given camera to this scene
+         * @param newCamera The camera to add
+         */
         Scene.prototype.addCamera = function (newCamera) {
             this.cameras.push(newCamera);
             this.onNewCameraAddedObservable.notifyObservers(newCamera);
         };
         /**
+         * Adds the given skeleton to this scene
+         * @param newSkeleton The skeleton to add
+         */
+        Scene.prototype.addSkeleton = function (newSkeleton) {
+            this.skeletons.push(newSkeleton);
+        };
+        /**
+         * Adds the given particle system to this scene
+         * @param newParticleSystem The particle system to add
+         */
+        Scene.prototype.addParticleSystem = function (newParticleSystem) {
+            this.particleSystems.push(newParticleSystem);
+        };
+        /**
+         * Adds the given animation to this scene
+         * @param newAnimation The animation to add
+         */
+        Scene.prototype.addAnimation = function (newAnimation) {
+            this.animations.push(newAnimation);
+        };
+        /**
+         * Adds the given animation group to this scene.
+         * @param newAnimationGroup The animation group to add
+         */
+        Scene.prototype.addAnimationGroup = function (newAnimationGroup) {
+            this.animationGroups.push(newAnimationGroup);
+        };
+        /**
+         * Adds the given multi-material to this scene
+         * @param newMultiMaterial The multi-material to add
+         */
+        Scene.prototype.addMultiMaterial = function (newMultiMaterial) {
+            this.multiMaterials.push(newMultiMaterial);
+        };
+        /**
+         * Adds the given material to this scene
+         * @param newMaterial The material to add
+         */
+        Scene.prototype.addMaterial = function (newMaterial) {
+            this.materials.push(newMaterial);
+        };
+        /**
+         * Adds the given morph target to this scene
+         * @param newMorphTargetManager The morph target to add
+         */
+        Scene.prototype.addMorphTargetManager = function (newMorphTargetManager) {
+            this.morphTargetManagers.push(newMorphTargetManager);
+        };
+        /**
+         * Adds the given geometry to this scene
+         * @param newGeometry The geometry to add
+         */
+        Scene.prototype.addGeometry = function (newGeometry) {
+            this._geometries.push(newGeometry);
+        };
+        /**
+         * Adds the given lens flare system to this scene
+         * @param newLensFlareSystem The lens flare system to add
+         */
+        Scene.prototype.addLensFlareSystem = function (newLensFlareSystem) {
+            this.lensFlareSystems.push(newLensFlareSystem);
+        };
+        /**
+         * Adds the given effect layer to this scene
+         * @param newEffectLayer defines the effect layer to add
+         */
+        Scene.prototype.addEffectLayer = function (newEffectLayer) {
+            this.effectLayers.push(newEffectLayer);
+        };
+        /**
+         * Adds the given action manager to this scene
+         * @param newActionManager The action manager to add
+         */
+        Scene.prototype.addActionManager = function (newActionManager) {
+            this._actionManagers.push(newActionManager);
+        };
+        /**
+         * Adds the given texture to this scene.
+         * @param newTexture The texture to add
+         */
+        Scene.prototype.addTexture = function (newTexture) {
+            this.textures.push(newTexture);
+        };
+        /**
          * Switch active camera
-         * @param {Camera} newCamera - new active camera
-         * @param {boolean} attachControl - call attachControl for the new active camera (default: true)
+         * @param newCamera defines the new active camera
+         * @param attachControl defines if attachControl must be called for the new active camera (default: true)
          */
         Scene.prototype.switchActiveCamera = function (newCamera, attachControl) {
             if (attachControl === void 0) { attachControl = true; }
@@ -1997,9 +2991,8 @@
         };
         /**
          * sets the active camera of the scene using its ID
-         * @param {string} id - the camera's ID
-         * @return {LIB.Camera|null} the new active camera or null if none found.
-         * @see activeCamera
+         * @param id defines the camera's ID
+         * @return the new active camera or null if none found.
          */
         Scene.prototype.setActiveCameraByID = function (id) {
             var camera = this.getCameraByID(id);
@@ -2011,9 +3004,8 @@
         };
         /**
          * sets the active camera of the scene using its name
-         * @param {string} name - the camera's name
-         * @return {LIB.Camera|null} the new active camera or null if none found.
-         * @see activeCamera
+         * @param name defines the camera's name
+         * @returns the new active camera or null if none found.
          */
         Scene.prototype.setActiveCameraByName = function (name) {
             var camera = this.getCameraByName(name);
@@ -2025,8 +3017,8 @@
         };
         /**
          * get an animation group using its name
-         * @param {string} the material's name
-         * @return {LIB.AnimationGroup|null} the animation group or null if none found.
+         * @param name defines the material's name
+         * @return the animation group or null if none found.
          */
         Scene.prototype.getAnimationGroupByName = function (name) {
             for (var index = 0; index < this.animationGroups.length; index++) {
@@ -2038,8 +3030,8 @@
         };
         /**
          * get a material using its id
-         * @param {string} the material's ID
-         * @return {LIB.Material|null} the material or null if none found.
+         * @param id defines the material's ID
+         * @return the material or null if none found.
          */
         Scene.prototype.getMaterialByID = function (id) {
             for (var index = 0; index < this.materials.length; index++) {
@@ -2050,9 +3042,9 @@
             return null;
         };
         /**
-         * get a material using its name
-         * @param {string} the material's name
-         * @return {LIB.Material|null} the material or null if none found.
+         * Gets a material using its name
+         * @param name defines the material's name
+         * @return the material or null if none found.
          */
         Scene.prototype.getMaterialByName = function (name) {
             for (var index = 0; index < this.materials.length; index++) {
@@ -2062,6 +3054,11 @@
             }
             return null;
         };
+        /**
+         * Gets a lens flare system using its name
+         * @param name defines the name to look for
+         * @returns the lens flare system or null if not found
+         */
         Scene.prototype.getLensFlareSystemByName = function (name) {
             for (var index = 0; index < this.lensFlareSystems.length; index++) {
                 if (this.lensFlareSystems[index].name === name) {
@@ -2070,6 +3067,11 @@
             }
             return null;
         };
+        /**
+         * Gets a lens flare system using its id
+         * @param id defines the id to look for
+         * @returns the lens flare system or null if not found
+         */
         Scene.prototype.getLensFlareSystemByID = function (id) {
             for (var index = 0; index < this.lensFlareSystems.length; index++) {
                 if (this.lensFlareSystems[index].id === id) {
@@ -2078,6 +3080,11 @@
             }
             return null;
         };
+        /**
+         * Gets a camera using its id
+         * @param id defines the id to look for
+         * @returns the camera or null if not found
+         */
         Scene.prototype.getCameraByID = function (id) {
             for (var index = 0; index < this.cameras.length; index++) {
                 if (this.cameras[index].id === id) {
@@ -2086,6 +3093,11 @@
             }
             return null;
         };
+        /**
+         * Gets a camera using its unique id
+         * @param uniqueId defines the unique id to look for
+         * @returns the camera or null if not found
+         */
         Scene.prototype.getCameraByUniqueID = function (uniqueId) {
             for (var index = 0; index < this.cameras.length; index++) {
                 if (this.cameras[index].uniqueId === uniqueId) {
@@ -2095,9 +3107,9 @@
             return null;
         };
         /**
-         * get a camera using its name
-         * @param {string} the camera's name
-         * @return {LIB.Camera|null} the camera or null if none found.
+         * Gets a camera using its name
+         * @param name defines the camera's name
+         * @return the camera or null if none found.
          */
         Scene.prototype.getCameraByName = function (name) {
             for (var index = 0; index < this.cameras.length; index++) {
@@ -2108,9 +3120,9 @@
             return null;
         };
         /**
-         * get a bone using its id
-         * @param {string} the bone's id
-         * @return {LIB.Bone|null} the bone or null if not found
+         * Gets a bone using its id
+         * @param id defines the bone's id
+         * @return the bone or null if not found
          */
         Scene.prototype.getBoneByID = function (id) {
             for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
@@ -2124,9 +3136,9 @@
             return null;
         };
         /**
-        * get a bone using its id
-        * @param {string} the bone's name
-        * @return {LIB.Bone|null} the bone or null if not found
+        * Gets a bone using its id
+        * @param name defines the bone's name
+        * @return the bone or null if not found
         */
         Scene.prototype.getBoneByName = function (name) {
             for (var skeletonIndex = 0; skeletonIndex < this.skeletons.length; skeletonIndex++) {
@@ -2140,9 +3152,9 @@
             return null;
         };
         /**
-         * get a light node using its name
-         * @param {string} the light's name
-         * @return {LIB.Light|null} the light or null if none found.
+         * Gets a light node using its name
+         * @param name defines the the light's name
+         * @return the light or null if none found.
          */
         Scene.prototype.getLightByName = function (name) {
             for (var index = 0; index < this.lights.length; index++) {
@@ -2153,9 +3165,9 @@
             return null;
         };
         /**
-         * get a light node using its ID
-         * @param {string} the light's id
-         * @return {LIB.Light|null} the light or null if none found.
+         * Gets a light node using its id
+         * @param id defines the light's id
+         * @return the light or null if none found.
          */
         Scene.prototype.getLightByID = function (id) {
             for (var index = 0; index < this.lights.length; index++) {
@@ -2166,9 +3178,9 @@
             return null;
         };
         /**
-         * get a light node using its scene-generated unique ID
-         * @param {number} the light's unique id
-         * @return {LIB.Light|null} the light or null if none found.
+         * Gets a light node using its scene-generated unique ID
+         * @param uniqueId defines the light's unique id
+         * @return the light or null if none found.
          */
         Scene.prototype.getLightByUniqueID = function (uniqueId) {
             for (var index = 0; index < this.lights.length; index++) {
@@ -2179,9 +3191,9 @@
             return null;
         };
         /**
-         * get a particle system by id
-         * @param id {number} the particle system id
-         * @return {LIB.IParticleSystem|null} the corresponding system or null if none found.
+         * Gets a particle system by id
+         * @param id defines the particle system id
+         * @return the corresponding system or null if none found
          */
         Scene.prototype.getParticleSystemByID = function (id) {
             for (var index = 0; index < this.particleSystems.length; index++) {
@@ -2192,9 +3204,9 @@
             return null;
         };
         /**
-         * get a geometry using its ID
-         * @param {string} the geometry's id
-         * @return {LIB.Geometry|null} the geometry or null if none found.
+         * Gets a geometry using its ID
+         * @param id defines the geometry's id
+         * @return the geometry or null if none found.
          */
         Scene.prototype.getGeometryByID = function (id) {
             for (var index = 0; index < this._geometries.length; index++) {
@@ -2205,10 +3217,10 @@
             return null;
         };
         /**
-         * add a new geometry to this scene.
-         * @param {LIB.Geometry} geometry - the geometry to be added to the scene.
-         * @param {boolean} [force] - force addition, even if a geometry with this ID already exists
-         * @return {boolean} was the geometry added or not
+         * Add a new geometry to this scene
+         * @param geometry defines the geometry to be added to the scene.
+         * @param force defines if the geometry must be pushed even if a geometry with this id already exists
+         * @return a boolean defining if the geometry was added or not
          */
         Scene.prototype.pushGeometry = function (geometry, force) {
             if (!force && this.getGeometryByID(geometry.id)) {
@@ -2224,8 +3236,8 @@
         };
         /**
          * Removes an existing geometry
-         * @param {LIB.Geometry} geometry - the geometry to be removed from the scene.
-         * @return {boolean} was the geometry removed or not
+         * @param geometry defines the geometry to be removed from the scene
+         * @return a boolean defining if the geometry was removed or not
          */
         Scene.prototype.removeGeometry = function (geometry) {
             var index = this._geometries.indexOf(geometry);
@@ -2240,13 +3252,17 @@
             }
             return false;
         };
+        /**
+         * Gets the list of geometries attached to the scene
+         * @returns an array of Geometry
+         */
         Scene.prototype.getGeometries = function () {
             return this._geometries;
         };
         /**
-         * Get the first added mesh found of a given ID
-         * @param {string} id - the id to search for
-         * @return {LIB.AbstractMesh|null} the mesh found or null if not found at all.
+         * Gets the first added mesh found of a given ID
+         * @param id defines the id to search for
+         * @return the mesh found or null if not found at all
          */
         Scene.prototype.getMeshByID = function (id) {
             for (var index = 0; index < this.meshes.length; index++) {
@@ -2256,15 +3272,20 @@
             }
             return null;
         };
+        /**
+         * Gets a list of meshes using their id
+         * @param id defines the id to search for
+         * @returns a list of meshes
+         */
         Scene.prototype.getMeshesByID = function (id) {
             return this.meshes.filter(function (m) {
                 return m.id === id;
             });
         };
         /**
-         * Get the first added transform node found of a given ID
-         * @param {string} id - the id to search for
-         * @return {LIB.TransformNode|null} the transform node found or null if not found at all.
+         * Gets the first added transform node found of a given ID
+         * @param id defines the id to search for
+         * @return the found transform node or null if not found at all.
          */
         Scene.prototype.getTransformNodeByID = function (id) {
             for (var index = 0; index < this.transformNodes.length; index++) {
@@ -2274,15 +3295,20 @@
             }
             return null;
         };
+        /**
+         * Gets a list of transform nodes using their id
+         * @param id defines the id to search for
+         * @returns a list of transform nodes
+         */
         Scene.prototype.getTransformNodesByID = function (id) {
             return this.transformNodes.filter(function (m) {
                 return m.id === id;
             });
         };
         /**
-         * Get a mesh with its auto-generated unique id
-         * @param {number} uniqueId - the unique id to search for
-         * @return {LIB.AbstractMesh|null} the mesh found or null if not found at all.
+         * Gets a mesh with its auto-generated unique id
+         * @param uniqueId defines the unique id to search for
+         * @return the found mesh or null if not found at all.
          */
         Scene.prototype.getMeshByUniqueID = function (uniqueId) {
             for (var index = 0; index < this.meshes.length; index++) {
@@ -2293,9 +3319,9 @@
             return null;
         };
         /**
-         * Get a the last added mesh found of a given ID
-         * @param {string} id - the id to search for
-         * @return {LIB.AbstractMesh|null} the mesh found or null if not found at all.
+         * Gets a the last added mesh using a given id
+         * @param id defines the id to search for
+         * @return the found mesh or null if not found at all.
          */
         Scene.prototype.getLastMeshByID = function (id) {
             for (var index = this.meshes.length - 1; index >= 0; index--) {
@@ -2306,9 +3332,9 @@
             return null;
         };
         /**
-         * Get a the last added node (Mesh, Camera, Light) found of a given ID
-         * @param {string} id - the id to search for
-         * @return {LIB.Node|null} the node found or null if not found at all.
+         * Gets a the last added node (Mesh, Camera, Light) using a given id
+         * @param id defines the id to search for
+         * @return the found node or null if not found at all
          */
         Scene.prototype.getLastEntryByID = function (id) {
             var index;
@@ -2334,6 +3360,11 @@
             }
             return null;
         };
+        /**
+         * Gets a node (Mesh, Camera, Light) using a given id
+         * @param id defines the id to search for
+         * @return the found node or null if not found at all
+         */
         Scene.prototype.getNodeByID = function (id) {
             var mesh = this.getMeshByID(id);
             if (mesh) {
@@ -2350,6 +3381,11 @@
             var bone = this.getBoneByID(id);
             return bone;
         };
+        /**
+         * Gets a node (Mesh, Camera, Light) using a given name
+         * @param name defines the name to search for
+         * @return the found node or null if not found at all.
+         */
         Scene.prototype.getNodeByName = function (name) {
             var mesh = this.getMeshByName(name);
             if (mesh) {
@@ -2366,6 +3402,11 @@
             var bone = this.getBoneByName(name);
             return bone;
         };
+        /**
+         * Gets a mesh using a given name
+         * @param name defines the name to search for
+         * @return the found mesh or null if not found at all.
+         */
         Scene.prototype.getMeshByName = function (name) {
             for (var index = 0; index < this.meshes.length; index++) {
                 if (this.meshes[index].name === name) {
@@ -2374,6 +3415,11 @@
             }
             return null;
         };
+        /**
+         * Gets a transform node using a given name
+         * @param name defines the name to search for
+         * @return the found transform node or null if not found at all.
+         */
         Scene.prototype.getTransformNodeByName = function (name) {
             for (var index = 0; index < this.transformNodes.length; index++) {
                 if (this.transformNodes[index].name === name) {
@@ -2382,6 +3428,11 @@
             }
             return null;
         };
+        /**
+         * Gets a sound using a given name
+         * @param name defines the name to search for
+         * @return the found sound or null if not found at all.
+         */
         Scene.prototype.getSoundByName = function (name) {
             var index;
             if (LIB.AudioEngine) {
@@ -2400,6 +3451,11 @@
             }
             return null;
         };
+        /**
+         * Gets a skeleton using a given id (if many are found, this function will pick the last one)
+         * @param id defines the id to search for
+         * @return the found skeleton or null if not found at all.
+         */
         Scene.prototype.getLastSkeletonByID = function (id) {
             for (var index = this.skeletons.length - 1; index >= 0; index--) {
                 if (this.skeletons[index].id === id) {
@@ -2408,6 +3464,11 @@
             }
             return null;
         };
+        /**
+         * Gets a skeleton using a given id (if many are found, this function will pick the first one)
+         * @param id defines the id to search for
+         * @return the found skeleton or null if not found at all.
+         */
         Scene.prototype.getSkeletonById = function (id) {
             for (var index = 0; index < this.skeletons.length; index++) {
                 if (this.skeletons[index].id === id) {
@@ -2416,6 +3477,11 @@
             }
             return null;
         };
+        /**
+         * Gets a skeleton using a given name
+         * @param name defines the name to search for
+         * @return the found skeleton or null if not found at all.
+         */
         Scene.prototype.getSkeletonByName = function (name) {
             for (var index = 0; index < this.skeletons.length; index++) {
                 if (this.skeletons[index].name === name) {
@@ -2424,6 +3490,11 @@
             }
             return null;
         };
+        /**
+         * Gets a morph target manager  using a given id (if many are found, this function will pick the last one)
+         * @param id defines the id to search for
+         * @return the found morph target manager or null if not found at all.
+         */
         Scene.prototype.getMorphTargetManagerById = function (id) {
             for (var index = 0; index < this.morphTargetManagers.length; index++) {
                 if (this.morphTargetManagers[index].uniqueId === id) {
@@ -2432,6 +3503,11 @@
             }
             return null;
         };
+        /**
+         * Gets a boolean indicating if the given mesh is active
+         * @param mesh defines the mesh to look for
+         * @returns true if the mesh is in the active list
+         */
         Scene.prototype.isActiveMesh = function (mesh) {
             return (this._activeMeshes.indexOf(mesh) !== -1);
         };
@@ -2441,9 +3517,22 @@
          * @return The highlight layer if found otherwise null.
          */
         Scene.prototype.getHighlightLayerByName = function (name) {
-            for (var index = 0; index < this.highlightLayers.length; index++) {
-                if (this.highlightLayers[index].name === name) {
-                    return this.highlightLayers[index];
+            for (var index = 0; index < this.effectLayers.length; index++) {
+                if (this.effectLayers[index].name === name && this.effectLayers[index].getEffectName() === LIB.HighlightLayer.EffectName) {
+                    return this.effectLayers[index];
+                }
+            }
+            return null;
+        };
+        /**
+         * Return a the first highlight layer of the scene with a given name.
+         * @param name The name of the highlight layer to look for.
+         * @return The highlight layer if found otherwise null.
+         */
+        Scene.prototype.getGlowLayerByName = function (name) {
+            for (var index = 0; index < this.effectLayers.length; index++) {
+                if (this.effectLayers[index].name === name && this.effectLayers[index].getEffectName() === LIB.GlowLayer.EffectName) {
+                    return this.effectLayers[index];
                 }
             }
             return null;
@@ -2507,15 +3596,17 @@
             return this._externalData.remove(key);
         };
         Scene.prototype._evaluateSubMesh = function (subMesh, mesh) {
-            if (mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this._frustumPlanes)) {
-                var material = subMesh.getMaterial();
+            if (this.dispatchAllSubMeshesOfActiveMeshes || mesh.alwaysSelectAsActiveMesh || mesh.subMeshes.length === 1 || subMesh.isInFrustum(this._frustumPlanes)) {
                 if (mesh.showSubMeshesBoundingBox) {
                     var boundingInfo = subMesh.getBoundingInfo();
-                    this.getBoundingBoxRenderer().renderList.push(boundingInfo.boundingBox);
+                    if (boundingInfo !== null && boundingInfo !== undefined) {
+                        this.getBoundingBoxRenderer().renderList.push(boundingInfo.boundingBox);
+                    }
                 }
-                if (material) {
+                var material = subMesh.getMaterial();
+                if (material !== null && material !== undefined) {
                     // Render targets
-                    if (material.getRenderTargetTextures) {
+                    if (material.getRenderTargetTextures !== undefined) {
                         if (this._processedMaterials.indexOf(material) === -1) {
                             this._processedMaterials.push(material);
                             this._renderTargets.concatWithNoDuplicate(material.getRenderTargetTextures());
@@ -2523,23 +3614,85 @@
                     }
                     // Dispatch
                     this._activeIndices.addCount(subMesh.indexCount, false);
-                    this._renderingManager.dispatch(subMesh);
+                    this._renderingManager.dispatch(subMesh, mesh, material);
                 }
             }
         };
+        /**
+         * Clear the processed materials smart array preventing retention point in material dispose.
+         */
+        Scene.prototype.freeProcessedMaterials = function () {
+            this._processedMaterials.dispose();
+        };
+        /**
+         * Clear the active meshes smart array preventing retention point in mesh dispose.
+         */
+        Scene.prototype.freeActiveMeshes = function () {
+            this._activeMeshes.dispose();
+            if (this.activeCamera && this.activeCamera._activeMeshes) {
+                this.activeCamera._activeMeshes.dispose();
+            }
+            if (this.activeCameras) {
+                for (var i = 0; i < this.activeCameras.length; i++) {
+                    var activeCamera = this.activeCameras[i];
+                    if (activeCamera && activeCamera._activeMeshes) {
+                        activeCamera._activeMeshes.dispose();
+                    }
+                }
+            }
+        };
+        /**
+         * Clear the info related to rendering groups preventing retention points during dispose.
+         */
+        Scene.prototype.freeRenderingGroups = function () {
+            if (this._renderingManager) {
+                this._renderingManager.freeRenderingGroups();
+            }
+            if (this.textures) {
+                for (var i = 0; i < this.textures.length; i++) {
+                    var texture = this.textures[i];
+                    if (texture && texture.renderList) {
+                        texture.freeRenderingGroups();
+                    }
+                }
+            }
+        };
+        /** @hidden */
         Scene.prototype._isInIntermediateRendering = function () {
             return this._intermediateRendering;
         };
         /**
+         * Defines the current active mesh candidate provider
+         * @param provider defines the provider to use
+         */
+        Scene.prototype.setActiveMeshCandidateProvider = function (provider) {
+            this._activeMeshCandidateProvider = provider;
+        };
+        /**
+         * Gets the current active mesh candidate provider
+         * @returns the current active mesh candidate provider
+         */
+        Scene.prototype.getActiveMeshCandidateProvider = function () {
+            return this._activeMeshCandidateProvider;
+        };
+        /**
          * Use this function to stop evaluating active meshes. The current list will be keep alive between frames
+         * @returns the current scene
          */
         Scene.prototype.freezeActiveMeshes = function () {
+            if (!this.activeCamera) {
+                return this;
+            }
+            if (!this._frustumPlanes) {
+                this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
+            }
             this._evaluateActiveMeshes();
             this._activeMeshesFrozen = true;
             return this;
         };
         /**
          * Use this function to restart evaluating active meshes on every frame
+         * @returns the current scene
          */
         Scene.prototype.unfreezeActiveMeshes = function () {
             this._activeMeshesFrozen = false;
@@ -2566,22 +3719,38 @@
             // Meshes
             var meshes;
             var len;
-            if (this._selectionOctree) {
+            var checkIsEnabled = true;
+            // Determine mesh candidates
+            if (this._activeMeshCandidateProvider !== undefined) {
+                // Use _activeMeshCandidateProvider
+                meshes = this._activeMeshCandidateProvider.getMeshes(this);
+                checkIsEnabled = this._activeMeshCandidateProvider.checksIsEnabled === false;
+                if (meshes !== undefined) {
+                    len = meshes.length;
+                }
+                else {
+                    len = 0;
+                }
+            }
+            else if (this._selectionOctree !== undefined) {
+                // Octree
                 var selection = this._selectionOctree.select(this._frustumPlanes);
                 meshes = selection.data;
                 len = selection.length;
             }
             else {
+                // Full scene traversal
                 len = this.meshes.length;
                 meshes = this.meshes;
             }
-            for (var meshIndex = 0; meshIndex < len; meshIndex++) {
-                var mesh = meshes[meshIndex];
+            // Check each mesh
+            for (var meshIndex = 0, mesh, meshLOD; meshIndex < len; meshIndex++) {
+                mesh = meshes[meshIndex];
                 if (mesh.isBlocked) {
                     continue;
                 }
                 this._totalVertices.addCount(mesh.getTotalVertices(), false);
-                if (!mesh.isReady() || !mesh.isEnabled()) {
+                if (!mesh.isReady() || (checkIsEnabled && !mesh.isEnabled())) {
                     continue;
                 }
                 mesh.computeWorldMatrix();
@@ -2590,8 +3759,8 @@
                     this._meshesForIntersections.pushNoDuplicate(mesh);
                 }
                 // Switch to current LOD
-                var meshLOD = mesh.getLOD(this.activeCamera);
-                if (!meshLOD) {
+                meshLOD = mesh.getLOD(this.activeCamera);
+                if (meshLOD === undefined || meshLOD === null) {
                     continue;
                 }
                 mesh._preActivate();
@@ -2625,7 +3794,7 @@
             }
         };
         Scene.prototype._activeMesh = function (sourceMesh, mesh) {
-            if (mesh.skeleton && this.skeletonsEnabled) {
+            if (this.skeletonsEnabled && mesh.skeleton !== null && mesh.skeleton !== undefined) {
                 if (this._activeSkeletons.pushNoDuplicate(mesh.skeleton)) {
                     mesh.skeleton.prepare();
                 }
@@ -2637,11 +3806,12 @@
                 var boundingInfo = sourceMesh.getBoundingInfo();
                 this.getBoundingBoxRenderer().renderList.push(boundingInfo.boundingBox);
             }
-            if (mesh && mesh.subMeshes) {
+            if (mesh !== undefined && mesh !== null
+                && mesh.subMeshes !== undefined && mesh.subMeshes !== null && mesh.subMeshes.length > 0) {
                 // Submeshes Octrees
                 var len;
                 var subMeshes;
-                if (mesh._submeshesOctree && mesh.useOctreeForRenderingSelection) {
+                if (mesh.useOctreeForRenderingSelection && mesh._submeshesOctree !== undefined && mesh._submeshesOctree !== null) {
                     var intersections = mesh._submeshesOctree.select(this._frustumPlanes);
                     len = intersections.length;
                     subMeshes = intersections.data;
@@ -2650,22 +3820,30 @@
                     subMeshes = mesh.subMeshes;
                     len = subMeshes.length;
                 }
-                for (var subIndex = 0; subIndex < len; subIndex++) {
-                    var subMesh = subMeshes[subIndex];
+                for (var subIndex = 0, subMesh; subIndex < len; subIndex++) {
+                    subMesh = subMeshes[subIndex];
                     this._evaluateSubMesh(subMesh, mesh);
                 }
             }
         };
+        /**
+         * Update the transform matrix to update from the current active camera
+         * @param force defines a boolean used to force the update even if cache is up to date
+         */
         Scene.prototype.updateTransformMatrix = function (force) {
             if (!this.activeCamera) {
                 return;
             }
             this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
         };
+        /**
+         * Defines an alternate camera (used mostly in VR-like scenario where two cameras can render the same scene from a slightly different point of view)
+         * @param alternateCamera defines the camera to use
+         */
         Scene.prototype.updateAlternateTransformMatrix = function (alternateCamera) {
             this._setAlternateTransformMatrix(alternateCamera.getViewMatrix(), alternateCamera.getProjectionMatrix());
         };
-        Scene.prototype._renderForCamera = function (camera) {
+        Scene.prototype._renderForCamera = function (camera, rigParent) {
             if (camera && camera._skipRendering) {
                 return;
             }
@@ -2679,7 +3857,6 @@
             // Camera
             this.resetCachedMaterial();
             this._renderId++;
-            this.activeCamera.update();
             this.updateTransformMatrix();
             if (camera._alternateCamera) {
                 this.updateAlternateTransformMatrix(camera._alternateCamera);
@@ -2694,10 +3871,13 @@
                 mesh.applySkeleton(mesh.skeleton);
             }
             // Render targets
-            this.OnBeforeRenderTargetsRenderObservable.notifyObservers(this);
+            this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
             var needsRestoreFrameBuffer = false;
             if (camera.customRenderTargets && camera.customRenderTargets.length > 0) {
                 this._renderTargets.concatWithNoDuplicate(camera.customRenderTargets);
+            }
+            if (rigParent && rigParent.customRenderTargets && rigParent.customRenderTargets.length > 0) {
+                this._renderTargets.concatWithNoDuplicate(rigParent.customRenderTargets);
             }
             if (this.renderTargetsEnabled && this._renderTargets.length > 0) {
                 this._intermediateRendering = true;
@@ -2715,19 +3895,21 @@
                 this._renderId++;
                 needsRestoreFrameBuffer = true; // Restore back buffer
             }
-            // Render HighlightLayer Texture
+            // Render EffecttLayer Texture
             var stencilState = this._engine.getStencilBuffer();
-            var renderhighlights = false;
-            if (this.renderTargetsEnabled && this.highlightLayers && this.highlightLayers.length > 0) {
+            var renderEffects = false;
+            var needStencil = false;
+            if (this.renderTargetsEnabled && this.effectLayers && this.effectLayers.length > 0) {
                 this._intermediateRendering = true;
-                for (var i = 0; i < this.highlightLayers.length; i++) {
-                    var highlightLayer = this.highlightLayers[i];
-                    if (highlightLayer.shouldRender() &&
-                        (!highlightLayer.camera ||
-                            (highlightLayer.camera.cameraRigMode === LIB.Camera.RIG_MODE_NONE && camera === highlightLayer.camera) ||
-                            (highlightLayer.camera.cameraRigMode !== LIB.Camera.RIG_MODE_NONE && highlightLayer.camera._rigCameras.indexOf(camera) > -1))) {
-                        renderhighlights = true;
-                        var renderTarget = highlightLayer._mainTexture;
+                for (var i = 0; i < this.effectLayers.length; i++) {
+                    var effectLayer = this.effectLayers[i];
+                    if (effectLayer.shouldRender() &&
+                        (!effectLayer.camera ||
+                            (effectLayer.camera.cameraRigMode === LIB.Camera.RIG_MODE_NONE && camera === effectLayer.camera) ||
+                            (effectLayer.camera.cameraRigMode !== LIB.Camera.RIG_MODE_NONE && effectLayer.camera._rigCameras.indexOf(camera) > -1))) {
+                        renderEffects = true;
+                        needStencil = needStencil || effectLayer.needStencil();
+                        var renderTarget = effectLayer._mainTexture;
                         if (renderTarget._shouldRender()) {
                             this._renderId++;
                             renderTarget.render(false, false);
@@ -2741,7 +3923,7 @@
             if (needsRestoreFrameBuffer) {
                 engine.restoreDefaultFramebuffer(); // Restore back buffer
             }
-            this.OnAfterRenderTargetsRenderObservable.notifyObservers(this);
+            this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
             // Prepare Frame
             this.postProcessManager._prepareFrame();
             // Backgrounds
@@ -2757,16 +3939,16 @@
                 }
                 engine.setDepthBuffer(true);
             }
-            // Activate HighlightLayer stencil
-            if (renderhighlights) {
+            // Activate effect Layer stencil
+            if (needStencil) {
                 this._engine.setStencilBuffer(true);
             }
             // Render
             this.onBeforeDrawPhaseObservable.notifyObservers(this);
             this._renderingManager.render(null, null, true, true);
             this.onAfterDrawPhaseObservable.notifyObservers(this);
-            // Restore HighlightLayer stencil
-            if (renderhighlights) {
+            // Restore effect Layer stencil
+            if (needStencil) {
                 this._engine.setStencilBuffer(stencilState);
             }
             // Bounding boxes
@@ -2784,6 +3966,16 @@
                 }
                 LIB.Tools.EndPerformanceCounter("Lens flares", this.lensFlareSystems.length > 0);
             }
+            // Effect Layer
+            if (renderEffects) {
+                engine.setDepthBuffer(false);
+                for (var i = 0; i < this.effectLayers.length; i++) {
+                    if (this.effectLayers[i].shouldRender()) {
+                        this.effectLayers[i].render();
+                    }
+                }
+                engine.setDepthBuffer(true);
+            }
             // Foregrounds
             if (this.layers.length) {
                 engine.setDepthBuffer(false);
@@ -2791,16 +3983,6 @@
                     layer = this.layers[layerIndex];
                     if (!layer.isBackground && ((layer.layerMask & this.activeCamera.layerMask) !== 0)) {
                         layer.render();
-                    }
-                }
-                engine.setDepthBuffer(true);
-            }
-            // Highlight Layer
-            if (renderhighlights) {
-                engine.setDepthBuffer(false);
-                for (var i = 0; i < this.highlightLayers.length; i++) {
-                    if (this.highlightLayers[i].shouldRender()) {
-                        this.highlightLayers[i].render();
                     }
                 }
                 engine.setDepthBuffer(true);
@@ -2818,13 +4000,9 @@
                 this._renderForCamera(camera);
                 return;
             }
-            // Update camera
-            if (this.activeCamera) {
-                this.activeCamera.update();
-            }
             // rig cameras
             for (var index = 0; index < camera._rigCameras.length; index++) {
-                this._renderForCamera(camera._rigCameras[index]);
+                this._renderForCamera(camera._rigCameras[index], camera);
             }
             this.activeCamera = camera;
             this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix());
@@ -2858,7 +4036,10 @@
                                 action._executeCurrent(LIB.ActionEvent.CreateNew(sourceMesh, undefined, otherMesh));
                             }
                             //if this is an exit trigger, or no exit trigger exists, remove the id from the intersection in progress array.
-                            if (!sourceMesh.actionManager.hasSpecificTrigger(LIB.ActionManager.OnIntersectionExitTrigger) || action.trigger === LIB.ActionManager.OnIntersectionExitTrigger) {
+                            if (!sourceMesh.actionManager.hasSpecificTrigger(LIB.ActionManager.OnIntersectionExitTrigger, function (parameter) {
+                                var parameterMesh = parameter instanceof LIB.AbstractMesh ? parameter : parameter.mesh;
+                                return otherMesh === parameterMesh;
+                            }) || action.trigger === LIB.ActionManager.OnIntersectionExitTrigger) {
                                 sourceMesh._intersectionsInProgress.splice(currentIntersectionInProgress, 1);
                             }
                         }
@@ -2866,6 +4047,9 @@
                 }
             }
         };
+        /**
+         * Render the scene
+         */
         Scene.prototype.render = function () {
             if (this.isDisposed) {
                 return;
@@ -2932,10 +4116,32 @@
             if (this._gamepadManager && this._gamepadManager._isMonitoring) {
                 this._gamepadManager._checkGamepadsStatus();
             }
+            // Update Cameras
+            if (this.activeCameras.length > 0) {
+                for (var cameraIndex = 0; cameraIndex < this.activeCameras.length; cameraIndex++) {
+                    var camera = this.activeCameras[cameraIndex];
+                    camera.update();
+                    if (camera.cameraRigMode !== LIB.Camera.RIG_MODE_NONE) {
+                        // rig cameras
+                        for (var index = 0; index < camera._rigCameras.length; index++) {
+                            camera._rigCameras[index].update();
+                        }
+                    }
+                }
+            }
+            else if (this.activeCamera) {
+                this.activeCamera.update();
+                if (this.activeCamera.cameraRigMode !== LIB.Camera.RIG_MODE_NONE) {
+                    // rig cameras
+                    for (var index = 0; index < this.activeCamera._rigCameras.length; index++) {
+                        this.activeCamera._rigCameras[index].update();
+                    }
+                }
+            }
             // Before render
             this.onBeforeRenderObservable.notifyObservers(this);
             // Customs render targets
-            this.OnBeforeRenderTargetsRenderObservable.notifyObservers(this);
+            this.onBeforeRenderTargetsRenderObservable.notifyObservers(this);
             var engine = this.getEngine();
             var currentActiveCamera = this.activeCamera;
             if (this.renderTargetsEnabled) {
@@ -2963,18 +4169,18 @@
             if (this.customRenderTargets.length > 0) {
                 engine.restoreDefaultFramebuffer();
             }
-            this.OnAfterRenderTargetsRenderObservable.notifyObservers(this);
+            this.onAfterRenderTargetsRenderObservable.notifyObservers(this);
             this.activeCamera = currentActiveCamera;
             // Procedural textures
             if (this.proceduralTexturesEnabled) {
-                LIB.Tools.StartPerformanceCounter("Procedural textures", this._proceduralTextures.length > 0);
-                for (var proceduralIndex = 0; proceduralIndex < this._proceduralTextures.length; proceduralIndex++) {
-                    var proceduralTexture = this._proceduralTextures[proceduralIndex];
+                LIB.Tools.StartPerformanceCounter("Procedural textures", this.proceduralTextures.length > 0);
+                for (var proceduralIndex = 0; proceduralIndex < this.proceduralTextures.length; proceduralIndex++) {
+                    var proceduralTexture = this.proceduralTextures[proceduralIndex];
                     if (proceduralTexture._shouldRender()) {
                         proceduralTexture.render();
                     }
                 }
-                LIB.Tools.EndPerformanceCounter("Procedural textures", this._proceduralTextures.length > 0);
+                LIB.Tools.EndPerformanceCounter("Procedural textures", this.proceduralTextures.length > 0);
             }
             // Clear
             if (this.autoClearDepthAndStencil || this.autoClear) {
@@ -2994,8 +4200,8 @@
                 }
             }
             // Depth renderer
-            if (this._depthRenderer) {
-                this._renderTargets.push(this._depthRenderer.getDepthMap());
+            for (var key in this._depthRenderer) {
+                this._renderTargets.push(this._depthRenderer[key].getDepthMap());
             }
             // Geometry renderer
             if (this._geometryBufferRenderer) {
@@ -3091,6 +4297,10 @@
         };
         Object.defineProperty(Scene.prototype, "audioEnabled", {
             // Audio
+            /**
+             * Gets or sets if audio support is enabled
+             * @see http://doc.LIBjs.com/how_to/playing_sounds_and_music
+             */
             get: function () {
                 return this._audioEnabled;
             },
@@ -3135,6 +4345,10 @@
             }
         };
         Object.defineProperty(Scene.prototype, "headphone", {
+            /**
+             * Gets or sets if audio will be output to headphones
+             * @see http://doc.LIBjs.com/how_to/playing_sounds_and_music
+             */
             get: function () {
                 return this._headphone;
             },
@@ -3164,20 +4378,48 @@
                 this.soundTracks[i].switchPanningModelToEqualPower();
             }
         };
-        Scene.prototype.enableDepthRenderer = function () {
-            if (this._depthRenderer) {
-                return this._depthRenderer;
+        /**
+         * Creates a depth renderer a given camera which contains a depth map which can be used for post processing.
+         * @param camera The camera to create the depth renderer on (default: scene's active camera)
+         * @returns the created depth renderer
+         */
+        Scene.prototype.enableDepthRenderer = function (camera) {
+            camera = camera || this.activeCamera;
+            if (!camera) {
+                throw "No camera available to enable depth renderer";
             }
-            this._depthRenderer = new LIB.DepthRenderer(this);
-            return this._depthRenderer;
+            if (!this._depthRenderer[camera.id]) {
+                var textureType = 0;
+                if (this._engine.getCaps().textureHalfFloatRender) {
+                    textureType = LIB.Engine.TEXTURETYPE_HALF_FLOAT;
+                }
+                else if (this._engine.getCaps().textureFloatRender) {
+                    textureType = LIB.Engine.TEXTURETYPE_FLOAT;
+                }
+                else {
+                    throw "Depth renderer does not support int texture type";
+                }
+                this._depthRenderer[camera.id] = new LIB.DepthRenderer(this, textureType, camera);
+            }
+            return this._depthRenderer[camera.id];
         };
-        Scene.prototype.disableDepthRenderer = function () {
-            if (!this._depthRenderer) {
+        /**
+         * Disables a depth renderer for a given camera
+         * @param camera The camera to disable the depth renderer on (default: scene's active camera)
+         */
+        Scene.prototype.disableDepthRenderer = function (camera) {
+            camera = camera || this.activeCamera;
+            if (!camera || !this._depthRenderer[camera.id]) {
                 return;
             }
-            this._depthRenderer.dispose();
-            this._depthRenderer = null;
+            this._depthRenderer[camera.id].dispose();
+            delete this._depthRenderer[camera.id];
         };
+        /**
+         * Enables a GeometryBufferRender and associates it with the scene
+         * @param ratio defines the scaling ratio to apply to the renderer (1 by default which means same resolution)
+         * @returns the GeometryBufferRenderer
+         */
         Scene.prototype.enableGeometryBufferRenderer = function (ratio) {
             if (ratio === void 0) { ratio = 1; }
             if (this._geometryBufferRenderer) {
@@ -3189,6 +4431,9 @@
             }
             return this._geometryBufferRenderer;
         };
+        /**
+         * Disables the GeometryBufferRender associated with the scene
+         */
         Scene.prototype.disableGeometryBufferRenderer = function () {
             if (!this._geometryBufferRenderer) {
                 return;
@@ -3196,16 +4441,27 @@
             this._geometryBufferRenderer.dispose();
             this._geometryBufferRenderer = null;
         };
+        /**
+         * Freeze all materials
+         * A frozen material will not be updatable but should be faster to render
+         */
         Scene.prototype.freezeMaterials = function () {
             for (var i = 0; i < this.materials.length; i++) {
                 this.materials[i].freeze();
             }
         };
+        /**
+         * Unfreeze all materials
+         * A frozen material will not be updatable but should be faster to render
+         */
         Scene.prototype.unfreezeMaterials = function () {
             for (var i = 0; i < this.materials.length; i++) {
                 this.materials[i].unfreeze();
             }
         };
+        /**
+         * Releases all held ressources
+         */
         Scene.prototype.dispose = function () {
             this.beforeRender = null;
             this.afterRender = null;
@@ -3214,8 +4470,8 @@
             this.importedMeshesFiles = new Array();
             this.stopAllAnimations();
             this.resetCachedMaterial();
-            if (this._depthRenderer) {
-                this._depthRenderer.dispose();
+            for (var key in this._depthRenderer) {
+                this._depthRenderer[key].dispose();
             }
             if (this._gamepadManager) {
                 this._gamepadManager.dispose();
@@ -3233,6 +4489,7 @@
             this._activeSkeletons.dispose();
             this._softwareSkinnedMeshes.dispose();
             this._renderTargets.dispose();
+            this._registeredForLateAnimationBindings.dispose();
             if (this._boundingBoxRenderer) {
                 this._boundingBoxRenderer.dispose();
             }
@@ -3252,8 +4509,8 @@
             this.onDisposeObservable.clear();
             this.onBeforeRenderObservable.clear();
             this.onAfterRenderObservable.clear();
-            this.OnBeforeRenderTargetsRenderObservable.clear();
-            this.OnAfterRenderTargetsRenderObservable.clear();
+            this.onBeforeRenderTargetsRenderObservable.clear();
+            this.onAfterRenderTargetsRenderObservable.clear();
             this.onAfterStepObservable.clear();
             this.onBeforeStepObservable.clear();
             this.onBeforeActiveMeshesEvaluationObservable.clear();
@@ -3331,8 +4588,8 @@
             while (this.layers.length) {
                 this.layers[0].dispose();
             }
-            while (this.highlightLayers.length) {
-                this.highlightLayers[0].dispose();
+            while (this.effectLayers.length) {
+                this.effectLayers[0].dispose();
             }
             // Release textures
             while (this.textures.length) {
@@ -3361,13 +4618,18 @@
             this._isDisposed = true;
         };
         Object.defineProperty(Scene.prototype, "isDisposed", {
+            /**
+             * Gets if the scene is already disposed
+             */
             get: function () {
                 return this._isDisposed;
             },
             enumerable: true,
             configurable: true
         });
-        // Release sounds & sounds tracks
+        /**
+         *  Releases sounds & soundtracks
+         */
         Scene.prototype.disposeSounds = function () {
             if (!this._mainSoundTrack) {
                 return;
@@ -3378,26 +4640,39 @@
             }
         };
         // Octrees
-        Scene.prototype.getWorldExtends = function () {
+        /**
+         * Get the world extend vectors with an optional filter
+         *
+         * @param filterPredicate the predicate - which meshes should be included when calculating the world size
+         * @returns {{ min: Vector3; max: Vector3 }} min and max vectors
+         */
+        Scene.prototype.getWorldExtends = function (filterPredicate) {
             var min = new LIB.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
             var max = new LIB.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
-            for (var index = 0; index < this.meshes.length; index++) {
-                var mesh = this.meshes[index];
-                if (!mesh.subMeshes || mesh.subMeshes.length === 0 || mesh.infiniteDistance) {
-                    continue;
-                }
+            filterPredicate = filterPredicate || (function () { return true; });
+            this.meshes.filter(filterPredicate).forEach(function (mesh) {
                 mesh.computeWorldMatrix(true);
+                if (!mesh.subMeshes || mesh.subMeshes.length === 0 || mesh.infiniteDistance) {
+                    return;
+                }
                 var boundingInfo = mesh.getBoundingInfo();
                 var minBox = boundingInfo.boundingBox.minimumWorld;
                 var maxBox = boundingInfo.boundingBox.maximumWorld;
                 LIB.Tools.CheckExtends(minBox, min, max);
                 LIB.Tools.CheckExtends(maxBox, min, max);
-            }
+            });
             return {
                 min: min,
                 max: max
             };
         };
+        /**
+         * Creates or updates the octree used to boost selection (picking)
+         * @see http://doc.LIBjs.com/how_to/optimizing_your_scene_with_octrees
+         * @param maxCapacity defines the maximum capacity per leaf
+         * @param maxDepth defines the maximum depth of the octree
+         * @returns an octree of AbstractMesh
+         */
         Scene.prototype.createOrUpdateSelectionOctree = function (maxCapacity, maxDepth) {
             if (maxCapacity === void 0) { maxCapacity = 64; }
             if (maxDepth === void 0) { maxDepth = 2; }
@@ -3410,12 +4685,31 @@
             return this._selectionOctree;
         };
         // Picking
+        /**
+         * Creates a ray that can be used to pick in the scene
+         * @param x defines the x coordinate of the origin (on-screen)
+         * @param y defines the y coordinate of the origin (on-screen)
+         * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
+         * @param camera defines the camera to use for the picking
+         * @param cameraViewSpace defines if picking will be done in view space (false by default)
+         * @returns a Ray
+         */
         Scene.prototype.createPickingRay = function (x, y, world, camera, cameraViewSpace) {
             if (cameraViewSpace === void 0) { cameraViewSpace = false; }
             var result = LIB.Ray.Zero();
             this.createPickingRayToRef(x, y, world, result, camera, cameraViewSpace);
             return result;
         };
+        /**
+         * Creates a ray that can be used to pick in the scene
+         * @param x defines the x coordinate of the origin (on-screen)
+         * @param y defines the y coordinate of the origin (on-screen)
+         * @param world defines the world matrix to use if you want to pick in object space (instead of world space)
+         * @param result defines the ray where to store the picking ray
+         * @param camera defines the camera to use for the picking
+         * @param cameraViewSpace defines if picking will be done in view space (false by default)
+         * @returns the current scene
+         */
         Scene.prototype.createPickingRayToRef = function (x, y, world, result, camera, cameraViewSpace) {
             if (cameraViewSpace === void 0) { cameraViewSpace = false; }
             var engine = this._engine;
@@ -3432,11 +4726,26 @@
             result.update(x, y, viewport.width, viewport.height, world ? world : LIB.Matrix.Identity(), cameraViewSpace ? LIB.Matrix.Identity() : camera.getViewMatrix(), camera.getProjectionMatrix());
             return this;
         };
+        /**
+         * Creates a ray that can be used to pick in the scene
+         * @param x defines the x coordinate of the origin (on-screen)
+         * @param y defines the y coordinate of the origin (on-screen)
+         * @param camera defines the camera to use for the picking
+         * @returns a Ray
+         */
         Scene.prototype.createPickingRayInCameraSpace = function (x, y, camera) {
             var result = LIB.Ray.Zero();
             this.createPickingRayInCameraSpaceToRef(x, y, result, camera);
             return result;
         };
+        /**
+         * Creates a ray that can be used to pick in the scene
+         * @param x defines the x coordinate of the origin (on-screen)
+         * @param y defines the y coordinate of the origin (on-screen)
+         * @param result defines the ray where to store the picking ray
+         * @param camera defines the camera to use for the picking
+         * @returns the current scene
+         */
         Scene.prototype.createPickingRayInCameraSpaceToRef = function (x, y, result, camera) {
             if (!LIB.PickingInfo) {
                 return this;
@@ -3545,6 +4854,7 @@
          * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
          * @param fastCheck Launch a fast check only using the bounding boxes. Can be set to null.
          * @param camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+         * @returns a PickingInfo
          */
         Scene.prototype.pick = function (x, y, predicate, fastCheck, camera) {
             var _this = this;
@@ -3562,6 +4872,7 @@
          * @param predicate Predicate function used to determine eligible sprites. Can be set to null. In this case, a sprite must have isPickable set to true
          * @param fastCheck Launch a fast check only using the bounding boxes. Can be set to null.
          * @param camera camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+         * @returns a PickingInfo
          */
         Scene.prototype.pickSprite = function (x, y, predicate, fastCheck, camera) {
             this.createPickingRayInCameraSpaceToRef(x, y, this._tempPickingRay, camera);
@@ -3570,7 +4881,8 @@
         /** Use the given ray to pick a mesh in the scene
          * @param ray The ray to use to pick meshes
          * @param predicate Predicate function used to determine eligible sprites. Can be set to null. In this case, a sprite must have isPickable set to true
-         * @param fastCheck Launch a fast check only using the bounding boxes. Can be set to null.
+         * @param fastCheck Launch a fast check only using the bounding boxes. Can be set to null
+         * @returns a PickingInfo
          */
         Scene.prototype.pickWithRay = function (ray, predicate, fastCheck) {
             var _this = this;
@@ -3592,6 +4904,7 @@
          * @param y Y position on screen
          * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
          * @param camera camera to use for computing the picking ray. Can be set to null. In this case, the scene.activeCamera will be used
+         * @returns an array of PickingInfo
          */
         Scene.prototype.multiPick = function (x, y, predicate, camera) {
             var _this = this;
@@ -3601,6 +4914,7 @@
          * Launch a ray to try to pick a mesh in the scene
          * @param ray Ray to use
          * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+         * @returns an array of PickingInfo
          */
         Scene.prototype.multiPickWithRay = function (ray, predicate) {
             var _this = this;
@@ -3616,6 +4930,10 @@
                 return _this._cachedRayForTransform;
             }, predicate);
         };
+        /**
+         * Force the value of meshUnderPointer
+         * @param mesh defines the mesh to use
+         */
         Scene.prototype.setPointerOverMesh = function (mesh) {
             if (this._pointerOverMesh === mesh) {
                 return;
@@ -3628,9 +4946,17 @@
                 this._pointerOverMesh.actionManager.processTrigger(LIB.ActionManager.OnPointerOverTrigger, LIB.ActionEvent.CreateNew(this._pointerOverMesh));
             }
         };
+        /**
+         * Gets the mesh under the pointer
+         * @returns a Mesh or null if no mesh is under the pointer
+         */
         Scene.prototype.getPointerOverMesh = function () {
             return this._pointerOverMesh;
         };
+        /**
+         * Force the sprite under the pointer
+         * @param sprite defines the sprite to use
+         */
         Scene.prototype.setPointerOverSprite = function (sprite) {
             if (this._pointerOverSprite === sprite) {
                 return;
@@ -3643,18 +4969,26 @@
                 this._pointerOverSprite.actionManager.processTrigger(LIB.ActionManager.OnPointerOverTrigger, LIB.ActionEvent.CreateNewFromSprite(this._pointerOverSprite, this));
             }
         };
+        /**
+         * Gets the sprite under the pointer
+         * @returns a Sprite or null if no sprite is under the pointer
+         */
         Scene.prototype.getPointerOverSprite = function () {
             return this._pointerOverSprite;
         };
         // Physics
+        /**
+         * Gets the current physics engine
+         * @returns a PhysicsEngine or null if none attached
+         */
         Scene.prototype.getPhysicsEngine = function () {
             return this._physicsEngine;
         };
         /**
          * Enables physics to the current scene
-         * @param {LIB.Vector3} [gravity] - the scene's gravity for the physics engine
-         * @param {LIB.IPhysicsEnginePlugin} [plugin] - The physics engine to be used. defaults to OimoJS.
-         * @return {boolean} was the physics engine initialized
+         * @param gravity defines the scene's gravity for the physics engine
+         * @param plugin defines the physics engine to be used. defaults to OimoJS.
+         * @return a boolean indicating if the physics engine was initialized
          */
         Scene.prototype.enablePhysics = function (gravity, plugin) {
             if (gravity === void 0) { gravity = null; }
@@ -3670,6 +5004,9 @@
                 return false;
             }
         };
+        /**
+         * Disables and disposes the physics engine associated with the scene
+         */
         Scene.prototype.disablePhysicsEngine = function () {
             if (!this._physicsEngine) {
                 return;
@@ -3677,17 +5014,26 @@
             this._physicsEngine.dispose();
             this._physicsEngine = null;
         };
+        /**
+         * Gets a boolean indicating if there is an active physics engine
+         * @returns a boolean indicating if there is an active physics engine
+         */
         Scene.prototype.isPhysicsEnabled = function () {
             return this._physicsEngine !== undefined;
         };
+        /**
+         * Deletes a physics compound impostor
+         * @param compound defines the compound to delete
+         */
         Scene.prototype.deleteCompoundImpostor = function (compound) {
             var mesh = compound.parts[0].mesh;
             if (mesh.physicsImpostor) {
-                mesh.physicsImpostor.dispose();
+                mesh.physicsImpostor.dispose( /*true*/);
                 mesh.physicsImpostor = null;
             }
         };
         // Misc.
+        /** @hidden */
         Scene.prototype._rebuildGeometries = function () {
             for (var _i = 0, _a = this._geometries; _i < _a.length; _i++) {
                 var geometry = _a[_i];
@@ -3704,9 +5050,9 @@
                 var layer = _e[_d];
                 layer._rebuild();
             }
-            for (var _f = 0, _g = this.highlightLayers; _f < _g.length; _f++) {
-                var highlightLayer = _g[_f];
-                highlightLayer._rebuild();
+            for (var _f = 0, _g = this.effectLayers; _f < _g.length; _f++) {
+                var effectLayer = _g[_f];
+                effectLayer._rebuild();
             }
             if (this._boundingBoxRenderer) {
                 this._boundingBoxRenderer._rebuild();
@@ -3719,6 +5065,7 @@
                 this._postProcessRenderPipelineManager._rebuild();
             }
         };
+        /** @hidden */
         Scene.prototype._rebuildTextures = function () {
             for (var _i = 0, _a = this.textures; _i < _a.length; _i++) {
                 var texture = _a[_i];
@@ -3726,16 +5073,14 @@
             }
             this.markAllMaterialsAsDirty(LIB.Material.TextureDirtyFlag);
         };
-        Scene.prototype.createDefaultCameraOrLight = function (createArcRotateCamera, replace, attachCameraControls) {
-            if (createArcRotateCamera === void 0) { createArcRotateCamera = false; }
+        /**
+         * Creates a default light for the scene.
+         * @param replace Whether to replace the existing lights in the scene.
+         */
+        Scene.prototype.createDefaultLight = function (replace) {
             if (replace === void 0) { replace = false; }
-            if (attachCameraControls === void 0) { attachCameraControls = false; }
-            // Dispose existing camera or light in replace mode.
+            // Dispose existing light in replace mode.
             if (replace) {
-                if (this.activeCamera) {
-                    this.activeCamera.dispose();
-                    this.activeCamera = null;
-                }
                 if (this.lights) {
                     for (var i = 0; i < this.lights.length; i++) {
                         this.lights[i].dispose();
@@ -3746,6 +5091,24 @@
             if (this.lights.length === 0) {
                 new LIB.HemisphericLight("default light", LIB.Vector3.Up(), this);
             }
+        };
+        /**
+         * Creates a default camera for the scene.
+         * @param createArcRotateCamera Whether to create an arc rotate or a free camera.
+         * @param replace Whether to replace the existing active camera in the scene.
+         * @param attachCameraControls Whether to attach camera controls to the canvas.
+         */
+        Scene.prototype.createDefaultCamera = function (createArcRotateCamera, replace, attachCameraControls) {
+            if (createArcRotateCamera === void 0) { createArcRotateCamera = false; }
+            if (replace === void 0) { replace = false; }
+            if (attachCameraControls === void 0) { attachCameraControls = false; }
+            // Dispose existing camera in replace mode.
+            if (replace) {
+                if (this.activeCamera) {
+                    this.activeCamera.dispose();
+                    this.activeCamera = null;
+                }
+            }
             // Camera
             if (!this.activeCamera) {
                 var worldExtends = this.getWorldExtends();
@@ -3753,6 +5116,11 @@
                 var worldCenter = worldExtends.min.add(worldSize.scale(0.5));
                 var camera;
                 var radius = worldSize.length() * 1.5;
+                // empty scene scenario!
+                if (!isFinite(radius)) {
+                    radius = 1;
+                    worldCenter.copyFromFloats(0, 0, 0);
+                }
                 if (createArcRotateCamera) {
                     var arcRotateCamera = new LIB.ArcRotateCamera("default camera", -(Math.PI / 2), Math.PI / 2, radius, worldCenter, this);
                     arcRotateCamera.lowerRadiusLimit = radius * 0.01;
@@ -3774,23 +5142,49 @@
                 }
             }
         };
-        Scene.prototype.createDefaultSkybox = function (environmentTexture, pbr, scale, blur) {
+        /**
+         * Creates a default camera and a default light
+         * @param createArcRotateCamera defines that the camera will be an ArcRotateCamera
+         * @param replace defines if the camera and/or light will replace the existing ones
+         * @param attachCameraControls defines if attachControl will be called on the new camera
+         */
+        Scene.prototype.createDefaultCameraOrLight = function (createArcRotateCamera, replace, attachCameraControls) {
+            if (createArcRotateCamera === void 0) { createArcRotateCamera = false; }
+            if (replace === void 0) { replace = false; }
+            if (attachCameraControls === void 0) { attachCameraControls = false; }
+            this.createDefaultLight(replace);
+            this.createDefaultCamera(createArcRotateCamera, replace, attachCameraControls);
+        };
+        /**
+         * Creates a new sky box
+         * @see http://doc.LIBjs.com/LIB101/environment#skybox
+         * @param environmentTexture defines the texture to use as environment texture
+         * @param pbr defines if PBRMaterial must be used instead of StandardMaterial
+         * @param scale defines the overall scale of the skybox
+         * @param blur defines if blurring must be applied to the environment texture (works only with pbr === true)
+         * @param setGlobalEnvTexture defines a boolean indicating that scene.environmentTexture must match the current skybox texture (true by default)
+         * @returns a new mesh holding the sky box
+         */
+        Scene.prototype.createDefaultSkybox = function (environmentTexture, pbr, scale, blur, setGlobalEnvTexture) {
             if (pbr === void 0) { pbr = false; }
             if (scale === void 0) { scale = 1000; }
             if (blur === void 0) { blur = 0; }
-            if (environmentTexture) {
-                this.environmentTexture = environmentTexture;
-            }
-            if (!this.environmentTexture) {
+            if (setGlobalEnvTexture === void 0) { setGlobalEnvTexture = true; }
+            if (!environmentTexture) {
                 LIB.Tools.Warn("Can not create default skybox without environment texture.");
                 return null;
             }
+            if (setGlobalEnvTexture) {
+                if (environmentTexture) {
+                    this.environmentTexture = environmentTexture;
+                }
+            }
             // Skybox
-            var hdrSkybox = LIB.Mesh.CreateBox("hdrSkyBox", scale, this);
+            var hdrSkybox = LIB.Mesh.CreateCube("hdrSkyBox", scale, this);
             if (pbr) {
                 var hdrSkyboxMaterial = new LIB.PBRMaterial("skyBox", this);
                 hdrSkyboxMaterial.backFaceCulling = false;
-                hdrSkyboxMaterial.reflectionTexture = this.environmentTexture.clone();
+                hdrSkyboxMaterial.reflectionTexture = environmentTexture.clone();
                 if (hdrSkyboxMaterial.reflectionTexture) {
                     hdrSkyboxMaterial.reflectionTexture.coordinatesMode = LIB.Texture.SKYBOX_MODE;
                 }
@@ -3803,7 +5197,7 @@
             else {
                 var skyboxMaterial = new LIB.StandardMaterial("skyBox", this);
                 skyboxMaterial.backFaceCulling = false;
-                skyboxMaterial.reflectionTexture = this.environmentTexture.clone();
+                skyboxMaterial.reflectionTexture = environmentTexture.clone();
                 if (skyboxMaterial.reflectionTexture) {
                     skyboxMaterial.reflectionTexture.coordinatesMode = LIB.Texture.SKYBOX_MODE;
                 }
@@ -3813,12 +5207,24 @@
             }
             return hdrSkybox;
         };
+        /**
+         * Creates a new environment
+         * @see http://doc.LIBjs.com/LIB101/environment#skybox
+         * @param options defines the options you can use to configure the environment
+         * @returns the new EnvironmentHelper
+         */
         Scene.prototype.createDefaultEnvironment = function (options) {
             if (LIB.EnvironmentHelper) {
                 return new LIB.EnvironmentHelper(options, this);
             }
             return null;
         };
+        /**
+         * Creates a new VREXperienceHelper
+         * @see http://doc.LIBjs.com/how_to/webvr_helper
+         * @param webVROptions defines the options used to create the new VREXperienceHelper
+         * @returns a new VREXperienceHelper
+         */
         Scene.prototype.createDefaultVRExperience = function (webVROptions) {
             if (webVROptions === void 0) { webVROptions = {}; }
             return new LIB.VRExperienceHelper(this, webVROptions);
@@ -3840,15 +5246,39 @@
             }
             return listByTags;
         };
+        /**
+         * Get a list of meshes by tags
+         * @param tagsQuery defines the tags query to use
+         * @param forEach defines a predicate used to filter results
+         * @returns an array of Mesh
+         */
         Scene.prototype.getMeshesByTags = function (tagsQuery, forEach) {
             return this._getByTags(this.meshes, tagsQuery, forEach);
         };
+        /**
+         * Get a list of cameras by tags
+         * @param tagsQuery defines the tags query to use
+         * @param forEach defines a predicate used to filter results
+         * @returns an array of Camera
+         */
         Scene.prototype.getCamerasByTags = function (tagsQuery, forEach) {
             return this._getByTags(this.cameras, tagsQuery, forEach);
         };
+        /**
+         * Get a list of lights by tags
+         * @param tagsQuery defines the tags query to use
+         * @param forEach defines a predicate used to filter results
+         * @returns an array of Light
+         */
         Scene.prototype.getLightsByTags = function (tagsQuery, forEach) {
             return this._getByTags(this.lights, tagsQuery, forEach);
         };
+        /**
+         * Get a list of materials by tags
+         * @param tagsQuery defines the tags query to use
+         * @param forEach defines a predicate used to filter results
+         * @returns an array of Material
+         */
         Scene.prototype.getMaterialByTags = function (tagsQuery, forEach) {
             return this._getByTags(this.materials, tagsQuery, forEach).concat(this._getByTags(this.multiMaterials, tagsQuery, forEach));
         };
@@ -3882,6 +5312,7 @@
         };
         /**
          * Will flag all materials as dirty to trigger new shader compilation
+         * @param flag defines the flag used to specify which material part must be marked as dirty
          * @param predicate If not null, it will be used to specifiy if a material has to be marked as dirty
          */
         Scene.prototype.markAllMaterialsAsDirty = function (flag, predicate) {
@@ -3893,6 +5324,7 @@
                 material.markAsDirty(flag);
             }
         };
+        /** @hidden */
         Scene.prototype._loadFile = function (url, onSuccess, onProgress, useDatabase, useArrayBuffer, onError) {
             var _this = this;
             var request = LIB.Tools.LoadFile(url, onSuccess, onProgress, useDatabase ? this.database : undefined, useArrayBuffer, onError);
@@ -3902,13 +5334,32 @@
             });
             return request;
         };
+        /** @hidden */
+        Scene.prototype._loadFileAsync = function (url, useDatabase, useArrayBuffer) {
+            var _this = this;
+            return new Promise(function (resolve, reject) {
+                _this._loadFile(url, function (data) {
+                    resolve(data);
+                }, undefined, useDatabase, useArrayBuffer, function (request, exception) {
+                    reject(exception);
+                });
+            });
+        };
         // Statics
         Scene._FOGMODE_NONE = 0;
         Scene._FOGMODE_EXP = 1;
         Scene._FOGMODE_EXP2 = 2;
         Scene._FOGMODE_LINEAR = 3;
         Scene._uniqueIdCounter = 0;
+        /**
+         * Gets or sets the minimum deltatime when deterministic lock step is enabled
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         */
         Scene.MinDeltaTime = 1.0;
+        /**
+         * Gets or sets the maximum deltatime when deterministic lock step is enabled
+         * @see http://doc.LIBjs.com/LIB101/animations#deterministic-lockstep
+         */
         Scene.MaxDeltaTime = 1000.0;
         /** The distance in pixel that you have to move to prevent some events */
         Scene.DragMovementThreshold = 10; // in pixels
@@ -3923,4 +5374,5 @@
     LIB.Scene = Scene;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.scene.js.map
 //# sourceMappingURL=LIB.scene.js.map

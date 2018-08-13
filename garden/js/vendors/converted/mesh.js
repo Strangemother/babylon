@@ -1,4 +1,10 @@
+
+
+var LIB;
 (function (LIB) {
+    /**
+     * @hidden
+     **/
     var _InstancesBatch = /** @class */ (function () {
         function _InstancesBatch() {
             this.mustReturn = false;
@@ -30,17 +36,14 @@
             // Events
             /**
              * An event triggered before rendering the mesh
-             * @type {LIB.Observable}
              */
             _this.onBeforeRenderObservable = new LIB.Observable();
             /**
             * An event triggered after rendering the mesh
-            * @type {LIB.Observable}
             */
             _this.onAfterRenderObservable = new LIB.Observable();
             /**
             * An event triggered before drawing the mesh
-            * @type {LIB.Observable}
             */
             _this.onBeforeDrawObservable = new LIB.Observable();
             // Members
@@ -66,12 +69,19 @@
                     source._geometry.applyToMesh(_this);
                 }
                 // Deep copy
-                LIB.Tools.DeepCopy(source, _this, ["name", "material", "skeleton", "instances", "parent", "uniqueId", "source"], ["_poseMatrix", "_source"]);
+                LIB.Tools.DeepCopy(source, _this, ["name", "material", "skeleton", "instances", "parent", "uniqueId",
+                    "source", "metadata", "hasLODLevels", "geometry", "isBlocked", "areNormalsFrozen"], ["_poseMatrix", "_source"]);
+                // Metadata
+                if (source.metadata && source.metadata.clone) {
+                    _this.metadata = source.metadata.clone();
+                }
+                else {
+                    _this.metadata = source.metadata;
+                }
                 // Tags
                 if (LIB.Tags && LIB.Tags.HasTags(source)) {
                     LIB.Tags.AddTagsTo(_this, LIB.Tags.GetTags(source, true));
                 }
-                _this.metadata = source.metadata;
                 // Parent
                 _this.parent = source.parent;
                 // Pivot
@@ -271,6 +281,13 @@
             }
             return ret;
         };
+        Mesh.prototype._unBindEffect = function () {
+            _super.prototype._unBindEffect.call(this);
+            for (var _i = 0, _a = this.instances; _i < _a.length; _i++) {
+                var instance = _a[_i];
+                instance._unBindEffect();
+            }
+        };
         Object.defineProperty(Mesh.prototype, "hasLODLevels", {
             /**
              * True if the mesh has some Levels Of Details (LOD).
@@ -282,6 +299,13 @@
             enumerable: true,
             configurable: true
         });
+        /**
+         * Gets the list of {LIB.MeshLODLevel} associated with the current mesh
+         * @returns an array of {LIB.MeshLODLevel}
+         */
+        Mesh.prototype.getLODLevels = function () {
+            return this._LODLevels;
+        };
         Mesh.prototype._sortLODLevels = function () {
             this._LODLevels.sort(function (a, b) {
                 if (a.distance < b.distance) {
@@ -305,7 +329,7 @@
                 LIB.Tools.Warn("You cannot use a mesh as LOD level twice");
                 return this;
             }
-            var level = new LIB.Internals.MeshLODLevel(distance, mesh);
+            var level = new LIB.MeshLODLevel(distance, mesh);
             this._LODLevels.push(level);
             if (mesh) {
                 mesh._masterMesh = this;
@@ -401,7 +425,7 @@
          * Returns a positive integer : the total number of vertices within the mesh geometry or zero if the mesh has no geometry.
          */
         Mesh.prototype.getTotalVertices = function () {
-            if (!this._geometry) {
+            if (this._geometry === null || this._geometry === undefined) {
                 return 0;
             }
             return this._geometry.getTotalVertices();
@@ -454,22 +478,6 @@
             }
             return this._geometry.getVertexBuffer(kind);
         };
-        /**
-         * Returns a boolean depending on the existence of the Vertex Data for the requested `kind`.
-         * Possible `kind` values :
-         * - LIB.VertexBuffer.PositionKind
-         * - LIB.VertexBuffer.UVKind
-         * - LIB.VertexBuffer.UV2Kind
-         * - LIB.VertexBuffer.UV3Kind
-         * - LIB.VertexBuffer.UV4Kind
-         * - LIB.VertexBuffer.UV5Kind
-         * - LIB.VertexBuffer.UV6Kind
-         * - LIB.VertexBuffer.ColorKind
-         * - LIB.VertexBuffer.MatricesIndicesKind
-         * - LIB.VertexBuffer.MatricesIndicesExtraKind
-         * - LIB.VertexBuffer.MatricesWeightsKind
-         * - LIB.VertexBuffer.MatricesWeightsExtraKind
-         */
         Mesh.prototype.isVerticesDataPresent = function (kind) {
             if (!this._geometry) {
                 if (this._delayInfo) {
@@ -561,13 +569,77 @@
             configurable: true
         });
         /**
-         * Boolean : true once the mesh is ready after all the delayed process (loading, etc) are complete.
+         * Determine if the current mesh is ready to be rendered
+         * @param completeCheck defines if a complete check (including materials and lights) has to be done (false by default)
+         * @param forceInstanceSupport will check if the mesh will be ready when used with instances (false by default)
+         * @returns true if all associated assets are ready (material, textures, shaders)
          */
-        Mesh.prototype.isReady = function () {
+        Mesh.prototype.isReady = function (completeCheck, forceInstanceSupport) {
+            if (completeCheck === void 0) { completeCheck = false; }
+            if (forceInstanceSupport === void 0) { forceInstanceSupport = false; }
             if (this.delayLoadState === LIB.Engine.DELAYLOADSTATE_LOADING) {
                 return false;
             }
-            return _super.prototype.isReady.call(this);
+            if (!_super.prototype.isReady.call(this, completeCheck)) {
+                return false;
+            }
+            if (!this.subMeshes || this.subMeshes.length === 0) {
+                return true;
+            }
+            if (!completeCheck) {
+                return true;
+            }
+            var engine = this.getEngine();
+            var scene = this.getScene();
+            var hardwareInstancedRendering = forceInstanceSupport || engine.getCaps().instancedArrays && this.instances.length > 0;
+            this.computeWorldMatrix();
+            var mat = this.material || scene.defaultMaterial;
+            if (mat) {
+                if (mat.storeEffectOnSubMeshes) {
+                    for (var _i = 0, _a = this.subMeshes; _i < _a.length; _i++) {
+                        var subMesh = _a[_i];
+                        var effectiveMaterial = subMesh.getMaterial();
+                        if (effectiveMaterial) {
+                            if (effectiveMaterial.storeEffectOnSubMeshes) {
+                                if (!effectiveMaterial.isReadyForSubMesh(this, subMesh, hardwareInstancedRendering)) {
+                                    return false;
+                                }
+                            }
+                            else {
+                                if (!effectiveMaterial.isReady(this, hardwareInstancedRendering)) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (!mat.isReady(this, hardwareInstancedRendering)) {
+                        return false;
+                    }
+                }
+            }
+            // Shadows
+            for (var _b = 0, _c = this._lightSources; _b < _c.length; _b++) {
+                var light = _c[_b];
+                var generator = light.getShadowGenerator();
+                if (generator) {
+                    for (var _d = 0, _e = this.subMeshes; _d < _e.length; _d++) {
+                        var subMesh = _e[_d];
+                        if (!generator.isReady(subMesh, hardwareInstancedRendering)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            // LOD
+            for (var _f = 0, _g = this._LODLevels; _f < _g.length; _f++) {
+                var lod = _g[_f];
+                if (lod.mesh && !lod.mesh.isReady(hardwareInstancedRendering)) {
+                    return false;
+                }
+            }
+            return true;
         };
         Object.defineProperty(Mesh.prototype, "areNormalsFrozen", {
             /**
@@ -666,7 +738,7 @@
         Mesh.prototype._getPositionData = function (applySkeleton) {
             var data = this.getVerticesData(LIB.VertexBuffer.PositionKind);
             if (data && applySkeleton && this.skeleton) {
-                data = data.slice();
+                data = LIB.Tools.Slice(data);
                 var matricesIndicesData = this.getVerticesData(LIB.VertexBuffer.MatricesIndicesKind);
                 var matricesWeightsData = this.getVerticesData(LIB.VertexBuffer.MatricesWeightsKind);
                 if (matricesWeightsData && matricesIndicesData) {
@@ -686,7 +758,7 @@
                             weight = matricesWeightsData[matWeightIdx + inf];
                             if (weight <= 0)
                                 break;
-                            LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, matricesIndicesData[matWeightIdx + inf] * 16, weight, tempMatrix);
+                            LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesData[matWeightIdx + inf] * 16), weight, tempMatrix);
                             finalMatrix.addToSelf(tempMatrix);
                         }
                         if (needExtras) {
@@ -694,7 +766,7 @@
                                 weight = matricesWeightsExtraData[matWeightIdx + inf];
                                 if (weight <= 0)
                                     break;
-                                LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, matricesIndicesExtraData[matWeightIdx + inf] * 16, weight, tempMatrix);
+                                LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesExtraData[matWeightIdx + inf] * 16), weight, tempMatrix);
                                 finalMatrix.addToSelf(tempMatrix);
                             }
                         }
@@ -762,31 +834,6 @@
             }
             this.synchronizeInstances();
         };
-        /**
-         * Sets the vertex data of the mesh geometry for the requested `kind`.
-         * If the mesh has no geometry, a new Geometry object is set to the mesh and then passed this vertex data.
-         * The `data` are either a numeric array either a Float32Array.
-         * The parameter `updatable` is passed as is to the underlying Geometry object constructor (if initianilly none) or updater.
-         * The parameter `stride` is an optional positive integer, it is usually automatically deducted from the `kind` (3 for positions or normals, 2 for UV, etc).
-         * Note that a new underlying VertexBuffer object is created each call.
-         * If the `kind` is the `PositionKind`, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
-         *
-         * Possible `kind` values :
-         * - LIB.VertexBuffer.PositionKind
-         * - LIB.VertexBuffer.UVKind
-         * - LIB.VertexBuffer.UV2Kind
-         * - LIB.VertexBuffer.UV3Kind
-         * - LIB.VertexBuffer.UV4Kind
-         * - LIB.VertexBuffer.UV5Kind
-         * - LIB.VertexBuffer.UV6Kind
-         * - LIB.VertexBuffer.ColorKind
-         * - LIB.VertexBuffer.MatricesIndicesKind
-         * - LIB.VertexBuffer.MatricesIndicesExtraKind
-         * - LIB.VertexBuffer.MatricesWeightsKind
-         * - LIB.VertexBuffer.MatricesWeightsExtraKind
-         *
-         * Returns the Mesh.
-         */
         Mesh.prototype.setVerticesData = function (kind, data, updatable, stride) {
             if (updatable === void 0) { updatable = false; }
             if (!this._geometry) {
@@ -819,30 +866,6 @@
             this._geometry.setVerticesBuffer(buffer);
             return this;
         };
-        /**
-         * Updates the existing vertex data of the mesh geometry for the requested `kind`.
-         * If the mesh has no geometry, it is simply returned as it is.
-         * The `data` are either a numeric array either a Float32Array.
-         * No new underlying VertexBuffer object is created.
-         * If the `kind` is the `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
-         * If the parameter `makeItUnique` is true, a new global geometry is created from this positions and is set to the mesh.
-         *
-         * Possible `kind` values :
-         * - LIB.VertexBuffer.PositionKind
-         * - LIB.VertexBuffer.UVKind
-         * - LIB.VertexBuffer.UV2Kind
-         * - LIB.VertexBuffer.UV3Kind
-         * - LIB.VertexBuffer.UV4Kind
-         * - LIB.VertexBuffer.UV5Kind
-         * - LIB.VertexBuffer.UV6Kind
-         * - LIB.VertexBuffer.ColorKind
-         * - LIB.VertexBuffer.MatricesIndicesKind
-         * - LIB.VertexBuffer.MatricesIndicesExtraKind
-         * - LIB.VertexBuffer.MatricesWeightsKind
-         * - LIB.VertexBuffer.MatricesWeightsExtraKind
-         *
-         * Returns the Mesh.
-         */
         Mesh.prototype.updateVerticesData = function (kind, data, updateExtends, makeItUnique) {
             if (!this._geometry) {
                 return this;
@@ -896,14 +919,6 @@
             geometry.applyToMesh(this);
             return this;
         };
-        /**
-         * Sets the mesh indices.
-         * Expects an array populated with integers or a typed array (Int32Array, Uint32Array, Uint16Array).
-         * Type is Uint16Array by default unless the mesh has more than 65536 vertices.
-         * If the mesh has no geometry, a new Geometry object is created and set to the mesh.
-         * This method creates a new index buffer each call.
-         * Returns the Mesh.
-         */
         Mesh.prototype.setIndices = function (indices, totalVertices, updatable) {
             if (totalVertices === void 0) { totalVertices = null; }
             if (updatable === void 0) { updatable = false; }
@@ -971,7 +986,7 @@
         };
         Mesh.prototype._draw = function (subMesh, fillMode, instancesCount, alternate) {
             if (alternate === void 0) { alternate = false; }
-            if (!this._geometry || !this._geometry.getVertexBuffers() || !this._geometry.getIndexBuffer()) {
+            if (!this._geometry || !this._geometry.getVertexBuffers() || (!this._unIndexed && !this._geometry.getIndexBuffer())) {
                 return this;
             }
             this.onBeforeDrawObservable.notifyObservers(this);
@@ -1156,7 +1171,7 @@
          * Returns the Mesh.
          */
         Mesh.prototype.render = function (subMesh, enableAlphaMode) {
-            this.checkOcclusionQuery();
+            this._checkOcclusionQuery();
             if (this._isOccluded) {
                 return this;
             }
@@ -1167,7 +1182,7 @@
                 return this;
             }
             // Checking geometry state
-            if (!this._geometry || !this._geometry.getVertexBuffers() || !this._geometry.getIndexBuffer()) {
+            if (!this._geometry || !this._geometry.getVertexBuffers() || (!this._unIndexed && !this._geometry.getIndexBuffer())) {
                 return this;
             }
             this.onBeforeRenderObservable.notifyObservers(this);
@@ -1221,7 +1236,7 @@
             }
             // Bind
             var fillMode = scene.forcePointsCloud ? LIB.Material.PointFillMode : (scene.forceWireframe ? LIB.Material.WireFrameFillMode : this._effectiveMaterial.fillMode);
-            if (!hardwareInstancedRendering) {
+            if (!hardwareInstancedRendering) { // Binding will be done later because we need to add more info to the VB
                 this._bind(subMesh, effect, fillMode);
             }
             var world = this.getWorldMatrix();
@@ -1290,6 +1305,77 @@
                 }
             }
             return results;
+        };
+        /**
+         * Normalize matrix weights so that all vertices have a total weight set to 1
+         */
+        Mesh.prototype.cleanMatrixWeights = function () {
+            var epsilon = 1e-3;
+            var noInfluenceBoneIndex = 0.0;
+            if (this.skeleton) {
+                noInfluenceBoneIndex = this.skeleton.bones.length;
+            }
+            else {
+                return;
+            }
+            var matricesIndices = this.getVerticesData(LIB.VertexBuffer.MatricesIndicesKind);
+            var matricesIndicesExtra = this.getVerticesData(LIB.VertexBuffer.MatricesIndicesExtraKind);
+            var matricesWeights = this.getVerticesData(LIB.VertexBuffer.MatricesWeightsKind);
+            var matricesWeightsExtra = this.getVerticesData(LIB.VertexBuffer.MatricesWeightsExtraKind);
+            var influencers = this.numBoneInfluencers;
+            var size = matricesWeights.length;
+            for (var i = 0; i < size; i += 4) {
+                var weight = 0.0;
+                var firstZeroWeight = -1;
+                for (var j = 0; j < 4; j++) {
+                    var w = matricesWeights[i + j];
+                    weight += w;
+                    if (w < epsilon && firstZeroWeight < 0) {
+                        firstZeroWeight = j;
+                    }
+                }
+                if (matricesWeightsExtra) {
+                    for (var j = 0; j < 4; j++) {
+                        var w = matricesWeightsExtra[i + j];
+                        weight += w;
+                        if (w < epsilon && firstZeroWeight < 0) {
+                            firstZeroWeight = j + 4;
+                        }
+                    }
+                }
+                if (firstZeroWeight < 0 || firstZeroWeight > (influencers - 1)) {
+                    firstZeroWeight = influencers - 1;
+                }
+                if (weight > epsilon) {
+                    var mweight = 1.0 / weight;
+                    for (var j = 0; j < 4; j++) {
+                        matricesWeights[i + j] *= mweight;
+                    }
+                    if (matricesWeightsExtra) {
+                        for (var j = 0; j < 4; j++) {
+                            matricesWeightsExtra[i + j] *= mweight;
+                        }
+                    }
+                }
+                else {
+                    if (firstZeroWeight >= 4) {
+                        matricesWeightsExtra[i + firstZeroWeight - 4] = 1.0 - weight;
+                        matricesIndicesExtra[i + firstZeroWeight - 4] = noInfluenceBoneIndex;
+                    }
+                    else {
+                        matricesWeights[i + firstZeroWeight] = 1.0 - weight;
+                        matricesIndices[i + firstZeroWeight] = noInfluenceBoneIndex;
+                    }
+                }
+            }
+            this.setVerticesData(LIB.VertexBuffer.MatricesIndicesKind, matricesIndices);
+            if (matricesIndicesExtra) {
+                this.setVerticesData(LIB.VertexBuffer.MatricesIndicesExtraKind, matricesIndicesExtra);
+            }
+            this.setVerticesData(LIB.VertexBuffer.MatricesWeightsKind, matricesWeights);
+            if (matricesWeightsExtra) {
+                this.setVerticesData(LIB.VertexBuffer.MatricesWeightsExtraKind, matricesWeightsExtra);
+            }
         };
         Mesh.prototype._checkDelayState = function () {
             var scene = this.getScene();
@@ -1375,7 +1461,7 @@
          * Modifies the mesh geometry according to the passed transformation matrix.
          * This method returns nothing but it really modifies the mesh even if it's originally not set as updatable.
          * The mesh normals are modified accordingly the same transformation.
-         * tuto : http://doc.LIBjs.com/tutorials/How_Rotations_and_Translations_Work#baking-transform
+         * tuto : http://doc.LIBjs.com/resources/baking_transformations
          * Note that, under the hood, this method sets a new VertexBuffer each call.
          * Returns the Mesh.
          */
@@ -1468,9 +1554,9 @@
             return new Mesh(name, this.getScene(), newParent, this, doNotCloneChildren, clonePhysicsImpostor);
         };
         /**
-         * Disposes the Mesh.
-         * By default, all the mesh children are also disposed unless the parameter `doNotRecurse` is set to `true`.
-         * Returns nothing.
+         * Releases resources associated with this mesh.
+         * @param doNotRecurse Set to true to not recurse into each children (recurse into each children by default)
+         * @param disposeMaterialAndTextures Set to true to also dispose referenced materials and textures (false by default)
          */
         Mesh.prototype.dispose = function (doNotRecurse, disposeMaterialAndTextures) {
             var _this = this;
@@ -1496,13 +1582,12 @@
             while (this.instances.length) {
                 this.instances[0].dispose();
             }
-            // Highlight layers.
-            var highlightLayers = this.getScene().highlightLayers;
-            for (var i = 0; i < highlightLayers.length; i++) {
-                var highlightLayer = highlightLayers[i];
-                if (highlightLayer) {
-                    highlightLayer.removeMesh(this);
-                    highlightLayer.removeExcludedMesh(this);
+            // Effect layers.
+            var effectLayers = this.getScene().effectLayers;
+            for (var i = 0; i < effectLayers.length; i++) {
+                var effectLayer = effectLayers[i];
+                if (effectLayer) {
+                    effectLayer._disposeMesh(this);
                 }
             }
             _super.prototype.dispose.call(this, doNotRecurse, disposeMaterialAndTextures);
@@ -1868,7 +1953,7 @@
             }
             serializationObject.scaling = this.scaling.asArray();
             serializationObject.localMatrix = this.getPivotMatrix().asArray();
-            serializationObject.isEnabled = this.isEnabled();
+            serializationObject.isEnabled = this.isEnabled(false);
             serializationObject.isVisible = this.isVisible;
             serializationObject.infiniteDistance = this.infiniteDistance;
             serializationObject.pickable = this.isPickable;
@@ -2044,7 +2129,7 @@
             }
             mesh.scaling = LIB.Vector3.FromArray(parsedMesh.scaling);
             if (parsedMesh.localMatrix) {
-                mesh.setPivotMatrix(LIB.Matrix.FromArray(parsedMesh.localMatrix));
+                mesh.setPreTransformMatrix(LIB.Matrix.FromArray(parsedMesh.localMatrix));
             }
             else if (parsedMesh.pivotMatrix) {
                 mesh.setPivotMatrix(LIB.Matrix.FromArray(parsedMesh.pivotMatrix));
@@ -2133,13 +2218,13 @@
                 if (parsedMesh.hasMatricesWeights) {
                     mesh._delayInfo.push(LIB.VertexBuffer.MatricesWeightsKind);
                 }
-                mesh._delayLoadingFunction = LIB.Geometry.ImportGeometry;
+                mesh._delayLoadingFunction = LIB.Geometry._ImportGeometry;
                 if (LIB.SceneLoader.ForceFullSceneLoadingForIncremental) {
                     mesh._checkDelayState();
                 }
             }
             else {
-                LIB.Geometry.ImportGeometry(parsedMesh, mesh);
+                LIB.Geometry._ImportGeometry(parsedMesh, mesh);
             }
             // Material
             if (parsedMesh.materialId) {
@@ -2232,7 +2317,7 @@
          * It's the offset to join together the points from the same path. Ex : offset = 10 means the point 1 is joined to the point 11.
          * The optional parameter `instance` is an instance of an existing Ribbon object to be updated with the passed `pathArray` parameter : http://doc.LIBjs.com/tutorials/How_to_dynamically_morph_a_mesh#ribbon
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateRibbon = function (name, pathArray, closeArray, closePath, offset, scene, updatable, sideOrientation, instance) {
@@ -2254,7 +2339,7 @@
          * The parameter `radius` sets the radius size (float) of the polygon (default 0.5).
          * The parameter `tessellation` sets the number of polygon sides (positive integer, default 64). So a tessellation valued to 3 will build a triangle, to 4 a square, etc.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateDisc = function (name, radius, tessellation, scene, updatable, sideOrientation) {
@@ -2272,17 +2357,17 @@
          * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `size` sets the size (float) of each box side (default 1).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
-        Mesh.CreateBox = function (name, size, scene, updatable, sideOrientation) {
+        Mesh.CreateCube = function (name, size, scene, updatable, sideOrientation) {
             if (scene === void 0) { scene = null; }
             var options = {
                 size: size,
                 sideOrientation: sideOrientation,
                 updatable: updatable
             };
-            return LIB.MeshBuilder.CreateBox(name, options, scene);
+            return LIB.MeshBuilder.CreateCube(name, options, scene);
         };
         /**
          * Creates a sphere mesh.
@@ -2290,7 +2375,7 @@
          * The parameter `diameter` sets the diameter size (float) of the sphere (default 1).
          * The parameter `segments` sets the sphere number of horizontal stripes (positive integer, default 32).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateSphere = function (name, segments, diameter, scene, updatable, sideOrientation) {
@@ -2313,7 +2398,7 @@
          * The parameter `tessellation` sets the number of cylinder sides (positive integer, default 24). Set it to 3 to get a prism for instance.
          * The parameter `subdivisions` sets the number of rings along the cylinder height (positive integer, default 1).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateCylinder = function (name, height, diameterTop, diameterBottom, tessellation, subdivisions, scene, updatable, sideOrientation) {
@@ -2344,7 +2429,7 @@
          * The parameter `thickness` sets the diameter size of the tube of the torus (float, default 0.5).
          * The parameter `tessellation` sets the number of torus sides (postive integer, default 16).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateTorus = function (name, diameter, thickness, tessellation, scene, updatable, sideOrientation) {
@@ -2365,7 +2450,7 @@
          * The parameter `tubularSegments` sets the number of tubes to decompose the knot into (positive integer, default 32).
          * The parameters `p` and `q` are the number of windings on each axis (positive integers, default 2 and 3).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateTorusKnot = function (name, radius, tube, radialSegments, tubularSegments, p, q, scene, updatable, sideOrientation) {
@@ -2464,7 +2549,7 @@
          * The extrusion is a parametric shape :  http://doc.LIBjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
          * Please consider using the same method from the MeshBuilder class instead.
          *
-         * Please read this full tutorial to understand how to design an extruded shape : http://doc.LIBjs.com/tutorials/Parametric_Shapes#extrusion
+         * Please read this full tutorial to understand how to design an extruded shape : http://doc.LIBjs.com/how_to/parametric_shapes#extruded-shapes
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be extruded in its local space : the shape must be designed in the xOy plane and will be
          * extruded along the Z axis.
          * The parameter `path` is a required array of successive Vector3. This is the axis curve the shape is extruded along.
@@ -2474,7 +2559,7 @@
          * The optional parameter `instance` is an instance of an existing ExtrudedShape object to be updated with the passed `shape`, `path`, `scale` or `rotation` parameters : http://doc.LIBjs.com/tutorials/How_to_dynamically_morph_a_mesh#extruded-shape
          * Remember you can only change the shape or path point positions, not their number when updating an extruded shape.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.ExtrudeShape = function (name, shape, path, scale, rotation, cap, scene, updatable, sideOrientation, instance) {
@@ -2496,7 +2581,7 @@
          * The custom extrusion is a parametric shape :  http://doc.LIBjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
          * Please consider using the same method from the MeshBuilder class instead.
          *
-         * Please read this full tutorial to understand how to design a custom extruded shape : http://doc.LIBjs.com/tutorials/Parametric_Shapes#extrusion
+         * Please read this full tutorial to understand how to design a custom extruded shape : http://doc.LIBjs.com/how_to/parametric_shapes#extruded-shapes
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be extruded in its local space : the shape must be designed in the xOy plane and will be
          * extruded along the Z axis.
          * The parameter `path` is a required array of successive Vector3. This is the axis curve the shape is extruded along.
@@ -2522,7 +2607,7 @@
          * The optional parameter `instance` is an instance of an existing ExtrudedShape object to be updated with the passed `shape`, `path`, `scale` or `rotation` parameters : http://doc.LIBjs.com/tutorials/How_to_dynamically_morph_a_mesh#extruded-shape
          * Remember you can only change the shape or path point positions, not their number when updating an extruded shape.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.ExtrudeShapeCustom = function (name, shape, path, scaleFunction, rotationFunction, ribbonCloseArray, ribbonClosePath, cap, scene, updatable, sideOrientation, instance) {
@@ -2549,7 +2634,7 @@
          * The parameter `radius` (positive float, default 1) is the radius value of the lathe.
          * The parameter `tessellation` (positive integer, default 64) is the side number of the lathe.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateLathe = function (name, shape, radius, tessellation, scene, updatable, sideOrientation) {
@@ -2567,7 +2652,7 @@
          * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `size` sets the size (float) of both sides of the plane at once (default 1).
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreatePlane = function (name, size, scene, updatable, sideOrientation) {
@@ -2621,7 +2706,7 @@
         };
         /**
          * Creates a ground mesh from a height map.
-         * tuto : http://doc.LIBjs.com/tutorials/14._Height_Map
+         * tuto : http://doc.LIBjs.com/LIB101/height_map
          * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `url` sets the URL of the height map image resource.
          * The parameters `width` and `height` (positive floats, default 10) set the ground width and height sizes.
@@ -2666,7 +2751,7 @@
          * The parameter `cap` sets the way the extruded shape is capped. Possible values : LIB.Mesh.NO_CAP (default), LIB.Mesh.CAP_START, LIB.Mesh.CAP_END, LIB.Mesh.CAP_ALL
          * The optional parameter `instance` is an instance of an existing Tube object to be updated with the passed `pathArray` parameter : http://doc.LIBjs.com/tutorials/How_to_dynamically_morph_a_mesh#tube
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateTube = function (name, path, radius, tessellation, radiusFunction, cap, scene, updatable, sideOrientation, instance) {
@@ -2693,10 +2778,10 @@
          * You can build other polyhedron types than the 15 embbeded ones by setting the parameter `custom` (`polyhedronObject`, default null). If you set the parameter `custom`, this overwrittes the parameter `type`.
          * A `polyhedronObject` is a formatted javascript object. You'll find a full file with pre-set polyhedra here : https://github.com/LIBJS/Extensions/tree/master/Polyhedron
          * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (Color4, default `(1, 1, 1, 1)`) and faceUV (Vector4, default `(0, 0, 1, 1)`).
-         * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.LIBjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
+         * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.LIBjs.com/tutorials/CreateCube_Per_Face_Textures_And_Colors
          * The parameter `flat` (boolean, default true). If set to false, it gives the polyhedron a single global face, so less vertices and shared normals. In this case, `faceColors` and `faceUV` are ignored.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreatePolyhedron = function (name, options, scene) {
@@ -2710,7 +2795,7 @@
          * The parameter `subdivisions` sets the number of subdivisions (postive integer, default 4). The more subdivisions, the more faces on the icosphere whatever its size.
          * The parameter `flat` (boolean, default true) gives each side its own normals. Set it to false to get a smooth continuous light reflection on the surface.
          * You can also set the mesh side orientation with the values : LIB.Mesh.FRONTSIDE (default), LIB.Mesh.BACKSIDE or LIB.Mesh.DOUBLESIDE
-         * Detail here : http://doc.LIBjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * Detail here : http://doc.LIBjs.com/LIB101/discover_basic_elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateIcoSphere = function (name, options, scene) {
@@ -2836,7 +2921,7 @@
                 for (inf = 0; inf < 4; inf++) {
                     weight = matricesWeightsData[matWeightIdx + inf];
                     if (weight > 0) {
-                        LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, matricesIndicesData[matWeightIdx + inf] * 16, weight, tempMatrix);
+                        LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesData[matWeightIdx + inf] * 16), weight, tempMatrix);
                         finalMatrix.addToSelf(tempMatrix);
                     }
                     else
@@ -2846,7 +2931,7 @@
                     for (inf = 0; inf < 4; inf++) {
                         weight = matricesWeightsExtraData[matWeightIdx + inf];
                         if (weight > 0) {
-                            LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, matricesIndicesExtraData[matWeightIdx + inf] * 16, weight, tempMatrix);
+                            LIB.Matrix.FromFloat32ArrayToRefScaled(skeletonMatrices, Math.floor(matricesIndicesExtraData[matWeightIdx + inf] * 16), weight, tempMatrix);
                             finalMatrix.addToSelf(tempMatrix);
                         }
                         else
@@ -2879,8 +2964,8 @@
                     maxVector = boundingBox.maximumWorld;
                 }
                 else {
-                    minVector.MinimizeInPlace(boundingBox.minimumWorld);
-                    maxVector.MaximizeInPlace(boundingBox.maximumWorld);
+                    minVector.minimizeInPlace(boundingBox.minimumWorld);
+                    maxVector.maximizeInPlace(boundingBox.maximumWorld);
                 }
             });
             if (!minVector || !maxVector) {
@@ -2992,4 +3077,5 @@
     LIB.Mesh = Mesh;
 })(LIB || (LIB = {}));
 
+//# sourceMappingURL=LIB.mesh.js.map
 //# sourceMappingURL=LIB.mesh.js.map
