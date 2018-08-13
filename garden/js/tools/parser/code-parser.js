@@ -22,10 +22,7 @@ var parseUrl = function(src, opts) {
     })
 }
 
-var parseCode = function (codeString, opts={
-        locations: true,
-        ranges: true
-    }) {
+var parseCode = function (codeString, opts={locations: true,ranges: true}) {
 
     var comments = opts.onComment = [];
     var tokens = opts.onToken = [];

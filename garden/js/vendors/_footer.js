@@ -1,2 +1,2 @@
 console.log('footer')
-})(LIB)
+//})(LIB)

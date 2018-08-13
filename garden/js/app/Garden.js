@@ -1,60 +1,11 @@
-class StartFunctionRender extends EngineMount {
-
-    constructor(entity/*, owner, config*/){
-        /* Init the start function renderer by applying the `startCaller` to the RenderList._renderers.*/
-        let config = {}
-        if(arguments.length == 2) {
-            config = arguments[1]
-        }
-        if(arguments.length == 3) {
-            let owner = arguments[1]
-            config = arguments[2]
-            if(config.owner != undefined) {
-                console.warn('Two owner applications given', config.owner, owner )
-            };
-
-            config.owner = owner
-        }
-
-        super(entity, config)
-
-        this.addRenderLayer(this.startCaller.bind(this))
-    }
-
-    startCaller(scene, index) {
-        /* Call the `start` function and any patches then remove the function from the _render
-        list.
-
-        This method - given as a 'render' method for the render loop performs
-        the Garden run integration, performing any first time (last options) scene integration,
-        implementing any 3D functions waiting for a scene.
-
-        The patches are appled and the api `start` method is called then deleted from the render loop.
-        */
-
-        // this._patchCall('$start', [scene, this])
-        let r = this.start(scene, index);
-        // this._patchCall('$afterStart', [scene])
-        this._renderers.splice(index, 1)
-        return r;
-    }
-
-    start(){
-        /* Open API method for applying all user code without affecting the
-        running engine. `start()` is automatically called as the first rendering
-        method for the render loop. */
-        console.log('StartFunctionRender.start!')
-    }
-
-}
-
 class Sibling extends StartFunctionRender {
     /* */
 }
 
 
 class App extends Sibling {
-     /* API Exposed class for extending the Application and its host components*/
+     /* API Exposed class for extending the
+     Application and its host components */
 
 }
 
@@ -65,11 +16,16 @@ class Garden extends Events {
         super()
         console.log('Garden.constructor')
         this._pluginRegister = Garden._pluginRegister
+        this.getRenderer = this._getRendererWithWarning
+        // Store of 'name' for the chosen $renderer.
+        this._selectedRenderer = undefined
+        this.$renderers = undefined
+
+        this.sceneCameras = [];
 
         this._init(config)
         this.init(config)
     }
-
 
     _init(constructorConfig){
         /* An internal init method called by the constructor before the API
@@ -80,17 +36,109 @@ class Garden extends Events {
             this._pluginRegister[i].mount(this)
         }
 
-        this.hoistApps()
+        if(config.allowConfigPoison != false) {
+            // Allow the mutation of the config object.
+            this.config = config;
+        }
+
+        this._hoistRenderers()
     }
 
-    hoistApps() {
-        // Shit I cannie remember what this function was for... I should learn to
-        // document my code better.
-        // debugger
-        this.$on('mounted', this.mountEvent)
+    _hoistRenderers() {
+        /*
+            Start the internal Application rendering functions
+            ready for engine mounting.
+         */
+        let conf = this.config
+        let renderers = conf.apps
+        console.log('_hoistRenderers')
+        if(renderers == undefined && conf.app != undefined) {
+            console.log('Found an app')
+            renderers = [conf.app]
+        }
+
+        if(renderers == undefined || renderers.length == 0) {
+            console.log('Using default pickup params.')
+            let defApp = this._defaultApp(conf)
+            if(conf.element != undefined) {
+                /* Build renderer app -
+                Collecting attributes from root conf */
+                let app = {}
+                for(let key in defApp) {
+                    let value = defApp[key]
+                    if(conf[key] != undefined) {
+                        value = conf[key]
+                    } else {
+                        console.warn(`Key ${key} does not exist in the given config.`)
+
+                    }
+
+                    app[key] = value
+                }
+
+                defApp = app;
+            }
+
+            renderers = [defApp]
+        }
+
+        let started = []
+        let $rNames = {}
+        let RendererClass = this.getRendererClass()
+
+        let pushApp = function(appD, key) {
+            let name = appD.name == undefined? key: appD.name
+            let app = new RendererClass(appD.element, {
+                name: name
+                , size: appD.size
+                , sceneColor: appD.sceneColor
+            })
+
+            started.push(app)
+            $rNames[name] = app
+        }
+
+        if(it(renderers).is('array')) {
+            for (var i = 0; i < renderers.length; i++) {
+                pushApp(renderers[i])
+            }
+        } else {
+            for(let key in renderers) {
+                pushApp(renderers[key], key)
+            }
+        }
+
+        this.$renderers = started
+        this.$r = $rNames
+
+        for (var i = 0; i < started.length; i++) {
+            started[i].mount()
+        }
+
+        for (var i = 0; i < started.length; i++) {
+            this.initialRig(started[i])
+        }
+
+        console.log('Mounted', started.length)
+        // Emit a mount event so any other global Garden instances may
+        // capture new apps.
+        this.$on('mounted', this._mountEventHandler)
     }
 
-    mountEvent(eventData){
+    _defaultApp(config) {
+        if(config == undefined) {
+            config = {}
+        }
+
+        return {
+            element: config.element || undefined
+            , name: 'main'
+            , size: config.size || [800, 600]
+            , sceneColor: config.sceneColor || 'lightBlue'
+        }
+    }
+
+    _mountEventHandler(eventData){
         let data = eventData.detail.data
         let name = data.parent.name
 
@@ -102,25 +150,37 @@ class Garden extends Events {
         Garden._instances[name] = data;
     }
 
+    defaultConfig() {
+        /* A default config to for the override config to extend.*/
+        return {
+            // apps: {
+            //     size: [800, 600]
+            //     , sceneColor: 'green'
+            //     , name: 'Garden'
+            // }
+            sceneCameraAttach: true
+        }
+    }
+
     config(){
         /* API method exposing the init configuration of the internal App
         instance, */
 
-        let apps = {
-            app: {
-                appClass: 'App'
-                , element: 'renderCanvas'
-                , size: [800, 600]
-                , sceneColor: 'lightBlue'
-            }
+        // let apps = {
+        //     app: {
+        //         appClass: 'App'
+        //         , element: 'renderCanvas'
+        //         , size: [800, 600]
+        //         , sceneColor: 'lightBlue'
+        //     }
 
-            , app2: {
-                name: "app2"
-                , element: 'otherCanvas'
-                , size: [500, 400]
-                , sceneColor: 'darkSlateBlue'
-            }
-        }
+        //     , app2: {
+        //         name: "app2"
+        //         , element: 'otherCanvas'
+        //         , size: [500, 400]
+        //         , sceneColor: 'darkSlateBlue'
+        //     }
+        // }
 
         apps = [
             {
@@ -138,11 +198,17 @@ class Garden extends Events {
             }
         ]
 
-        return { apps }
+        let conf = {
+            apps
+        }
+
+        return conf;
     }
 
     _createConfig(initConfig){
-
+        /* Build an initial config object using the given
+        initial config (from constructor), the internal this.config,
+        and plugin configs and later the run config.*/
         let conf = this.config
         let updatedConfig
 
@@ -150,7 +216,7 @@ class Garden extends Events {
             conf = this.config()
         }
 
-        conf = Object.assign({}, conf, initConfig)
+        conf = Object.assign(this.defaultConfig(), conf, initConfig)
 
         for (var i = 0; i < this._pluginRegister.length; i++) {
             updatedConfig = this._pluginRegister[i].setConfig(this, conf)
@@ -174,6 +240,87 @@ class Garden extends Events {
         this._pluginRegister.push(plugin)
     }
 
+    initialRig(renderer, config){
+        log('Initial Rig')
+
+        if(renderer == undefined) {
+            renderer = this.getRenderer()
+        }
+
+        if(config == undefined) {
+            config = this.getConfig()
+        }
+
+        let camera = this.getSceneCamera(renderer, config)
+        if(config.sceneCameraAttach) {
+            camera.attachControl(renderer.canvas, true);
+        } else {
+            log('Did not attach scene camera control')
+        }
+    }
+
+    getSceneCamera(renderer, config) {
+        /* Get or create the sceneCamera. */
+        if(renderer == undefined) {
+            renderer = this.getRenderer()
+        }
+
+        if(renderer.sceneCamera != undefined) {
+            return renderer.sceneCamera
+        }
+
+        if(config == undefined) {
+            config = this.getConfig()
+        }
+
+        var camera = new LIB.ArcRotateCamera("Camera",
+            Math.PI / 2, Math.PI / 2, 2,
+            LIB.Vector3.Zero(), renderer.scene);
+
+        renderer.sceneCamera = camera
+        this.sceneCameras.push(camera)
+
+        return camera
+    }
+
+    getRendererClass(){
+        return StartFunctionRender
+    }
+
+    _getRendererWithWarning(){
+        /* Get the current renderer for the application. */
+        if(this.$renderers.length > 1) {
+            console.warn('More than one renderer exists for this instance.\n'
+                        + 'The last renderer will be selected by default.')
+        }
+
+        let renderer = this.$renderers[this.$renderers.length - 1]
+        this._selectedRenderer = renderer.name
+
+        if(this._selectedRenderer == undefined) {
+            console.warn('Render app does not have a name.\n'
+                        + 'Adding name "main" by default')
+            this._selectedRenderer = 'main'
+            renderer.name = this._selectedRenderer
+        }
+
+        this.getRenderer = this._getRenderer
+        return renderer
+    }
+
+    _getRenderer(){
+        return this.$r[this._selectedRenderer]
+    }
+
+    getConfig(){
+        /* Return the current full configuration for the instance.
+        This is not affected by config poison.*/
+        let conf = this.config
+        if(it(conf).is('function')) { conf = this.config() }
+
+        return conf
+    }
+
     init(){
         /* open hook for API access on constructor.*/
     }
@@ -181,6 +328,33 @@ class Garden extends Events {
     run(){
         /* First boot method of the entire rendering unit. All configurations
         are final. Attributtes for the engine are applied and `run` is performed. */
+        console.log('Run')
+    }
+
+    start(){
+        /* You application hook to start your scene objects in isolation
+        to the standard scene setup flow.
+        At this point, `init()`, and `created()` ran. The `run()` method
+        called this `start()` function after the `initialRig()` is prepared.
+
+            class MyApp {
+                start(){
+                    // Create it
+                    let cube = new Cube()
+                    console.log('New cube', cube)
+                    // Show it
+                    this.children.add(cube)
+                    // Store it for later.
+                    this.cube = cube
+                }
+            }
+
+            (new MyApp).run()
+
+
+        Calling `start()` instead of `run()` may not render the scene correctly.
+
+        */
     }
 
     static instances() {

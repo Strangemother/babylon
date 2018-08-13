@@ -21,8 +21,10 @@ class RenderList extends RenderLoop {
 
     renderLoop(scene, config) {
         /* The render loop performs the scene.render() and steps the super(),
-        calling each method in the render list.*/
-        scene.render()
+        calling each method in the render list.
+
+            scene: The LIB engine scene currently in render loop
+            Config: the application config given to the constructor */
 
         // Replace the existing functionality rather than perform a super call.
         this._renderLoopCounter += 1

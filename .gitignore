@@ -1,4 +1,11 @@
 js/babylon
+garden/js/vendors/converted/
+*/garden/js/vendors/out/*
+garden/third-party/Babylon.js-master/
+garden/js/vendors/babylon*
+garden/js/vendors/SRC.js
+alpha/js/babylon/
+
 
 # Logs
 logs

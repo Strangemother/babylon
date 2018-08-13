@@ -1,10 +1,11 @@
 var assets = [
    'js/vendors/lib.js'
+   // 'js/vendors/babylon.3-1.js'
    , 'js/vendors/it.js'
 
-   , 'js/vendors/acorn/acorn.js'
-   , 'js/vendors/acorn/acorn_loose.js'
-   , 'js/tools/parser/code-parser.js'
+   //, 'js/vendors/acorn/acorn.js'
+   //, 'js/vendors/acorn/acorn_loose.js'
+   //, 'js/tools/parser/code-parser.js'
 
    , 'js/app/DisplayObject.js'
 
@@ -12,6 +13,7 @@ var assets = [
    , 'js/app/RenderLoop.js'
    , 'js/app/RenderList.js'
    , 'js/app/EngineMount.js'
+   , 'js/app/StartFunctionRender.js'
    , 'js/app/Garden.js'
 
 

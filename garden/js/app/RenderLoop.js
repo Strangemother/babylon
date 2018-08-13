@@ -63,6 +63,7 @@ class Events {
     }
 }
 
+
 class RenderLoop extends Events {
     /* A thin render loop */
 
@@ -83,7 +84,6 @@ class RenderLoop extends Events {
         this._stop = false
         return this._initloop(engine, config)
     }
-
 
     _initloop(engine, config) {
         /* perform any last initialisation for the loop
