@@ -100,3 +100,65 @@ produced to accept the `initialRig`.
 
         }
     }
+
+## Scene Discovery.
+
+Giving the 'scene' to a display object is a little tricky. An entity is a unit class
+
+    cube = new Cube
+    cube.addTo()
+
+The scene instance should be given at some point:
+
+    let scene = this.$r.main.scene
+    new Cube({ scene })
+
+Or at any configuration point before baking 'createMesh(bakedConfig, scene)'
+
+    cube = new Cube
+    cube.addToScene({ color: red, scene })
+
+Add the scene automatically by utilizing the live load-in
+
+    cube = new Cube(app)
+    cube.addToScene(config)
+
+With one app instance, the 'renderer' selection automatically selects the last.
+This can save a few keystrokes:
+
+    cube = new Cube()
+    cube.addToScene()
+    // app.getRenderer()
+
+With more than one scene, the last generated app engine scene is used.
+Add to a specific renderer:
+
+    cube = new Cube()
+    cube.addToScene('main')
+
+
+
+
+
+A DisplayObject can be added to:
+
+    'scene':        The garden app engines current webgl runtime loop
+    app instance:   Apply to the instance of your app "cube.addTo(myapp)"
+    display object: Another display object as a child "cube.addTo(ball)"
+    a scene:        cube.addToScene(g.$r.main.scene), cube.addTo(g.$r.main.scene)
+
+
+
+# Shapes
+
+A Shape defines a single 3D object Abtract base to extend and utilize the LIB meshes.
+
+    let cube = new Cube()
+    cube.addToScene()
+
+DisplayObject
+    constructor - nothing but apply init config data given.
+    init - auto ran for hooking constructor
+    createMesh - Generate the object data ready for scene integration
+    addTo X - Render to a scene
+

@@ -9,6 +9,30 @@ class App extends Sibling {
 
 }
 
+
+;(function mountDetection(){
+
+    class MountDetection extends Events {
+
+        constructor(){
+            super()
+            this.$on('mounted', this._mountEventHandler)
+        }
+
+        _mountEventHandler(eventData){
+            let data = eventData.detail.data
+
+            let name = data.parent? data.parent.name: data.canvas.id
+            console.log('Recording instance', name)
+            Garden._instances[name] = data;
+        }
+    }
+
+    let mountDetection = new MountDetection()
+
+})();
+
+
 class Garden extends Events {
 
     constructor(config){

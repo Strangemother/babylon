@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+
+<head>
+   <meta charset="utf-8">
+   <title>Grid</title>
+
+   <link href="css/main.css" rel="stylesheet">
+   <link href="css/grid.css" rel="stylesheet">
+   <link href="js/lib/dev/gridster/dist/jquery.gridster.min.css" rel="stylesheet">
+   <link href="js/lib/dev/materialize/material.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-blue.min.css" />
+   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+   <link href="https://fonts.googleapis.com/css?family=Istok+Web:700" rel="stylesheet">
+
+</head>
+
+<body>
+
+   <div class="developer">
+      <div class='gridster' id="dev-interface">
+         <!-- space for injection -->
+         <ul>
+            <li class='welcome center-center' data-row='1' data-col="1" data-sizex="3" data-sizey="2">
+               <p>Hi There.</p>
+            </li>
+         </ul>
+      </div>
+   </div>
+
+
+   <!-- Template objects -->
+   <div class="templates">
+
+      <div templated='input:number'
+         class="mdl-textfield mdl-js-textfield">
+         <input receiver class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample2">
+         <label class="mdl-textfield__label" for="sample2">Number...</label>
+         <span class="mdl-textfield__error">Input is not a number!</span>
+      </div>
+   </div>
+
+
+   <!-- <script type="text/javascript" src='js/main.js'></script> -->
+
+   <script type="text/javascript" src='js/vendor/IT.js'></script>
+
+   <script type="text/javascript" src='js/lib/dev/jquery-3.1.0.min.js'></script>
+   <script type="text/javascript" src='js/lib/dev/materialize/material.min.js'></script>
+   <script type="text/javascript" src='js/lib/dev/gridster/dist/jquery.gridster.js'></script>
+   <script type="text/javascript" src='js/lib/dev/rivets.bundled.min.js'></script>
+
+   <script type="text/javascript" src='js/lib/dev/DevInterface.js'></script>
+
+   <script type="text/javascript" src='js/grid.config.js'></script>
+   <script type="text/javascript" src='js/grid.js'></script>
+</body>
+</html>

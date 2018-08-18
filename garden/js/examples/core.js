@@ -37,7 +37,7 @@ class ManualSetup {
             /* Bind the loop render function to the Renderer.
             This function will update the scene at 60fps.*/
 
-            //, render: (s) => s.render() // this.render.bind(this)
+            , render: (s) => s.render() // this.render.bind(this)
         })
 
         this.renderer.mount()

@@ -32,7 +32,7 @@ class EngineMount extends RenderList {
         let [conf, canvas, engine, scene] = this.create(canvas_entity, config)
         log(`EngineMount.mount - Mount with ${Object.keys(conf)} on ${canvas.id}`)
         this._mounted = true
-        this.$emit('mounted', { config: conf, canvas, engine, scene, parent: conf.owner})
+        this.$emit('mounted',{ config: conf, canvas, engine, scene, parent: conf.owner})
         return this.mounted(conf, canvas, engine, scene);
     }
 

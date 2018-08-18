@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+
+   <head>
+      <meta charset="utf-8">
+      <title>Babylon - App Scene</title>
+      <link href="css/main.css" rel="stylesheet">
+      <link href="js-v2/vendor/mocha/mocha.css" rel="stylesheet">
+   </head>
+
+<body>
+
+<div class="side-by-side">
+   <div class="class-reader hidden" id="class_reader">
+      <h3 class="class-name">Class Reader</h3>
+
+      <div class="tools">
+         <div class="vert-panel garden-class">
+            <input type="text"
+               id='reader-class-input'
+               ref='selected'
+               list='garden-class-list'
+               v-on:keyup.enter="submit">
+
+            <datalist id='reader-class-list'>
+               <template v-for="item in classes">
+                  <option>{{ item }}</option>
+               </template>
+            </datalist>
+
+            <div class="class-content">
+               {{ name }}
+            </div>
+         </div>
+         <a href="javascript:;" @click='loadItem' class="btn">Load</a>
+      </div>
+
+      <div class="methods">
+         <h3>methods</h3>
+         <ul class="methods-list">
+            <li class="methods-item"
+               v-for='mname in sorted(loaded.methodNames)'>{{ mname }}</li>
+         </ul>
+      </div>
+      <div class="selected">
+         <h2 class="title">Loaded: {{ loaded.name }}</h2>
+         <div class="classes">
+            <h3>classes</h3>
+            <ul class="classes-list">
+               <li :class="['classes-item', {isinstance: loaded.name == cname}]"
+                  v-for='cname in loaded.classChain'>{{ cname }}</li>
+            </ul>
+         </div>
+
+         <div class="keys">
+            <h3>keys</h3>
+            <ul class="keys-list">
+               <li class="keys-item"
+                  v-for='kname in loaded.keys'>{{ kname }}</li>
+            </ul>
+         </div>
+      </div>
+   </div>
+
+   <div class="view">
+
+      <div class="main-panel">
+         <canvas id="renderCanvas" class="main-canvas"></canvas>
+      </div>
+
+      <div class="main-panel addons">
+         <div class="vert-panel">
+            <h2>Application</h2>
+            <div class='panel apps'>
+               <select v-model='selected'>
+                  <option v-for='item in apps'
+                     v-bind:selected="item[0] == selected"
+                     :value="item[0]">{{ item[1] }}</option>
+               </select>
+
+            </div>
+         </div>
+         <div class="vert-panel">
+            <h2>Create</h2>
+            <div class='shapes'>
+               <select v-model='selected'>
+                  <option v-for='(key, item) in items'
+                     v-bind:selected="key == selected"
+                     :value="key">{{ key }}</option>
+               </select>
+            </div>
+         </div>
+
+         <div class="vert-panel tests">
+
+            <div class="inline">
+               <h2>Tests</h2>
+               <button id='run_tests'>Run Tests</button>
+            </div>
+
+            <div id="mocha" class=themed></div>
+         </div>
+
+         <div class="vert-panel animator">
+
+            <div class="inline">
+               <h2>Animator</h2>
+               <button>Toggle</button>
+            </div>
+
+
+            <div class="controls open">
+               <div class="tools">
+                  <button v-on:click='loadSelected'>Load</button>
+                  <h3>{{ selectedData.type }} - {{ selectedData.name }}</h3>
+               </div>
+
+               <div class="keyframe-scrubber">
+                  <scrubber v-bind:value=100>
+                     <label>Frames</label>
+                  </scrubber>
+               </div>
+
+               <div class="rows">
+                  <div class="item" v-model='selectedData'>
+                     <div class="animation" v-for='anim in animations'>
+
+                        <div class="scrubber-row">
+                           <scrubber v-bind:anim='anim'>
+                              <label>{{ anim.property }}</label>
+                           </scrubber>
+
+                           <pointer-keys v-bind:anim='anim'></pointer-keys>
+
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div class="vert-panel colors">
+
+            <div class="inline">
+               <h2>Color</h2>
+               <button  v-on:click='toggleIsOpen'>Toggle</button>
+            </div>
+
+            <div class="controls" v-bind:class="{ open: isOpenControls }">
+               <div class="cs">
+                  <label>
+                     <span class="text">{{ lightContrastValue }}</span>
+                     <input type="range" v-model='lightContrastValue' min="0" max="200" step='10' />
+                  </label>
+               </div>
+               <div class="cs">
+                  <label>
+                     <span class="text">{{ redMultiplier }}</span>
+                     <input type="range" v-model='redMultiplier' min="0" max="500" step='10' />
+                  </label>
+               </div>
+               <div class="cs">
+                  <label>
+                     <span class="text">{{ greenMultiplier }}</span>
+                     <input type="range" v-model='greenMultiplier' min="0" max="500" step='10' />
+                  </label>
+               </div>
+               <div class="cs">
+                  <label>
+                     <span class="text">{{ blueMultiplier }}</span>
+                     <input type="range" v-model='blueMultiplier' min="0" max="500" step='10' />
+                  </label>
+               </div>
+            </div>
+
+            <div class="colors-container"  v-bind:class="{ open: isOpen }">
+               <div class="color-item"
+                  v-for='color in colors'
+                  v-on:click='selectColor(color)'
+                  v-bind:class="{ bright: lightContrast(color) }"
+                  v-bind:style='{ backgroundColor: hexColor(color) }'>
+                  <!-- <span>{{ contrastValue(color)}} {{ lightContrast(color)}}</span> -->
+                  <span class="color">{{ color }}</span>
+                  <span class="hex">{{ hexColor(color) }}</span>
+               </div>
+            </div>
+         </div>
+
+         <div class="vert-panel garden-class">
+            <input type="text"
+               id='garden-class-input'
+               list='garden-class-list'
+               v-on:keyup.enter="submit">
+
+            <datalist id='garden-class-list'>
+               <template v-for="item in items">
+                  <option>{{ item }}</option>
+               </template>
+            </datalist>
+
+            <div class="class-content">
+               {{ name }}
+            </div>
+         </div>
+      </div>
+   </div>
+
+</div>
+
+<div class="tools">
+</div>
+
+
+
+
+<div class="log-parent">
+   <div class="log-container" data-template data-logger>
+      <div class="title">{{=it.name}} <span data-count></span></div>
+      <div class="log-content-wrapper">
+         <!-- Map to data-list object. -->
+         <div class="history hidden" data-history-bar>
+            <span class="value" data-history-count>0</span> messages stored to <a href="javascript">history</a> <a href="javascript">clear</a>
+         </div>
+         <div class="filters">
+            <label class='lineo'>
+               <input type="checkbox" class="lineo {{=it.indexCheck}}" name="lineo" id="lineo">
+               <span>Line Numbers</span>
+            </label>
+            <label class='timestamp'>
+               <input type="checkbox" class="timestamp {{=it.timeCheck}}" name="timestamp" id="timestamp">
+               <span>Time stamp</span>
+            </label>
+            <label class='filter'>
+               <span>Filter</span>
+               <input type="text" name="filter" id="filter">
+            </label>
+         </div>
+         <ul class="log-collection" data-list='items'>
+
+            <li class="log-item template" data-template='default'>
+               <span class="index {{=it.indexCheck}}">{{=it.index1}}</span>
+               <span class="name">{{=it.name}}</span>
+               <span class="info" data-info="{{=it.info}}"></span>
+               <span class="time {{=it.timeCheck}}">{{=it.time}}</span>
+               <span class="value">{{=it.value}}</span>
+            </li>
+         </ul>
+      </div>
+   </div>
+</div>
+
+<script type="text/javascript" src='js/vendor/doT/doT.js'></script>
+<script type="text/javascript" src='js-v3/lib/extras/loader.js'></script>
+<script type="text/javascript" src='js-v3/files.js'></script>
+
+
+</body>
+</html>

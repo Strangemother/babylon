@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+<head>
+   <meta charset="utf-8">
+   <title>Babylon Dev</title>
+
+   <link href="css/main.css" rel="stylesheet">
+   <link href="css/dev.css" rel="stylesheet">
+   <link href="js/lib/dev/gridster/dist/jquery.gridster.min.css" rel="stylesheet">
+   <link href="js/lib/dev/materialize/material.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+   <script src="js/babylon/dist/preview release/babylon.max.js"></script>
+   <!-- <script src="js/babylon/hand.js"></script> -->
+   <script src="js/babylon/dist/preview release/cannon.js"></script> <!-- optional physics engine -->
+   <script src="js/babylon/dist/preview release/Oimo.js"></script> <!-- optional physics engine -->
+
+</head>
+
+<body>
+
+   <canvas id="game_canvas"></canvas>
+   <canvas id="test_canvas"></canvas>
+   <canvas id="renderCanvas" class="main-canvas"></canvas>
+
+   <div class="developer">
+      <div class='gridster' id="dev-interface">
+         <!-- space for injection -->
+         <ul>
+            <!-- <li data-row='1' data-col="1" data-sizex="3" data-sizey="2">
+               <button templated id='run'>Run</button>
+               <button templated id='runDev'>Dev</button>
+            </li> -->
+         </ul>
+      </div>
+   </div>
+
+
+   <!-- Template objects -->
+   <div class="templates">
+
+      <div templated='input:number'
+         class="mdl-textfield mdl-js-textfield">
+         <input receiver class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample2">
+         <label class="mdl-textfield__label" for="sample2">Number...</label>
+         <span class="mdl-textfield__error">Input is not a number!</span>
+      </div>
+   </div>
+
+
+   <!-- <script type="text/javascript" src='js/main.js'></script> -->
+
+   <script type="text/javascript" src='js/vendor/IT.js'></script>
+   <script type="text/javascript" src='js/lib/AppScene.js'></script>
+
+   <!-- Utils not dependant upon CoreClass -->
+   <script type="text/javascript" src='js/lib/Keyboard.js'></script>
+   <script type="text/javascript" src='js/lib/materials.js'></script>
+   <script type="text/javascript" src='js/lib/measureText.js'></script>
+   <script type="text/javascript" src='js/lib/EventEmitter.js'></script>
+
+   <!-- CoreClass required list, for gaming classes -->
+   <script type="text/javascript" src='js/lib/CoreClass.js'></script>
+   <script type="text/javascript" src='js/lib/Configure.js'></script>
+   <script type="text/javascript" src='js/lib/Position.js'></script>
+   <script type="text/javascript" src='js/lib/Panel2D.js'></script>
+   <script type="text/javascript" src='js/lib/MatrixLayout.js'></script>
+   <script type="text/javascript" src='js/lib/GameObject.js'></script>
+   <script type="text/javascript" src='js/lib/GameInterface.js'></script>
+   <script type="text/javascript" src='js/lib/GameLevel.js'></script>
+   <script type="text/javascript" src='js/lib/GameRig.js'></script>
+   <script type="text/javascript" src='js/lib/GameData.js'></script>
+   <script type="text/javascript" src='js/lib/GameScene.js'></script>
+   <script type="text/javascript" src='js/lib/Cameras.js'></script>
+
+
+   <script type="text/javascript" src='js/lib/StubCanvas.js'></script>
+   <script type="text/javascript" src='js/lib/objects.js'></script>
+   <script type="text/javascript" src='js/lib/units.js'></script>
+
+   <script type="text/javascript" src='js/lib/Tree.js'></script>
+
+   <script type="text/javascript" src='js/game/IntroLevel.js'></script>
+
+   <script type="text/javascript" src='js/lib/dev/jquery-3.1.0.min.js'></script>
+   <script type="text/javascript" src='js/lib/dev/materialize/material.min.js'></script>
+   <script type="text/javascript" src='js/lib/dev/gridster/dist/jquery.gridster.js'></script>
+   <script type="text/javascript" src='js/lib/dev/rivets.bundled.min.js'></script>
+
+   <script type="text/javascript" src='js/lib/dev/DevInterface.js'></script>
+   <!-- <script type="text/javascript" src='js/lib/dev/components/camera/main.js'></script> -->
+
+   <script type="text/javascript" src='js/config.js'></script>
+   <script type="text/javascript" src='js/main.js'></script>
+</body>
+</html>
