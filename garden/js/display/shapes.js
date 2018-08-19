@@ -1,73 +1,74 @@
 // http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#linesystem
-class Shape extends DisplayObject {
-    /* A Basic shape for an entity in the view. */
 
-    adapterName() {
-        /* Return the name of the mesh object for the engine.*/
-        let n = super.adapterName();
-        return `Create${n}`;
+class Shape extends DisplayObject {
+
+    gardenType(){
+        return 'Shape'
     }
 
-    adapterCallbable(){
-        /* the callable unit to call with the extracted adaoterName
-        upon create.*/
+    adapterProcedure(){
+        /* the callable unit to call with the extracted adapterName
+        upon create().*/
         return  LIB.MeshBuilder
     }
 
-    executeAdatper(adapterCallbable, name, ...args) {
-        return adapterCallbable[name](...args);
+    getAdapterName() {
+        /* Return the name of the mesh object for the engine.*/
+        let n = this.adapterName()
+        return `Create${n}`;
     }
-
-    babylonParams(scene, overrides) {
-        /* Return the configured options in order for this.babylonCall arguments
-        Returned is [name, options, scene] */
-        let name = this.generateName()
-            , options = this.generateOptions(overrides)
-            ;
-        return [name, options, scene]
-    }
-
-    _babylonParamsMissingKey(){
-        return [false, undefined]
-    }
-
 
     dupe(name) {
-        name = name || this.id;
+        name = name || this.__name;
         let i = new this.constructor
-        i._babylon = new LIB.InstancedMesh(simpleID(name), this._babylon);
+        i.$mesh = new LIB.InstancedMesh(simpleID(name), this.$mesh);
         /* return a new instance or _duplicate item_ instance*/
         return i;
     }
 
-    update(options) {
-        /* Call an update for an item flagged with option updateable=True.
-         A mesh with updated paramters mutates the currentl _bablyon item*/
-        let _options = Object.assign({ instance: this._babylon, null: true}, options);
-        let scene = this._app._scene;
-        let arr = this.babylonParams(
-            scene,
-            _options
-        );
+}
 
-        //console.log(arr)
-        let mesh = this._babylon;
-        let pathArray = options.pathArray
-        //arr = [
-        //    null, pathArray, null, null, null, null, null, null, mesh
-        //];
 
-        this.adapterCallbable()[this.adapterName()](scene, _options)
+class TestCube extends Shape {
+
+    adapterName(){
+        return 'Cube'
+    }
+
+    keys(){
+        /*
+            The DisplayObject keys map the internal option values to
+            the LIB Mesg display object for the scene. The configuration
+            provides a like-for-like translation and some syntax sugar.
+
+            The basic key set defines an array of strings.
+            Each item within the list may be a string or a definition object
+        */
+        return [
+            //size    (number) size of each box side  1
+            { key: 'size', required: true, default: 1 }
+            //height  (number) height size, overwrites size property  size
+            // mesh param, fallback values
+            , ['height', 'size']
+            //width   (number) width size, overwrites size property   size
+            , { key: 'width', fallback: 'size'}
+            //depth   (number) depth size, overwrites size property   size
+            , { key: 'depth', alt: 'length', fallback: 'size'}
+            //faceColors  (Color4[]) array of 6 Color4, one per box face  Color4(1, 1, 1, 1) for each side
+            , { key: 'faceColors', type: Array, alt: ['colors'] }
+            //faceUV  (Vector4[]) array of 6 Vector4, one per box face    UVs(0, 0, 1, 1) for each side
+            , 'faceUV'
+            //updatable   (boolean) true if the mesh is updatable false
+            , { key: 'updatable', type: Boolean, alt: ['allowUpdate', 'update'],  default: true}
+            //sideOrientation (number) side orientation   DEFAULTSIDE
+            , 'sideOrientation'
+        ]
     }
 }
 
 
 class Cube extends Shape {
     /* A basic mesh object to help build LIB.Mesh components*/
-
-    adapterName(){
-        return "Box"
-    }
 
     keys(){
         return [

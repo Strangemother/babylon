@@ -136,8 +136,11 @@ Add to a specific renderer:
     cube = new Cube()
     cube.addToScene('main')
 
+### Picking scene during create
 
-
+    t= new TestCube()
+    t.create({size:2}) // Default _last_ scene
+    t.create({size:2}, g.$r.first.scene)
 
 
 A DisplayObject can be added to:

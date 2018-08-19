@@ -385,6 +385,32 @@ class Garden extends Events {
         /* REturn a list of open Garden instances*/
         return Object.values(Garden._instances)
     }
+
+    static getInstance() {
+        /* Return one active instance of a a Garden application,
+        utilizing the count of instances and the default selected instance
+        If a target instance cannot be discovered through manual
+        mapping the last active instance is returned. */
+
+        try{
+
+            // Get the master App.
+            let instances = Garden.instances()
+            // Pick last
+            let instance = instances[instances.length - 1]
+
+            if(instance == undefined) {
+                console.error('No Garden instances. ')
+            }
+
+            return instance
+        } catch {
+            console.error(`Could not automatically discover a scene: \n`
+                    + 'scene;config.scene;app[last renderer]scene\n... do not exist.' )
+        }
+
+
+    }
 }
 
 Garden._instances = {}

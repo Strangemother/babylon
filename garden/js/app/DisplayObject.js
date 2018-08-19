@@ -1,20 +1,102 @@
-class NewDisplayObject {
-    constructor(config){
+class DisplayObject {
+
+    constructor(config, scene, addNow=false){
         this.initConfig = config
-        this.init(config)
+
+        // A list of meshes to store when generated
+        this.$meshes = []
+        // A Dictionary of assignments for named mesh
+        this.$m = {}
+        // the last mesh to apply?
+        this.$mesh = undefined
+
+        autoProperties.hook(this, config, scene)
+        this.init.apply(this, arguments)
     }
 
-    init(config){
+    init(config, scene, addNow){
         /* ran after constructor setup by the engine to start
         api code. */
+
         if(config == undefined) {
             config = {}
         }
+
+        if(scene != undefined)  {
+            // Only add if existing; else allow open override.
+            this.scene = scene
+        }
+
+        if(addNow == true) {
+            /*
+                let cube = new Cube({ name, size }, scene, true)
+
+             */
+            // Auto add
+            this.addToScene(config, scene)
+        }
     }
 
-    create(config, scene=undefined) {
-        /* Generate an instance of the object mesh - to add to a scene.*/
+    addToScene(options, scene){
+        /*
+            addToScene(scene)
+            addToScene(options, scene)
+         */
+        if(scene == undefined && options instanceof(LIB.Scene)) {
+            // scene only
+            scene = options
+            options = undefined
+        }
+        // Return the last mesh applied to the scene.
+        let [name, meshConfig] = this.create(options, scene)
+        let mesh = this.applyMesh(name, meshConfig, scene)
+        autoProperties.applyToMesh(this,mesh, meshConfig, scene)
+        this.storeMesh(name, mesh)
+    }
 
+    applyMesh(name, meshConfig, scene) {
+        /*
+            Apply the mesh data to the scene. If the name, meshConfig and scene
+            are undefined, the __name, __meshConfig and standard scene are attempted
+            from the object instance.
+            The returned mesh is stored into the $meshes list.
+        */
+        meshConfig = meshConfig || this.__meshConfig
+        name = name || this.__name
+
+        let mesh = this.createMesh(meshConfig, scene)
+
+        // ;(function(){
+        //     this.__meshConfig = undefined
+        // }).apply(this);
+
+        return mesh
+    }
+
+    storeMesh(name, mesh) {
+
+        this.$meshes.push(mesh)
+        this.$m[name] = mesh
+        this.$mesh = mesh
+    }
+
+    create(options, scene){
+        /*
+         Build the internal lib options from the given options and _optional_ scene.
+
+         As this may be expensive, the methods to cache and generate the library
+         options are split from mesh implementation methods.
+         Call 'create' early followed by 'applyMesh' or a standard 'addToScene'
+
+         */
+        let [name, meshConfig] = this.createLibOptions(options)
+        this.__name = name
+        this.__meshConfig = meshConfig
+        return [name, meshConfig]
+    }
+
+    createLibOptions(config) {
+        /* Generate an instance of the object mesh - to add to a scene.*/
         if(config == undefined) {
             config = {}
             if(this.createConfig != undefined)  {
@@ -25,59 +107,10 @@ class NewDisplayObject {
         }
 
         let conf = this.getConfig(config)
-        let [name, meshConf] = this.createMeshOptions(conf)
-
-        if(scene == undefined) {
-            // Notice the 'undefined' - allowing 'null' as a property.
-            scene = this.discoverScene(conf)
-        }
-
-        let mesh = this.createMesh(name, meshConf, scene)
-        return mesh
-    }
-
-    discoverScene(config){
-        /* Find the selected scene */
-
-        // Pull from force cache
-        if(this.scene) { return this.scene }
-        if(config == undefined) { config = this.getConfig() }
-
-        // given in initConfig?
-        if( config.scene != undefined ) {
-            return config.scene
-        }
-
-        if(config.app != undefined) {
-            /* Garden app instance - extract renderer*/
-            return config.app.getRenderer().scene
-        }
-
-        try{
-
-            // Get the master App.
-            let instances = Garden.instances()
-            // Pick last
-            let instance = instances[instances.length - 1]
-            return instance.scene
-        } catch {
-            console.error(`Could not automatically discover a scene: \n`
-                    + 'scene;config.scene;app[last renderer]scene\n... do not exist.' )
-        }
-
-    }
-
-    createMesh(config, scene) {
-        console.log('Build display object',config, scene)
-    }
-
-    defaultConfig(){
-        /* A Base configuration for any diosplay object. */
-        return {
-            /* Allow the caching of generated key paramter values
-            to ensure a DisplayObject generates its Mesh keys once as it's expensive.*/
-            bake: true
-        }
+        // let [name, meshConf]
+        let [name, meshConfig] = this.createMeshOptions(conf)
+        let propConfig = this.renderProps(conf, meshConfig)
+        return [name, Object.assign(meshConfig,propConfig)]
     }
 
     getConfig(additionalConfig) {
@@ -86,10 +119,19 @@ class NewDisplayObject {
                 this.defaultConfig()
                 , this.initConfig
                 , this.createConfig
+                , this._props
                 , additionalConfig
             )
 
         return result
+    }
+
+    configure(object) {
+        this.initConfig = Object.assign(this.initConfig, object)
+        for(let key in object) {
+            // let f = autoProperties.propNames[key]
+            autoProperties.applyProp(this, key, object[key])
+        }
     }
 
     createMeshOptions(config) {
@@ -105,6 +147,96 @@ class NewDisplayObject {
         // Clean options?
 
         return meshOptions
+    }
+
+    adapterProcedure(){
+        /* the callable unit to call with the extracted adapterName
+        upon create().*/
+        return  LIB
+    }
+
+    adapterName(){
+        let n = this.constructor.name
+        //console.warn(`${n}.adapterName() should be overriden by a parent class`)
+        return n
+    }
+
+    getAdapterName() {
+        /* Return the name of the mesh object for the engine.*/
+        let n = this.adapterName()
+        return n
+    }
+
+    createMesh(config, scene){
+        /* Produce a mesh object of which displays on the scene.
+        The options given should be mesh config ready. */
+        if(scene == undefined) {
+            // Notice the 'undefined' - allowing 'null' as a property.
+            scene = this.discoverScene(config)
+        }
+
+        console.log('Build display object', config, scene)
+        let libFunc = this.adapterProcedure()[this.getAdapterName()]
+        let mesh = libFunc(name, config, scene)
+        return mesh
+    }
+
+    discoverScene(config){
+        /* Find the selected scene */
+
+        // Pull from force cache
+        if(this.scene != undefined) { return this.scene }
+        if(config == undefined) { config = this.getConfig() }
+
+        // given in initConfig?
+        if( config.scene != undefined ) {
+            return config.scene
+        }
+
+        if(config.app != undefined) {
+            /* Garden app instance - extract renderer*/
+            return config.app.getRenderer().scene
+        }
+
+        return Garden.getInstance().scene
+    }
+
+    defaultConfig(){
+        /* A Base configuration for any diosplay object. */
+        return {
+            /* Allow the caching of generated key paramter values
+            to ensure a DisplayObject generates its Mesh keys once as it's expensive.*/
+            bake: true
+        }
+    }
+
+    renderProps(config, meshConfig){
+        /* given a config iterate and update and key value with a function or
+        property within this instance
+         */
+        let propConfig = {}
+        console.log('Rendering props')
+        for(let name in config) {
+            let val = config[name]
+            if(this[name] != undefined) {
+                let iVal = this[name]
+                if(it(iVal).is('function')) {
+                    console.log('Found mapping function', name)
+                    iVal = this[name](iVal)
+                }
+
+                if(autoProperties[name] != undefined) {
+
+                    if(iVal == undefined ){
+                        iVal = autoProperties[name].getGetterFunction(this)()
+                    }
+                }
+
+                propConfig[name] = iVal
+            }
+        }
+
+        return propConfig
     }
 
     produceMeshKeys(config){
@@ -275,7 +407,7 @@ class NewDisplayObject {
     }
 
     keys(){
-        /* The DisplayObjecy keys map the internal option values to
+        /* The DisplayObject keys map the internal option values to
         the LIB Mesg display object for the scene. The configuration
         provides a like-for-like translation and some syntax sugar.
 
@@ -288,40 +420,7 @@ class NewDisplayObject {
 }
 
 
-class TestCube extends NewDisplayObject {
-
-    keys(){
-        /*
-            The DisplayObjecy keys map the internal option values to
-            the LIB Mesg display object for the scene. The configuration
-            provides a like-for-like translation and some syntax sugar.
-
-            The basic key set defines an array of strings.
-            Each item within the list may be a string or a definition object
-        */
-        return [
-            //size    (number) size of each box side  1
-            { key: 'size', required: true }
-            //height  (number) height size, overwrites size property  size
-            // mesh param, fallback values
-            , ['height', 'size']
-            //width   (number) width size, overwrites size property   size
-            , { key: 'width', fallback: 'size'}
-            //depth   (number) depth size, overwrites size property   size
-            , { key: 'depth', alt: 'length', fallback: 'size'}
-            //faceColors  (Color4[]) array of 6 Color4, one per box face  Color4(1, 1, 1, 1) for each side
-            , { key: 'faceColors', type: Array, alt: ['colors'] }
-            //faceUV  (Vector4[]) array of 6 Vector4, one per box face    UVs(0, 0, 1, 1) for each side
-            , 'faceUV'
-            //updatable   (boolean) true if the mesh is updatable false
-            , { key: 'updatable', type: Boolean, alt: ['allowUpdate', 'update'],  default: true}
-            //sideOrientation (number) side orientation   DEFAULTSIDE
-            , 'sideOrientation'
-        ]
-    }
-}
-
-class DisplayObject {
+class OldDisplayObject {
     /* base object for all visual elements. */
 
     constructor(config){
@@ -418,5 +517,67 @@ class DisplayObject {
         return this._instanceName || this.constructor.name;
     }
 
+}
+
+
+class _Shape extends DisplayObject {
+    /* A Basic shape for an entity in the view. */
+
+    adapterName() {
+        /* Return the name of the mesh object for the engine.*/
+        let n = super.adapterName();
+        return `Create${n}`;
+    }
+
+    adapterCallable(){
+        /* the callable unit to call with the extracted adaoterName
+        upon create.*/
+        return  LIB.MeshBuilder
+    }
+
+    executeAdatper(adapterCallable, name, ...args) {
+        return adapterCallable[name](...args);
+    }
+
+    babylonParams(scene, overrides) {
+        /* Return the configured options in order for this.babylonCall arguments
+        Returned is [name, options, scene] */
+        let name = this.generateName()
+            , options = this.generateOptions(overrides)
+            ;
+        return [name, options, scene]
+    }
+
+    _babylonParamsMissingKey(){
+        return [false, undefined]
+    }
+
+    dupe(name) {
+        name = name || this.id;
+        let i = new this.constructor
+        i._babylon = new LIB.InstancedMesh(simpleID(name), this._babylon);
+        /* return a new instance or _duplicate item_ instance*/
+        return i;
+    }
+
+    update(options) {
+        /* Call an update for an item flagged with option updateable=True.
+         A mesh with updated paramters mutates the currentl _bablyon item*/
+        let _options = Object.assign({ instance: this._babylon, null: true}, options);
+        let scene = this._app._scene;
+        let arr = this.babylonParams(
+            scene,
+            _options
+        );
+
+        //console.log(arr)
+        let mesh = this._babylon;
+        let pathArray = options.pathArray
+        //arr = [
+        //    null, pathArray, null, null, null, null, null, null, mesh
+        //];
+
+        this.adapterCallable()[this.adapterName()](scene, _options)
+    }
 }
 

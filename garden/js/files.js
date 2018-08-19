@@ -7,6 +7,7 @@ var assets = [
    //, 'js/vendors/acorn/acorn_loose.js'
    //, 'js/tools/parser/code-parser.js'
 
+   , 'js/app/AutoProperties.js'
    , 'js/app/DisplayObject.js'
 
    , 'js/app/base.js'

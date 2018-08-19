@@ -172,8 +172,8 @@ class GardenDoubleBasic extends Garden {
         let scenes = [this.$r.first.scene, this.$r.other.scene]
 
         // Add an item to each scene.
-        this.sphere = LIB.MeshBuilder.CreateSphere("sphere", {}, scenes[0]);
-        this.cube = LIB.MeshBuilder.CreateCube("cube", {}, scenes[1]);
+        //this.sphere = LIB.MeshBuilder.CreateSphere("sphere", {}, scenes[0]);
+        //this.cube = LIB.MeshBuilder.CreateCube("cube", {}, scenes[1]);
 
         this.addLights(scenes)
     }
