@@ -42,5 +42,5 @@ class SphereExample extends EmptyLitScene {
 }
 
 // # Execute
-var myApp = new SphereExample({ canvas: canvasNode })
+var myApp = new SphereExample({ element: canvasNode })
 myApp.run()

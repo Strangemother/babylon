@@ -204,7 +204,7 @@ class GardenSingleBasic extends Garden {
     config(){
         return {
             element: 'renderCanvas'
-            , name: 'dave'
+            //, name: 'dave'
             , size: [800, 600]
             , sceneColor: 'lightBlue'
         }
@@ -217,7 +217,7 @@ class GardenSingleBasic extends Garden {
         let pos = new LIB.Vector3(1, 1, 0)
         // Add an item to each scene.
         this.sphere = LIB.MeshBuilder.CreateSphere("sphere", {}, scene)
-        this.light = new LIB.HemisphericLight("light", pos, scene)
+        //this.light = new LIB.HemisphericLight("light", pos, scene)
     }
 }
 

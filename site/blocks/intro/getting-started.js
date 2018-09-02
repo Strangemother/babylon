@@ -1,31 +1,7 @@
-class SimpleBasicScene extends Garden {
-    start(){
-        this.cam = new FreeCamera({
-            activate: true
-            , position: asVector(0, 5, -10)
-            , target: asVector(0,0,0)
-        })
+let garden = new Garden({ element: canvasNode, sceneColor: 'lightBlue' })
 
-        this.light = new HemisphericLight({
-            position: asVector(0, 1, 0)
-            , intensity: 1
-        })
+let cube = new Cube({ color: 'green' })
+cube.addToScene()
 
-        this.sphere = new Sphere({
-            segments: 16
-            , diameter: 2
-            , color: 'green'
-            , position: asVector(0, 1, 0)
-        })
-
-        this.children.addMany(
-            this.cam
-            , this.light
-            , this.sphere
-        )
-    }
-}
-
-// # Execute
-var myApp = new SimpleBasicScene({ canvas: canvasNode })
-myApp.run()
+let light = new Light({ direction: asVector(1, 1, 3) })
+light.addToScene();

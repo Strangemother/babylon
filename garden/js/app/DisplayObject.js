@@ -177,7 +177,21 @@ class DisplayObject {
 
         console.log('Build display object', config, scene)
         let libFunc = this.adapterProcedure()[this.getAdapterName()]
-        let mesh = libFunc(name, config, scene)
+        return this.produceMesh(libFunc, name, config, scene)
+    }
+
+
+    produceMesh(libFunc, name, config, scene) {
+
+        autoProperties.hookProduceMesh(this, libFunc, name, config, scene)
+        let mesh
+        if(this.hookProduceMesh) {
+            mesh = this.hookProduceMesh(this, libFunc, name, config, scene)
+        } else {
+            mesh = new libFunc(name, config, scene)
+        }
+
+        autoProperties.hookMesh(this, mesh, config, scene)
         return mesh
     }
 
@@ -414,6 +428,7 @@ class DisplayObject {
         The basic key set defines an array of strings.
         Each item within the list may be a string or a definition object
         */
+       console.warn('No keys() function.')
        return []
     }
 
