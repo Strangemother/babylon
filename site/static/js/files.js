@@ -1,7 +1,41 @@
-let js = '../alpha/js'
+let js = '../garden/js'
 let v3 = `${js}-v3`
 
 var assets = [
+   // `${js}/vendors/lib.js`
+   `../garden/js/vendors/lib.js`
+   // `${js}/vendors/babylon.3-1.js`
+   , `${js}/vendors/it.js`
+
+   //, `${js}/vendors/acorn/acorn.js`
+   //, `${js}/vendors/acorn/acorn_loose.js`
+   //, `${js}/tools/parser/code-parser.js`
+
+   , `${js}/app/AutoProperties.js`
+   , `${js}/app/DisplayObject.js`
+
+   , `${js}/app/base.js`
+   , `${js}/app/RenderLoop.js`
+   , `${js}/app/RenderList.js`
+   , `${js}/app/EngineMount.js`
+   , `${js}/app/StartFunctionRender.js`
+   , `${js}/app/Garden.js`
+
+
+   , `${js}/core/adapter.js`
+   , `${js}/core/Register.js`
+
+   , `${js}/display/colors.js`
+   , `${js}/display/colors_extended.js`
+   , `${js}/display/shapes.js`
+   , `${js}/display/lights.js`
+
+   , `${js}/examples/core.js`
+
+
+];
+
+var xassets = [
    // Vendor require
    `${js}/babylon-2-5.custom.js`
    // `${js}/babylon.2-6-light.js`
