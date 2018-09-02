@@ -39,6 +39,8 @@ class AutoProperties {
 
     hook(instance, initConfig, scene) {
 
+
+
         instance._props = {}
         let properties = {}
         for (var i = 0; i < this.props.length; i++) {
