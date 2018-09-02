@@ -180,7 +180,6 @@ class DisplayObject {
         return this.produceMesh(libFunc, name, config, scene)
     }
 
-
     produceMesh(libFunc, name, config, scene) {
 
         autoProperties.hookProduceMesh(this, libFunc, name, config, scene)
@@ -430,6 +429,72 @@ class DisplayObject {
         */
        console.warn('No keys() function.')
        return []
+    }
+
+    destroy(entity) {
+        /* Destory one or more mesh instances, removing from the scene and
+        marking the factory instance as deletable.
+        if entity is undefined, the last internet mesh is deleted.
+        If the entity is a string, the mesh at internal index is deleted.
+        If instance is true - delete all meshes; flagging as 'destroy all'*/
+        let standardDelete = function(mesh){
+            // remove from list
+            this.$meshes.splice(this.$meshes.indexOf(mesh), 1)
+            // cycle last
+            this.$mesh = this.$meshes[this.$meshes.length-1]
+            // delete references
+            delete this.$m[mesh.name]
+            return true
+        }.bind(this)
+
+        if(entity === true) {
+            // delete all
+            for (var i = this.$meshes.length - 1; i >= 0; i--) {
+                this.$meshes[i].dispose()
+            }
+
+            this.$meshes = []
+            this.$m = {}
+            this.$mesh = undefined
+            return true
+        }
+
+        if(entity == undefined ) {
+            let mesh = this.$mesh
+
+
+            if(mesh) {
+                // delete mesh - cycle internal last mesh as current mesh.
+                mesh.dispose()
+                return standardDelete(mesh)
+            }
+
+            let ml = this.$meshes.length
+            if(ml > 0){
+                // Put last in place of current.
+                this.$mesh = this.$meshes[ml-1]
+                return true
+            }
+
+            return this.$mesh != mesh
+        }
+
+
+        // delete mesh instance of name.
+        if(typeof(entity) == 'string') {
+            let mesh = this.$m[entity]
+
+            if(mesh == undefined) {
+                console.warn(`No mesh of name "${entity}"`)
+                return false
+            }
+
+            if(mesh == this.$mesh) {
+                return standardDelete(mesh)
+            }
+        }
+
+        return false
     }
 
 }
