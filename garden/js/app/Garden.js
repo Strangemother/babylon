@@ -17,6 +17,12 @@ class App extends Sibling {
         constructor(){
             super()
             this.$on('mounted', this._mountEventHandler)
+            this.$on('Garden.constructor', this._gardenConstructorEventHandler)
+        }
+
+        _gardenConstructorEventHandler(event) {
+            let data = event.detail.data
+            Garden._applications[data.instance.id] = data.instance
         }
 
         _mountEventHandler(eventData){
@@ -38,15 +44,14 @@ class Garden extends Events {
     constructor(config){
 
         super()
-        console.log('Garden.constructor')
         this._pluginRegister = Garden._pluginRegister
         this.getRenderer = this._getRendererWithWarning
         // Store of 'name' for the chosen $renderer.
         this._selectedRenderer = undefined
         this.$renderers = undefined
+        this.sceneCameras = []
 
-        this.sceneCameras = [];
-
+        this.$emit('Garden.constructor', {instance: this, config})
         this._init(config)
         this.init(config)
     }
@@ -94,15 +99,11 @@ class Garden extends Events {
                         value = conf[key]
                     } else {
                         console.warn(`Key ${key} does not exist in the given config.`)
-
                     }
-
                     app[key] = value
                 }
-
                 defApp = app;
             }
-
             renderers = [defApp]
         }
 
@@ -136,10 +137,18 @@ class Garden extends Events {
         this.$r = $rNames
 
         for (var i = 0; i < started.length; i++) {
-            started[i].mount()
+            let mounted = started[i].mount()
+            if(mounted == false) {
+                console.error('Cannot mount app', i)
+            }
         }
 
         for (var i = 0; i < started.length; i++) {
+            if(started[i]._mounted != true) {
+                console.warn('Renderer', i, 'Did not mount. Skipping initialRig()')
+                continue
+            }
+
             this.initialRig(started[i])
         }
 
@@ -164,7 +173,7 @@ class Garden extends Events {
 
     _mountEventHandler(eventData){
         let data = eventData.detail.data
-        let name = data.parent.name
+        let name = data.parent ? data.parent.name: undefined
 
         if(name == undefined) {
             name = data.canvas.id
@@ -183,6 +192,8 @@ class Garden extends Events {
             //     , name: 'Garden'
             // }
             sceneCameraAttach: true
+            , id: Math.random().toString(32).slice(2)
+
         }
     }
 
@@ -206,7 +217,7 @@ class Garden extends Events {
         //     }
         // }
 
-        apps = [
+        let apps = [
             {
                 name: "app"
                 , element: 'renderCanvas'
@@ -226,7 +237,7 @@ class Garden extends Events {
             apps
         }
 
-        return conf;
+        return {}//conf
     }
 
     _createConfig(initConfig){
@@ -341,7 +352,6 @@ class Garden extends Events {
         This is not affected by config poison.*/
         let conf = this.config
         if(it(conf).is('function')) { conf = this.config() }
-
         return conf
     }
 
@@ -408,10 +418,9 @@ class Garden extends Events {
             console.error(`Could not automatically discover a scene: \n`
                     + 'scene;config.scene;app[last renderer]scene\n... do not exist.' )
         }
-
-
     }
 }
 
 Garden._instances = {}
+Garden._applications = {}
 Garden.staticInstatiate()

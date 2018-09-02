@@ -24,6 +24,7 @@ var assets = [
    , 'js/display/colors.js'
    , 'js/display/colors_extended.js'
    , 'js/display/shapes.js'
+   , 'js/display/lights.js'
 
    , 'js/examples/core.js'
 

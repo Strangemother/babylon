@@ -225,6 +225,7 @@ class RenderOutlineProperty extends QuickProperty {
     }
 }
 
+
 class EdgeRenderingProperty extends QuickProperty {
 
     static targetObjectAssignment(classInstance, gInstance) {

@@ -20,7 +20,7 @@ materials.blue = function(scene) {
 
 
 materials.standard = function(scene, name) {
-    scene = scene || Garden.getInstance().scene();
+    scene = scene || Garden.getInstance().scene;
     var m = new LIB.StandardMaterial(name, scene);
     return m;
 }
