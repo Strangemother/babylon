@@ -438,6 +438,7 @@ class DisplayObject {
         If the entity is a string, the mesh at internal index is deleted.
         If instance is true - delete all meshes; flagging as 'destroy all'*/
         let standardDelete = function(mesh){
+            mesh.dispose()
             // remove from list
             this.$meshes.splice(this.$meshes.indexOf(mesh), 1)
             // cycle last
@@ -465,7 +466,6 @@ class DisplayObject {
 
             if(mesh) {
                 // delete mesh - cycle internal last mesh as current mesh.
-                mesh.dispose()
                 return standardDelete(mesh)
             }
 
@@ -479,7 +479,6 @@ class DisplayObject {
             return this.$mesh != mesh
         }
 
-
         // delete mesh instance of name.
         if(typeof(entity) == 'string') {
             let mesh = this.$m[entity]
@@ -492,6 +491,22 @@ class DisplayObject {
             if(mesh == this.$mesh) {
                 return standardDelete(mesh)
             }
+        }
+
+        if(entity.dispose != undefined) {
+
+            // a disposable unit - such as a mesh
+            if(entity == this.$mesh) {
+                // cycle out of current.
+                return standardDelete(entity)
+            }
+
+            if(entity.name in this.$m) {
+                this.$meshes.splice(this.$meshes.indexOf(entity), 1)
+                delete this.$m
+            }
+            entity.dispose()
+            return true
         }
 
         return false
